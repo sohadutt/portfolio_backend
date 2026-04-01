@@ -4,7 +4,7 @@ from django.http import HttpResponse
 # Create your views here.
 def submitForm(request):
     if request.method == 'POST':
-        # Process the form data here
+        
         return HttpResponse('Form submitted successfully!')
     else:
         return HttpResponse('Invalid request method.')

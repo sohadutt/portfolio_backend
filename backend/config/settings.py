@@ -25,12 +25,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+allowed_hosts = {
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', '').split(',')
+    if host.strip()
+}
+
+if DEBUG:
+    # Keep local development working even if .env only lists one hostname.
+    allowed_hosts.update({'localhost', '127.0.0.1', '0.0.0.0'})
+
+ALLOWED_HOSTS = sorted(allowed_hosts)
 
 
 # Application definition
@@ -42,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'portfolio_form',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +65,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'portfolio.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -71,22 +82,32 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'portfolio.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "mydatabase",
-        "USER": "mydatabaseuser",
-        "PASSWORD": "mypassword",
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
+DB_ENGINE = os.getenv("DB_ENGINE", "postgresql").lower()
+
+if DB_ENGINE in {"sqlite", "sqlite3"}:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("PG_NAME", "postgres"),
+            "USER": os.getenv("PG_USER", "postgres"),
+            "PASSWORD": os.getenv("PG_PASSWORD", ""),
+            "HOST": os.getenv("PG_HOST", "localhost"),
+            "PORT": os.getenv("PG_PORT", "5432"),
+        }
+    }
 
 
 # Password validation
@@ -113,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'IST'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -124,3 +145,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
