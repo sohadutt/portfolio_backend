@@ -10,6 +10,7 @@ def generate_share_token():
     return secrets.token_urlsafe(24)
 
 
+# Kept for migration compatibility with older schema history.
 def generate_dashboard_token():
     return secrets.token_urlsafe(32)
 
@@ -25,12 +26,6 @@ class User(AbstractUser):
         default=generate_share_token,
         editable=False,
     )
-    dashboard_token = models.CharField(
-        max_length=80,
-        unique=True,
-        default=generate_dashboard_token,
-        editable=False,
-    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -38,7 +33,11 @@ class User(AbstractUser):
 
 
 class OwnedPortfolioModel(models.Model):
-    owner = models.ForeignKey(User,on_delete=models.CASCADE,related_name="%(class)ss",)
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="%(class)ss",
+    )
 
     class Meta:
         abstract = True
@@ -201,7 +200,9 @@ class PortfolioSettings(OwnedPortfolioModel):
             .filter(owner=self.owner)
             .exists()
         ):
-            raise ValidationError("Each owner can only have one portfolio settings record.")
+            raise ValidationError(
+                "Each owner can only have one portfolio settings record."
+            )
 
     def __str__(self):
         return f"{self.owner.username}'s Portfolio Settings"

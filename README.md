@@ -1,18 +1,17 @@
 # Portfolio Backend
 
-This project is a Django + Django REST Framework backend for a portfolio site with:
+Django + Django REST Framework backend for a portfolio site with:
 
 - user profile creation
 - JWT login
 - one portfolio per user
-- public form submission through a share link
-- private submission management for the portfolio owner
+- public portfolio reads
+- public form submission through a share token
+- private dashboard submission management through Bearer auth
 
 All API routes are mounted under `/api/`.
 
-## How It Works
-
-### Core idea
+## Core Model
 
 Each user has:
 
@@ -21,33 +20,15 @@ Each user has:
 - one share toggle: `enable_share_token`
 - one portfolio settings record
 
-The public share link uses the user's share token:
-
-```text
-/api/shares/<user_share_token>/submissions/
-```
-
-If `enable_share_token` is `false`, that shared link does not work.
-
-If `enable_share_token` is `true`, anyone can submit the public contact form through that link, and the submission is saved for:
-
-- the owner user
-- that owner's single portfolio
-
-### Ownership model
-
-The backend follows this rule:
+Important rule:
 
 - one user can have only one `PortfolioSettings`
 
-Portfolio-related models are owned by a user. The main ownership field is `owner`.
+The share token belongs to the `User`, not the portfolio. Public portfolio reads and public contact-form submissions both resolve through `User.share_token`.
 
-For form submissions:
+## Auth Model
 
-- `ContactFormSubmission.owner` is the user who receives the form
-- `ContactFormSubmission.portfolio` is the portfolio the submission belongs to
-
-### Auth model
+Dashboard access does not use any separate dashboard token.
 
 Protected endpoints use JWT Bearer authentication.
 
@@ -63,7 +44,50 @@ Use the access token like this:
 Authorization: Bearer <bearer_token>
 ```
 
-Refresh with the refresh token when needed.
+## Public Portfolio Behavior
+
+There are two public portfolio routes:
+
+- `GET /api/portfolio/`
+- `GET /api/portfolio/<share_token>/`
+
+Behavior:
+
+- `/api/portfolio/` returns the default public portfolio
+- by current backend rule, the default portfolio is user `id=1`
+- if user `id=1` does not exist, it falls back to the earliest user by `id`
+- `/api/portfolio/<share_token>/` returns the portfolio for that shared user
+- token-based portfolio reads only work when `enable_share_token=true`
+
+This matches frontend routes like:
+
+- `www.mysite.com/portfolio`
+- `www.mysite.com/portfolio/<share_token>`
+
+The frontend can map those routes to these backend endpoints:
+
+- `www.mysite.com/portfolio` -> `GET /api/portfolio/`
+- `www.mysite.com/portfolio/<share_token>` -> `GET /api/portfolio/<share_token>/`
+
+## Public Form Behavior
+
+The public contact form uses:
+
+```text
+POST /api/shares/<share_token>/submissions/
+```
+
+Behavior:
+
+- the backend finds the user by `share_token`
+- it requires `enable_share_token=true`
+- it resolves that user's single `PortfolioSettings`
+- it creates `ContactFormSubmission`
+- the submission is saved under:
+  - `owner = that user`
+  - `portfolio = that user's portfolio`
+
+If sharing is disabled, the endpoint returns `404`.
 
 ## Main Models
 
@@ -74,13 +98,12 @@ Custom auth user with:
 - `email`
 - `enable_share_token`
 - `share_token`
-- `dashboard_token`
 - `created_at`
 
 Important behavior:
 
 - `share_token` is generated automatically
-- `enable_share_token` controls whether the public share link works
+- `enable_share_token` controls whether public share-token routes work
 
 ### PortfolioSettings
 
@@ -89,7 +112,7 @@ This is the single portfolio configuration for one user.
 Important behavior:
 
 - each owner can only have one `PortfolioSettings`
-- it does not store its own share token anymore
+- it does not store its own share token
 - `PortfolioSettings.share_token` is derived from `owner.share_token`
 
 ### ContactFormSubmission
@@ -115,9 +138,24 @@ Important behavior:
 - submissions can be reordered
 - reorder is stored per owner
 
-## Request Rules
+### Ordered portfolio content models
 
-### Content type
+These models are owner-scoped and ordered:
+
+- `HeroMetric`
+- `SkillGroup`
+- `Project`
+- `Experience`
+- `ShowcaseCategory`
+- `FeaturedModule`
+- `Link`
+
+They all inherit:
+
+- `owner`
+- `order`
+
+## Request Rules
 
 Write endpoints expect JSON:
 
@@ -125,11 +163,7 @@ Write endpoints expect JSON:
 Content-Type: application/json
 ```
 
-Do not use form-data for normal API writes.
-
-### JSON example
-
-Correct:
+Example:
 
 ```json
 {
@@ -138,174 +172,7 @@ Correct:
 }
 ```
 
-Incorrect in Postman/raw JSON:
-
-```python
-{
-    "email": self.user.email,
-    "password": "testpass123",
-}
-```
-
-That is valid Python in tests, but not valid raw JSON.
-
-## Full Flow
-
-### 1. Create account
-
-Create a user profile first.
-
-Endpoint:
-
-`POST /api/profiles/`
-
-Request:
-
-```json
-{
-  "email": "alice@example.com",
-  "password": "testpass123"
-}
-```
-
-Response:
-
-```json
-{
-  "message": "Profile created successfully",
-  "data": {
-    "user_id": 1,
-    "email": "alice@example.com",
-    "username": "alice",
-    "enable_share_token": false,
-    "share_token": "generated-user-share-token"
-  }
-}
-```
-
-Notes:
-
-- `username` is generated from the email
-- `enable_share_token` starts as `false`
-- the user gets a `share_token` immediately, but the public link should be considered inactive until sharing is enabled
-
-### 2. Log in
-
-Endpoint:
-
-`POST /api/auth/login/`
-
-Request:
-
-```json
-{
-  "email": "alice@example.com",
-  "password": "testpass123"
-}
-```
-
-Response:
-
-```json
-{
-  "message": "Login successful",
-  "data": {
-    "user_id": 1,
-    "email": "alice@example.com",
-    "username": "alice",
-    "enable_share_token": true,
-    "share_token": "generated-user-share-token",
-    "temporary_token": "jwt-refresh-token",
-    "bearer_token": "jwt-access-token",
-    "token_type": "Bearer"
-  }
-}
-```
-
-### 3. Read the user's share configuration
-
-Endpoint:
-
-`GET /api/profile/tokens/`
-
-Auth required: yes
-
-Header:
-
-```http
-Authorization: Bearer <bearer_token>
-```
-
-Response:
-
-```json
-{
-  "enable_share_token": true,
-  "share_token": "generated-user-share-token"
-}
-```
-
-This endpoint tells the frontend:
-
-- what the public share token is
-- whether that share token should currently be usable
-
-### 4. Public visitor submits the form
-
-Endpoint:
-
-`POST /api/shares/<user_share_token>/submissions/`
-
-Auth required: no
-
-Request:
-
-```json
-{
-  "name": "Visitor",
-  "email": "visitor@example.com",
-  "phone": "1234567890",
-  "message": "Hello Alice",
-  "for_work": true,
-  "priority": 1
-}
-```
-
-What happens internally:
-
-1. the backend finds the user by `share_token`
-2. it checks `enable_share_token=True`
-3. it finds that user's single `PortfolioSettings`
-4. it creates `ContactFormSubmission`
-5. the submission is saved under:
-   - `owner = that user`
-   - `portfolio = that user's portfolio`
-
-If sharing is disabled, the endpoint returns `404`.
-
-Example success response:
-
-```json
-{
-  "message": "Form submitted successfully",
-  "data": {
-    "id": 1,
-    "display_index": 1,
-    "owner": "alice",
-    "owner_user_id": 1,
-    "portfolio_id": 1,
-    "name": "Visitor",
-    "email": "visitor@example.com",
-    "phone": "1234567890",
-    "message": "Hello Alice",
-    "for_work": true,
-    "priority": 1,
-    "priority_label": "Medium",
-    "is_dismissed": false,
-    "submitted_at": "2026-04-03T10:00:00+05:30"
-  }
-}
-```
+Do not send Python-style payloads in raw JSON.
 
 ## API Reference
 
@@ -338,6 +205,21 @@ Request:
 }
 ```
 
+Response:
+
+```json
+{
+  "message": "Profile created successfully",
+  "data": {
+    "user_id": 1,
+    "email": "alice@example.com",
+    "username": "alice",
+    "enable_share_token": false,
+    "share_token": "generated-user-share-token"
+  }
+}
+```
+
 Validation:
 
 - `email` must be unique
@@ -358,13 +240,21 @@ Request:
 }
 ```
 
-Typical invalid credentials response:
+Response:
 
 ```json
 {
-  "non_field_errors": [
-    "Invalid email or password"
-  ]
+  "message": "Login successful",
+  "data": {
+    "user_id": 1,
+    "email": "alice@example.com",
+    "username": "alice",
+    "enable_share_token": true,
+    "share_token": "generated-user-share-token",
+    "temporary_token": "jwt-refresh-token",
+    "bearer_token": "jwt-access-token",
+    "token_type": "Bearer"
+  }
 }
 ```
 
@@ -382,19 +272,11 @@ Request:
 }
 ```
 
-Response:
-
-```json
-{
-  "access": "new-access-token"
-}
-```
-
 ### 5. Logout
 
 `POST /api/auth/logout/`
 
-Auth required: no bearer token header is required by the built-in endpoint, but you must send the refresh token to blacklist it.
+Send the refresh token to blacklist it.
 
 Request:
 
@@ -404,11 +286,78 @@ Request:
 }
 ```
 
-### 6. Get share status and token
+### 6. Get public default portfolio
+
+`GET /api/portfolio/`
+
+Auth required: no
+
+Response shape is frontend-oriented and includes:
+
+- `personalInfo`
+- `navigationLinks`
+- `heroContent`
+- `heroMetrics`
+- `aboutContent`
+- `skillGroups`
+- `projects`
+- `experience`
+- `showcaseCategories`
+- `featuredModules`
+- `contactMethods`
+- `footerLinks`
+- `statusPills`
+
+Example:
+
+```json
+{
+  "personalInfo": {
+    "name": "Soham Dutta",
+    "shortName": "SD",
+    "title": "Full-stack Developer",
+    "subtitle": "JavaScript, Python, Django, React",
+    "location": "India",
+    "email": "sohadutt@outlook.com",
+    "github": "https://github.com/sohadutt",
+    "linkedin": "https://linkedin.com/in/sohadutt"
+  },
+  "navigationLinks": [
+    { "label": "About", "href": "#about" }
+  ],
+  "heroContent": {
+    "eyebrow": "Soham Dutta",
+    "title": "Backend-focused full-stack developer building reliable systems and polished frontend experiences.",
+    "description": "I work across Django, Python automation, PostgreSQL, REST APIs, React, and Tailwind CSS."
+  }
+}
+```
+
+### 7. Get shared public portfolio
+
+`GET /api/portfolio/<share_token>/`
+
+Auth required: no
+
+Rules:
+
+- finds the user by `share_token`
+- requires `enable_share_token=true`
+- returns that user's frontend-ready portfolio JSON
+
+If the token is invalid or disabled, returns `404`.
+
+### 8. Get share status and token
 
 `GET /api/profile/tokens/`
 
 Auth required: yes
+
+Header:
+
+```http
+Authorization: Bearer <bearer_token>
+```
 
 Response:
 
@@ -419,9 +368,9 @@ Response:
 }
 ```
 
-### 7. Submit public form
+### 9. Submit public form
 
-`POST /api/shares/<user_share_token>/submissions/`
+`POST /api/shares/<share_token>/submissions/`
 
 Auth required: no
 
@@ -438,15 +387,6 @@ Request:
 }
 ```
 
-Fields:
-
-- `name`: required
-- `email`: required
-- `phone`: optional
-- `message`: required
-- `for_work`: optional boolean
-- `priority`: optional integer
-
 Priority values:
 
 - `0` = Low
@@ -454,40 +394,43 @@ Priority values:
 - `2` = High
 - `3` = Urgent
 
-### 8. List submissions
+Example success response:
+
+```json
+{
+  "message": "Form submitted successfully",
+  "data": {
+    "id": 1,
+    "display_index": 1,
+    "owner": "alice",
+    "owner_user_id": 1,
+    "portfolio_id": 1,
+    "name": "Visitor",
+    "email": "visitor@example.com",
+    "phone": "1234567890",
+    "message": "Hello Alice",
+    "for_work": true,
+    "priority": 1,
+    "priority_label": "Medium",
+    "is_dismissed": false,
+    "submitted_at": "2026-04-03T10:00:00+05:30"
+  }
+}
+```
+
+### 10. List dashboard submissions
 
 `GET /api/submissions/`
 
 Auth required: yes
 
-Response:
+Header:
 
-```json
-{
-  "owner": "alice",
-  "owner_user_id": 1,
-  "submissions": [
-    {
-      "id": 1,
-      "display_index": 1,
-      "owner": "alice",
-      "owner_user_id": 1,
-      "portfolio_id": 1,
-      "name": "Visitor",
-      "email": "visitor@example.com",
-      "phone": "1234567890",
-      "message": "Hello Alice",
-      "for_work": true,
-      "priority": 1,
-      "priority_label": "Medium",
-      "is_dismissed": false,
-      "submitted_at": "2026-04-03T10:00:00+05:30"
-    }
-  ]
-}
+```http
+Authorization: Bearer <bearer_token>
 ```
 
-### 9. Update one submission
+### 11. Update one dashboard submission
 
 `PATCH /api/submissions/<form_id>/`
 
@@ -507,13 +450,7 @@ Request can be partial:
 }
 ```
 
-Updatable fields:
-
-- `is_dismissed`
-- `priority`
-- `display_index`
-
-### 10. Reorder all submissions
+### 12. Reorder dashboard submissions
 
 `POST /api/submissions/reorder/`
 
@@ -532,103 +469,7 @@ Rules:
 - `order` must be a list of submission ids
 - it must include each of the owner's current submissions exactly once
 
-Response:
-
-```json
-{
-  "message": "Submissions reordered successfully",
-  "submissions": [
-    {
-      "id": 3,
-      "display_index": 1,
-      "owner": "alice",
-      "owner_user_id": 1,
-      "portfolio_id": 1,
-      "name": "Visitor 3",
-      "email": "visitor3@example.com",
-      "phone": null,
-      "message": "Hello",
-      "for_work": false,
-      "priority": 0,
-      "priority_label": "Low",
-      "is_dismissed": false,
-      "submitted_at": "2026-04-03T10:00:00+05:30"
-    }
-  ]
-}
-```
-
-## Share Link Rules
-
-This is the most important business rule in the app.
-
-### Public share URL
-
-The app uses the user's share token:
-
-```text
-/api/shares/<user_share_token>/submissions/
-```
-
-### Share link works only when enabled
-
-The link works only if:
-
-- the user exists
-- the token matches `User.share_token`
-- `User.enable_share_token == true`
-
-If sharing is off, the backend behaves like the link does not exist.
-
-### Portfolio token behavior
-
-There is no separate stored portfolio share token.
-
-Instead:
-
-- the user owns the share token
-- the portfolio inherits that token conceptually
-- the form is always submitted to the owner of that shared link
-
-Because one user can only have one portfolio, the backend can safely attach the submission to that user's portfolio.
-
-## Ordered Portfolio Models
-
-Several content models are owner-scoped and ordered:
-
-- `HeroMetric`
-- `SkillGroup`
-- `Project`
-- `Experience`
-- `ShowcaseCategory`
-- `FeaturedModule`
-- `Link`
-
-They all inherit:
-
-- `owner`
-- `order`
-
-This makes them user-specific and sortable for portfolio rendering.
-
 ## Common Errors
-
-### Invalid JSON
-
-Example:
-
-```json
-{
-  "detail": "JSON parse error - Expecting value: line 2 column 30 (char 31)"
-}
-```
-
-Usually caused by:
-
-- invalid raw JSON
-- using Python expressions in Postman
-- missing quotes
-- trailing commas
 
 ### Missing auth
 
@@ -640,42 +481,39 @@ Example:
 }
 ```
 
-### Share link disabled or not found
+### Invalid JSON
+
+Example:
+
+```json
+{
+  "detail": "JSON parse error - Expecting value: line 2 column 30 (char 31)"
+}
+```
+
+### Share token disabled or not found
 
 Current behavior:
 
 - returns `404`
 
-This is intentional so disabled share links do not reveal whether a token belongs to a real user.
-
-## Development Notes
-
-- The backend uses a custom `User` model
-- Protected routes use JWT auth from SimpleJWT
-- Write endpoints are JSON-only
-- Submission ordering is stored with `display_index`
-- One owner can have only one `PortfolioSettings`
+This is intentional so disabled public share links do not reveal whether a token belongs to a real user.
 
 ## Recommended Frontend Usage
 
-### For the owner dashboard
+### Owner dashboard
 
-1. create profile
-2. log in
-3. store `bearer_token`
-4. call `/api/profile/tokens/`
-5. show:
-   - `share_token`
-   - `enable_share_token`
-6. call `/api/submissions/` to manage incoming forms
+1. Create profile.
+2. Log in.
+3. Store `bearer_token`.
+4. Call `GET /api/profile/tokens/`.
+5. Call `GET /api/submissions/`.
+6. Update and reorder submissions with Bearer auth.
 
-### For the public portfolio site
+### Public portfolio
 
-1. build the shared form URL using the user's `share_token`
-2. submit to:
-
-```text
-/api/shares/<user_share_token>/submissions/
-```
-
-3. if the share link is disabled, expect `404`
+1. For the default page, call `GET /api/portfolio/`.
+2. For a shared page, call `GET /api/portfolio/<share_token>/`.
+3. Render the returned JSON directly into the frontend sections.
+4. Submit the contact form to `POST /api/shares/<share_token>/submissions/`.
+5. If the token is disabled, expect `404`.

@@ -1,8 +1,19 @@
-from django.contrib.auth import get_user_model
-from django.test import TestCase
 import json
 
-from .models import ContactFormSubmission, PortfolioSettings
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+
+from .models import (
+    ContactFormSubmission,
+    Experience,
+    FeaturedModule,
+    HeroMetric,
+    Link,
+    PortfolioSettings,
+    Project,
+    ShowcaseCategory,
+    SkillGroup,
+)
 
 
 User = get_user_model()
@@ -397,3 +408,160 @@ class SubmitFormTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["enable_share_token"])
         self.assertEqual(response.json()["share_token"], self.user.share_token)
+
+
+class PublicPortfolioTests(TestCase):
+    def setUp(self):
+        self.default_user = User.objects.create_user(
+            id=1,
+            username="soham",
+            email="soham@example.com",
+            password="testpass123",
+            enable_share_token=True,
+        )
+        self.shared_user = User.objects.create_user(
+            username="alice",
+            email="alice@example.com",
+            password="testpass123",
+            enable_share_token=True,
+        )
+
+        self.create_portfolio_fixture(self.default_user, "Soham Dutta", "SD")
+        self.create_portfolio_fixture(self.shared_user, "Alice Doe", "AD")
+
+    def create_portfolio_fixture(self, user, name, short_name):
+        PortfolioSettings.objects.create(
+            owner=user,
+            name=name,
+            short_name=short_name,
+            title="Full-stack Developer",
+            subtitle="JavaScript, Python, Django, React",
+            location="India",
+            email=user.email,
+            github=f"https://github.com/{user.username}",
+            linkedin=f"https://linkedin.com/in/{user.username}",
+            hero_eyebrow=name,
+            hero_title=f"{name} builds reliable systems.",
+            hero_description=f"{name} works across backend and frontend.",
+            about_title="About",
+            about_description=f"This is {name}'s portfolio.",
+        )
+        HeroMetric.objects.create(owner=user, order=1, value="2024", label="Started")
+        SkillGroup.objects.create(
+            owner=user,
+            order=1,
+            title="Backend & APIs",
+            description="Backend work",
+            items=["Python", "Django"],
+        )
+        Project.objects.create(
+            owner=user,
+            order=1,
+            title="Portfolio API",
+            eyebrow="Backend",
+            description="Public portfolio endpoint",
+            stack=["Django", "REST API"],
+            stat="Live",
+        )
+        Experience.objects.create(
+            owner=user,
+            order=1,
+            period="2024 - Present",
+            title="Developer",
+            company="Example Co",
+            relation="automation",
+            summary="Builds systems",
+            highlights=["Shipped APIs"],
+            related_components=["Table", "Toast"],
+        )
+        ShowcaseCategory.objects.create(
+            owner=user,
+            order=1,
+            title="Display & Feedback",
+            icon_name="Sparkles",
+            relation="workflow",
+            preview="Preview text",
+            items=["Alert", "Badge"],
+        )
+        FeaturedModule.objects.create(
+            owner=user,
+            order=1,
+            title="Config automation",
+            icon_name="Database",
+            relation="automation",
+            body="Backend automation work",
+            details="More detail",
+        )
+        Link.objects.create(
+            owner=user,
+            order=1,
+            type=Link.LinkType.NAV,
+            label="About",
+            href="#about",
+        )
+        Link.objects.create(
+            owner=user,
+            order=1,
+            type=Link.LinkType.FOOTER,
+            label="GitHub",
+            href=f"https://github.com/{user.username}",
+        )
+        Link.objects.create(
+            owner=user,
+            order=1,
+            type=Link.LinkType.CONTACT,
+            label="Email",
+            value=user.email,
+            href=f"mailto:{user.email}",
+            icon_name="Mail",
+        )
+        Link.objects.create(
+            owner=user,
+            order=1,
+            type=Link.LinkType.STATUS,
+            label="Backend and config automation",
+            icon_name="ArrowUpRight",
+        )
+
+    def test_portfolio_without_token_returns_default_user_portfolio(self):
+        response = self.client.get("/api/portfolio/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["personalInfo"]["name"], "Soham Dutta")
+        self.assertEqual(response.json()["personalInfo"]["shortName"], "SD")
+
+    def test_portfolio_with_share_token_returns_shared_user_portfolio(self):
+        response = self.client.get(f"/api/portfolio/{self.shared_user.share_token}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["personalInfo"]["name"], "Alice Doe")
+        self.assertEqual(response.json()["personalInfo"]["shortName"], "AD")
+
+    def test_portfolio_response_matches_frontend_shape(self):
+        response = self.client.get("/api/portfolio/")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("personalInfo", data)
+        self.assertIn("navigationLinks", data)
+        self.assertIn("heroContent", data)
+        self.assertIn("heroMetrics", data)
+        self.assertIn("aboutContent", data)
+        self.assertIn("skillGroups", data)
+        self.assertIn("projects", data)
+        self.assertIn("experience", data)
+        self.assertIn("showcaseCategories", data)
+        self.assertIn("featuredModules", data)
+        self.assertIn("contactMethods", data)
+        self.assertIn("footerLinks", data)
+        self.assertIn("statusPills", data)
+        self.assertEqual(data["navigationLinks"][0], {"label": "About", "href": "#about"})
+        self.assertEqual(data["contactMethods"][0]["icon"], "Mail")
+        self.assertEqual(data["showcaseCategories"][0]["icon"], "Sparkles")
+        self.assertEqual(data["featuredModules"][0]["icon"], "Database")
+        self.assertEqual(data["experience"][0]["relatedComponents"], ["Table", "Toast"])
+
+    def test_portfolio_with_invalid_share_token_returns_404(self):
+        response = self.client.get("/api/portfolio/invalid-token/")
+
+        self.assertEqual(response.status_code, 404)
