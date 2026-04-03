@@ -16,9 +16,15 @@ def generate_dashboard_token():
 
 
 class User(AbstractUser):
+    class Tier(models.IntegerChoices):
+        FREE = 0, "Free"
+        PRO = 1, "Pro"
+        PREMIUM = 2, "Premium"
+
     objects = UserManager()
 
     email = models.EmailField(unique=True)
+    tier = models.IntegerField(choices=Tier.choices, default=Tier.FREE)
     enable_share_token = models.BooleanField(default=False)
     share_token = models.CharField(
         max_length=64,
@@ -27,6 +33,14 @@ class User(AbstractUser):
         editable=False,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def is_free_tier(self):
+        return self.tier == self.Tier.FREE
+
+    @property
+    def su_tier(self):
+        return self.is_superuser or not self.is_free_tier
 
     def __str__(self):
         return self.username
@@ -233,6 +247,11 @@ class Project(OrderedPortfolioModel):
 
 
 class Experience(OrderedPortfolioModel):
+    MAX_FREE_TIER_EXPERIENCES = 3
+    FREE_TIER_LIMIT_MESSAGE = (
+        f"Free tier users can only add up to {MAX_FREE_TIER_EXPERIENCES} experiences."
+    )
+
     period = models.CharField(max_length=100)
     title = models.CharField(max_length=200)
     company = models.CharField(max_length=200)
@@ -240,6 +259,22 @@ class Experience(OrderedPortfolioModel):
     summary = models.TextField()
     highlights = models.JSONField(default=list)
     related_components = models.JSONField(default=list)
+
+    def clean(self):
+        super().clean()
+
+        if not self.owner_id or self.owner.su_tier:
+            return
+
+        existing_count = Experience.objects.filter(owner=self.owner).exclude(
+            pk=self.pk
+        ).count()
+        if existing_count >= self.MAX_FREE_TIER_EXPERIENCES:
+            raise ValidationError(self.FREE_TIER_LIMIT_MESSAGE)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class ShowcaseCategory(OrderedPortfolioModel):

@@ -429,7 +429,10 @@ def get_shared_public_portfolio(request, share_token):
 @parser_classes([JSONParser])
 @permission_classes([IsAuthenticated])
 def submit_portfolio(request):
-    serializer = PortfolioSubmissionSerializer(data=request.data)
+    serializer = PortfolioSubmissionSerializer(
+        data=request.data,
+        context={"owner": request.user},
+    )
     serializer.is_valid(raise_exception=True)
     serializer.save(owner=request.user)
     return Response(
@@ -448,9 +451,14 @@ def update_portfolio(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    serializer = PortfolioSubmissionSerializer(portfolio, data=request.data, partial=True)
+    serializer = PortfolioSubmissionSerializer(
+        portfolio,
+        data=request.data,
+        partial=True,
+        context={"owner": request.user},
+    )
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    serializer.save(owner=request.user)
     return Response(
         {"message": "Portfolio updated successfully", "data": serialize_public_portfolio(request.user)},
         status=status.HTTP_200_OK,

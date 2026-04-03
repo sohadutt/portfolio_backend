@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import ContactFormSubmission, PortfolioSettings, User
+from .models import ContactFormSubmission, PortfolioSettings, User, Link
 
 
 @admin.register(User)
@@ -10,6 +10,7 @@ class UserAdmin(DjangoUserAdmin):
         "id",
         "username",
         "email",
+        "tier",
         "enable_share_token",
         "share_token",
         "is_staff",
@@ -18,7 +19,7 @@ class UserAdmin(DjangoUserAdmin):
     search_fields = ("username", "email", "share_token")
     readonly_fields = ("share_token", "created_at")
     fieldsets = DjangoUserAdmin.fieldsets + (
-        ("Portfolio", {"fields": ("enable_share_token", "share_token", "created_at")}),
+        ("Portfolio", {"fields": ("tier", "enable_share_token", "share_token", "created_at")}),
     )
     add_fieldsets = DjangoUserAdmin.add_fieldsets
 
@@ -35,3 +36,8 @@ class ContactFormSubmissionAdmin(admin.ModelAdmin):
 class PortfolioSettingsAdmin(admin.ModelAdmin):
     list_display = ("id", "owner", "name", "title", "email")
     search_fields = ("owner__username", "owner__email", "name", "title", "email")
+
+@admin.register(Link)
+class LinkAdmin(admin.ModelAdmin):
+    list_display = ("id", "owner", "type", "label", "href")
+    search_fields = ("owner__username", "owner__email", "label", "href", "value")

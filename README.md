@@ -2,35 +2,103 @@
 
 Django + Django REST Framework backend for a portfolio site with:
 
-- user profile creation
-- JWT login
+- email-based profile creation
+- JWT login with refresh + access tokens
 - one portfolio per user
 - public portfolio reads
-- public form submission through a share token
-- private dashboard submission management through Bearer auth
+- public contact submissions for the default portfolio and shared portfolios
+- authenticated dashboard access for submission management
 
 All API routes are mounted under `/api/`.
 
-## Core Model
+## Stack
 
-Each user has:
+- Python `>=3.14`
+- Django `6.0.3`
+- Django REST Framework
+- `djangorestframework-simplejwt`
+- PostgreSQL
 
-- one account
-- one share token
-- one share toggle: `enable_share_token`
-- one portfolio record
+## Data Model
 
-Important rule:
+### User
 
-- one user can have only one `PortfolioSettings`
+Custom auth user fields used by this project:
 
-The share token belongs to the `User`, not the portfolio. Public portfolio reads and public contact-form submissions both resolve through `User.share_token`.
+- `email` is unique
+- `username` is generated from the email prefix on signup
+- `enable_share_token` gates token-based public routes
+- `share_token` is auto-generated and unique
+
+### PortfolioSettings
+
+Each user can have exactly one portfolio record.
+
+`PortfolioSettings.share_token` is derived from `owner.share_token`; the portfolio model does not store a separate token.
+
+### Ordered portfolio content
+
+These models are owner-scoped and ordered:
+
+- `HeroMetric`
+- `SkillGroup`
+- `Project`
+- `Experience`
+- `ShowcaseCategory`
+- `FeaturedModule`
+- `Link`
+
+`Link.type` is one of:
+
+- `NAV`
+- `FOOTER`
+- `CONTACT`
+- `STATUS`
+
+### ContactFormSubmission
+
+Public submissions are stored with:
+
+- `owner`
+- `portfolio` (nullable)
+- `display_index`
+- `priority`
+- `is_dismissed`
+- request IP when available
+
+`display_index` auto-increments per owner and can be reordered later from the dashboard.
+
+## Public Routing Rules
+
+### Default public portfolio
+
+`GET /api/portfolio/`
+
+The backend resolves the default owner like this:
+
+1. User with `id=1`, if present
+2. Otherwise the earliest user by `id`
+
+If no users exist, the endpoint returns `404`.
+
+### Shared public portfolio
+
+`GET /api/portfolio/<share_token>/`
+
+This only works when the target user exists and `enable_share_token=true`. Otherwise it returns `404`.
+
+### Public contact form
+
+There are two public submission endpoints:
+
+- `POST /api/form_submit/` submits to the default public portfolio owner
+- `POST /api/shares/<share_token>/submissions/` submits to the shared owner resolved by token
+
+For token-based submissions, the backend also requires `enable_share_token=true`.
 
 ## Auth Model
 
-Dashboard access does not use any separate dashboard token.
-
-Protected endpoints use JWT Bearer authentication.
+Protected routes use JWT Bearer auth.
 
 Login returns:
 
@@ -44,116 +112,35 @@ Use the access token like this:
 Authorization: Bearer <bearer_token>
 ```
 
-## Public Portfolio Behavior
+## Local Setup
 
-There are two public portfolio routes:
+1. Create and activate a virtual environment.
+2. Install dependencies.
+3. Configure PostgreSQL environment variables.
+4. Run migrations.
+5. Start the server.
 
-- `GET /api/portfolio/`
-- `GET /api/portfolio/<share_token>/`
+Example:
 
-Behavior:
-
-- `/api/portfolio/` returns the default public portfolio
-- by current backend rule, the default portfolio is user `id=1`
-- if user `id=1` does not exist, it falls back to the earliest user by `id`
-- `/api/portfolio/<share_token>/` returns the portfolio for that shared user
-- token-based portfolio reads only work when `enable_share_token=true`
-
-This matches frontend routes like:
-
-- `www.mysite.com/portfolio`
-- `www.mysite.com/portfolio/<share_token>`
-
-The frontend can map those routes to these backend endpoints:
-
-- `www.mysite.com/portfolio` -> `GET /api/portfolio/`
-- `www.mysite.com/portfolio/<share_token>` -> `GET /api/portfolio/<share_token>/`
-
-## Public Form Behavior
-
-The public contact form uses:
-
-```text
-POST /api/shares/<share_token>/submissions/
+```bash
+pip install -e .
+cd backend
+python manage.py migrate
+python manage.py runserver
 ```
 
-Behavior:
+Environment variables used by `backend/config/settings.py`:
 
-- the backend finds the user by `share_token`
-- it requires `enable_share_token=true`
-- it resolves that user's single `PortfolioSettings`
-- it creates `ContactFormSubmission`
-- the submission is saved under:
-  - `owner = that user`
-  - `portfolio = that user's portfolio`
+- `SECRET_KEY`
+- `DEBUG`
+- `ALLOWED_HOSTS`
+- `PG_NAME`
+- `PG_USER`
+- `PG_PASSWORD`
+- `PG_HOST`
+- `PG_PORT`
 
-If sharing is disabled, the endpoint returns `404`.
-
-## Main Models
-
-### User
-
-Custom auth user with:
-
-- `email`
-- `enable_share_token`
-- `share_token`
-- `created_at`
-
-Important behavior:
-
-- `share_token` is generated automatically
-- `enable_share_token` controls whether public share-token routes work
-
-### PortfolioSettings
-
-This is the single portfolio configuration for one user.
-
-Important behavior:
-
-- each owner can only have one `PortfolioSettings`
-- it does not store its own share token
-- `PortfolioSettings.share_token` is derived from `owner.share_token`
-
-### ContactFormSubmission
-
-Stores form submissions coming from the public share link.
-
-Important fields:
-
-- `owner`
-- `portfolio`
-- `name`
-- `email`
-- `phone`
-- `message`
-- `for_work`
-- `priority`
-- `is_dismissed`
-- `display_index`
-
-Important behavior:
-
-- `display_index` auto-increments per owner
-- submissions can be reordered
-- reorder is stored per owner
-
-### Ordered portfolio content models
-
-These models are owner-scoped and ordered:
-
-- `HeroMetric`
-- `SkillGroup`
-- `Project`
-- `Experience`
-- `ShowcaseCategory`
-- `FeaturedModule`
-- `Link`
-
-They all inherit:
-
-- `owner`
-- `order`
+Defaults are development-oriented, but the database engine is PostgreSQL, so a reachable Postgres instance is still required unless you change settings.
 
 ## Request Rules
 
@@ -172,11 +159,9 @@ Example:
 }
 ```
 
-Do not send Python-style payloads in raw JSON.
-
 ## API Reference
 
-### 1. CSRF
+### 1. CSRF cookie
 
 `GET /api/csrf/`
 
@@ -223,7 +208,7 @@ Response:
 Validation:
 
 - `email` must be unique
-- `password` minimum length is 8
+- `password` minimum length is `8`
 
 ### 3. Login
 
@@ -276,7 +261,7 @@ Request:
 
 `POST /api/auth/logout/`
 
-Send the refresh token to blacklist it.
+Auth required: no
 
 Request:
 
@@ -313,22 +298,22 @@ Example:
 ```json
 {
   "personalInfo": {
-    "name": "Soham Dutta",
-    "shortName": "SD",
-    "title": "Full-stack Developer",
-    "subtitle": "JavaScript, Python, Django, React",
-    "location": "India",
-    "email": "sohadutt@outlook.com",
-    "github": "https://github.com/sohadutt",
-    "linkedin": "https://linkedin.com/in/sohadutt"
+    "name": "Alice Doe",
+    "shortName": "AD",
+    "title": "Full Stack Developer",
+    "subtitle": "Building reliable products",
+    "location": "Kolkata, India",
+    "email": "alice@example.com",
+    "github": "https://github.com/alice",
+    "linkedin": "https://linkedin.com/in/alice"
   },
   "navigationLinks": [
     { "label": "About", "href": "#about" }
   ],
   "heroContent": {
-    "eyebrow": "Soham Dutta",
-    "title": "Backend-focused full-stack developer building reliable systems and polished frontend experiences.",
-    "description": "I work across Django, Python automation, PostgreSQL, REST APIs, React, and Tailwind CSS."
+    "eyebrow": "Available for work",
+    "title": "I build products end to end.",
+    "description": "Focused on thoughtful UX and maintainable systems."
   }
 }
 ```
@@ -339,17 +324,11 @@ Example:
 
 Auth required: no
 
-Rules:
-
-- finds the user by `share_token`
-- requires `enable_share_token=true`
-- returns that user's frontend-ready portfolio JSON
-
 If the token is invalid or disabled, returns `404`.
 
-### 8. Get share status and token
+### 8. Create or replace authenticated portfolio
 
-`GET /api/profile/tokens/`
+`POST /api/portfolio/submit/`
 
 Auth required: yes
 
@@ -358,6 +337,119 @@ Header:
 ```http
 Authorization: Bearer <bearer_token>
 ```
+
+Request body:
+
+```json
+{
+  "personalInfo": {
+    "name": "Alice Doe",
+    "shortName": "AD",
+    "title": "Full Stack Developer",
+    "subtitle": "Building reliable products",
+    "location": "Kolkata, India",
+    "email": "alice@example.com",
+    "github": "https://github.com/alice",
+    "linkedin": "https://linkedin.com/in/alice"
+  },
+  "navigationLinks": [
+    { "label": "About", "href": "#about" }
+  ],
+  "heroContent": {
+    "eyebrow": "Available for work",
+    "title": "I build products end to end.",
+    "description": "Focused on thoughtful UX and maintainable systems."
+  },
+  "heroMetrics": [
+    { "value": "3+", "label": "Years Experience" }
+  ],
+  "aboutContent": {
+    "title": "About Me",
+    "description": "I enjoy building dependable software."
+  },
+  "skillGroups": [
+    {
+      "title": "Backend",
+      "description": "APIs and systems",
+      "items": ["Django", "PostgreSQL"]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Portfolio Backend",
+      "eyebrow": "Featured",
+      "description": "A portfolio backend with nested content.",
+      "stack": ["Django", "DRF"],
+      "stat": "Live"
+    }
+  ],
+  "experience": [
+    {
+      "period": "2024 - Present",
+      "title": "Developer",
+      "company": "Example Co",
+      "relation": "Full-time",
+      "summary": "Builds backend and frontend systems.",
+      "highlights": ["Shipped APIs"],
+      "relatedComponents": ["Portfolio", "Dashboard"]
+    }
+  ],
+  "showcaseCategories": [
+    {
+      "title": "Web Apps",
+      "icon": "Monitor",
+      "relation": "Featured",
+      "preview": "Modern product engineering work.",
+      "items": ["Dashboards", "Portfolio Sites"]
+    }
+  ],
+  "featuredModules": [
+    {
+      "title": "Case Studies",
+      "icon": "Briefcase",
+      "relation": "Selected Work",
+      "body": "High-impact builds and experiments.",
+      "details": "Backend systems, UX improvements, and launches."
+    }
+  ],
+  "contactMethods": [
+    {
+      "label": "Email",
+      "value": "alice@example.com",
+      "href": "mailto:alice@example.com",
+      "icon": "Mail"
+    }
+  ],
+  "footerLinks": [
+    { "label": "GitHub", "href": "https://github.com/alice" }
+  ],
+  "statusPills": [
+    { "label": "Open to Work", "icon": "Sparkles" }
+  ]
+}
+```
+
+Behavior:
+
+- creates the portfolio if it does not exist
+- updates the portfolio if it already exists
+- replaces all ordered child collections for that owner
+
+### 9. Partially update authenticated portfolio
+
+`POST /api/portfolio/update/`
+
+Auth required: yes
+
+This route performs a partial update using the same payload shape as `/api/portfolio/submit/`.
+
+If the user has no existing portfolio, it returns `404`.
+
+### 10. Get share status and token
+
+`GET /api/profile/tokens/`
+
+Auth required: yes
 
 Response:
 
@@ -368,7 +460,28 @@ Response:
 }
 ```
 
-### 9. Submit public form
+### 11. Submit to the default public portfolio
+
+`POST /api/form_submit/`
+
+Auth required: no
+
+This creates a `ContactFormSubmission` for the default public owner.
+
+Request:
+
+```json
+{
+  "name": "Visitor",
+  "email": "visitor@example.com",
+  "phone": "1234567890",
+  "message": "Hello there",
+  "for_work": true,
+  "priority": 1
+}
+```
+
+### 12. Submit to a shared public portfolio
 
 `POST /api/shares/<share_token>/submissions/`
 
@@ -418,19 +531,23 @@ Example success response:
 }
 ```
 
-### 10. List dashboard submissions
+### 13. List dashboard submissions
 
 `GET /api/submissions/`
 
 Auth required: yes
 
-Header:
+Response:
 
-```http
-Authorization: Bearer <bearer_token>
+```json
+{
+  "owner": "alice",
+  "owner_user_id": 1,
+  "submissions": []
+}
 ```
 
-### 11. Update one dashboard submission
+### 14. Update one dashboard submission
 
 `PATCH /api/submissions/<form_id>/`
 
@@ -450,7 +567,9 @@ Request can be partial:
 }
 ```
 
-### 12. Reorder dashboard submissions
+If `display_index` is provided, the backend reorders the owner's submission list.
+
+### 15. Reorder dashboard submissions
 
 `POST /api/submissions/reorder/`
 
@@ -466,14 +585,12 @@ Request:
 
 Rules:
 
-- `order` must be a list of submission ids
-- it must include each of the owner's current submissions exactly once
+- `order` must include each current submission exactly once
+- the reorder happens within the authenticated owner only
 
 ## Common Errors
 
 ### Missing auth
-
-Example:
 
 ```json
 {
@@ -481,13 +598,21 @@ Example:
 }
 ```
 
-### Invalid JSON
+### Unsupported media type
 
-Example:
+If a JSON-only endpoint receives form-encoded data:
 
 ```json
 {
-  "detail": "JSON parse error - Expecting value: line 2 column 30 (char 31)"
+  "detail": "Unsupported media type \"multipart/form-data\" in request."
+}
+```
+
+### Invalid JSON
+
+```json
+{
+  "detail": "JSON parse error ..."
 }
 ```
 
@@ -497,23 +622,26 @@ Current behavior:
 
 - returns `404`
 
-This is intentional so disabled public share links do not reveal whether a token belongs to a real user.
+This intentionally avoids revealing whether a disabled token belongs to a real user.
 
-## Recommended Frontend Usage
+## Frontend Integration Notes
 
-### Owner dashboard
+Default public site:
 
-1. Create profile.
-2. Log in.
-3. Store `bearer_token`.
-4. Call `GET /api/profile/tokens/`.
-5. Call `GET /api/submissions/`.
-6. Update and reorder submissions with Bearer auth.
+- `GET /api/portfolio/`
+- `POST /api/form_submit/`
 
-### Public portfolio
+Shared public site:
 
-1. For the default page, call `GET /api/portfolio/`.
-2. For a shared page, call `GET /api/portfolio/<share_token>/`.
-3. Render the returned JSON directly into the frontend sections.
-4. Submit the contact form to `POST /api/shares/<share_token>/submissions/`.
-5. If the token is disabled, expect `404`.
+- `GET /api/portfolio/<share_token>/`
+- `POST /api/shares/<share_token>/submissions/`
+
+Owner dashboard:
+
+- `POST /api/auth/login/`
+- `GET /api/profile/tokens/`
+- `POST /api/portfolio/submit/`
+- `POST /api/portfolio/update/`
+- `GET /api/submissions/`
+- `PATCH /api/submissions/<form_id>/`
+- `POST /api/submissions/reorder/`

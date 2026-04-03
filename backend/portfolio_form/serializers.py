@@ -255,9 +255,31 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
     footerLinks = PortfolioLinkSerializer(many=True, default=list)
     statusPills = PortfolioStatusPillSerializer(many=True, default=list)
 
+    def validate(self, attrs):
+        owner = self.context.get("owner")
+        experience = attrs.get("experience")
+
+        if (
+            owner is not None
+            and experience is not None
+            and not owner.su_tier
+            and len(experience) > Experience.MAX_FREE_TIER_EXPERIENCES
+        ):
+            raise serializers.ValidationError(
+                {"experience": Experience.FREE_TIER_LIMIT_MESSAGE}
+            )
+
+        return attrs
+
     @transaction.atomic
     def save(self, **kwargs):
-        owner = kwargs["owner"]
+        owner = kwargs.get("owner") or self.context.get("owner")
+        if owner is None and self.instance is not None:
+            owner = self.instance.owner
+
+        if owner is None:
+            raise ValueError("PortfolioSubmissionSerializer.save() requires an owner.")
+
         data = self.validated_data
         personal_info = data["personalInfo"]
         hero_content = data["heroContent"]

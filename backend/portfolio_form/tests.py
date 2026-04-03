@@ -556,6 +556,124 @@ class SubmitFormTests(TestCase):
         self.assertEqual(response.json()["data"]["contactMethods"][0]["icon"], "Mail")
         self.assertEqual(response.json()["data"]["statusPills"][0]["icon"], "ArrowUpRight")
 
+    def test_free_tier_user_cannot_submit_more_than_three_experiences(self):
+        bearer_token = self.login_and_get_bearer_token()
+        payload = self.build_portfolio_payload()
+        payload["experience"] = [
+            {
+                "period": f"202{index} - Present",
+                "title": f"Developer {index}",
+                "company": f"Example Co {index}",
+                "relation": "Full-time",
+                "summary": f"Summary {index}",
+                "highlights": [f"Highlight {index}"],
+                "relatedComponents": [f"Component {index}"],
+            }
+            for index in range(4)
+        ]
+
+        response = self.client.post(
+            "/api/submit_portfolio/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("experience", response.json())
+        self.assertEqual(Experience.objects.filter(owner=self.user).count(), 0)
+
+    def test_superuser_can_submit_more_than_three_experiences(self):
+        admin_user = User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="adminpass123",
+        )
+        response = self.client.post(
+            "/api/auth/login/",
+            data=json.dumps(
+                {
+                    "email": admin_user.email,
+                    "password": "adminpass123",
+                }
+            ),
+            content_type="application/json",
+        )
+        bearer_token = response.json()["data"]["bearer_token"]
+
+        payload = self.build_portfolio_payload()
+        payload["personalInfo"]["email"] = admin_user.email
+        payload["contactMethods"][0]["value"] = admin_user.email
+        payload["contactMethods"][0]["href"] = f"mailto:{admin_user.email}"
+        payload["experience"] = [
+            {
+                "period": f"202{index} - Present",
+                "title": f"Lead {index}",
+                "company": f"Admin Co {index}",
+                "relation": "Full-time",
+                "summary": f"Summary {index}",
+                "highlights": [f"Highlight {index}"],
+                "relatedComponents": [f"Component {index}"],
+            }
+            for index in range(4)
+        ]
+
+        response = self.client.post(
+            "/api/submit_portfolio/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Experience.objects.filter(owner=admin_user).count(), 4)
+
+    def test_paid_user_can_submit_more_than_three_experiences(self):
+        paid_user = User.objects.create_user(
+            username="paid",
+            email="paid@example.com",
+            password="paidpass123",
+            tier=User.Tier.PRO,
+        )
+        response = self.client.post(
+            "/api/auth/login/",
+            data=json.dumps(
+                {
+                    "email": paid_user.email,
+                    "password": "paidpass123",
+                }
+            ),
+            content_type="application/json",
+        )
+        bearer_token = response.json()["data"]["bearer_token"]
+
+        payload = self.build_portfolio_payload()
+        payload["personalInfo"]["email"] = paid_user.email
+        payload["contactMethods"][0]["value"] = paid_user.email
+        payload["contactMethods"][0]["href"] = f"mailto:{paid_user.email}"
+        payload["experience"] = [
+            {
+                "period": f"202{index} - Present",
+                "title": f"Engineer {index}",
+                "company": f"Paid Co {index}",
+                "relation": "Full-time",
+                "summary": f"Summary {index}",
+                "highlights": [f"Highlight {index}"],
+                "relatedComponents": [f"Component {index}"],
+            }
+            for index in range(4)
+        ]
+
+        response = self.client.post(
+            "/api/submit_portfolio/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Experience.objects.filter(owner=paid_user).count(), 4)
+
 
 class PublicPortfolioTests(TestCase):
     def setUp(self):

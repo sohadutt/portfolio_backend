@@ -13,10 +13,7 @@ class Command(BaseCommand):
     help = "Change share-token state for users in USER_IDS. If USER_IDS is empty, apply to all users."
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "action",
-            choices=["enable", "disable", "regenerate"],
-        )
+        parser.add_argument("action",choices=["enable", "disable", "regenerate"], help="Action to perform on share tokens: enable, disable, or regenerate.")
 
     def handle(self, *args, **options):
         action = options["action"]
