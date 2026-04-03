@@ -5,9 +5,7 @@ from portfolio_form.management.share_tokens import (
     set_share_token_enabled,
 )
 
-
 USER_IDS = []
-
 
 class Command(BaseCommand):
     help = "Change share-token state for users in USER_IDS. If USER_IDS is empty, apply to all users."
