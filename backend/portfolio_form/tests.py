@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 import json
 
-from .models import ContactFormSubmission
+from .models import ContactFormSubmission, PortfolioSettings
 
 
 User = get_user_model()
@@ -14,6 +14,7 @@ class SubmitFormTests(TestCase):
             username="alice",
             email="alice@example.com",
             password="testpass123",
+            enable_share_token=True,
         )
 
     def login_and_get_bearer_token(self):
@@ -48,6 +49,7 @@ class SubmitFormTests(TestCase):
         created_user = User.objects.get(email="bob@example.com")
         self.assertEqual(response.json()["data"]["user_id"], created_user.id)
         self.assertEqual(response.json()["data"]["email"], "bob@example.com")
+        self.assertFalse(response.json()["data"]["enable_share_token"])
         self.assertTrue(response.json()["data"]["share_token"])
 
     def test_create_profile_rejects_duplicate_email(self):
@@ -79,6 +81,7 @@ class SubmitFormTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["email"], self.user.email)
         self.assertEqual(response.json()["data"]["token_type"], "Bearer")
+        self.assertTrue(response.json()["data"]["enable_share_token"])
         self.assertTrue(response.json()["data"]["temporary_token"])
         self.assertTrue(response.json()["data"]["bearer_token"])
 
@@ -137,6 +140,85 @@ class SubmitFormTests(TestCase):
                 {
                     "name": "Visitor",
                     "email": "visitor@example.com",
+                    "message": "Hello",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_submission_uses_shared_portfolio_owner(self):
+        portfolio_owner = User.objects.create_user(
+            username="bob",
+            email="bob@example.com",
+            password="bobpass123",
+            enable_share_token=True,
+        )
+        portfolio = PortfolioSettings.objects.create(
+            owner=portfolio_owner,
+            short_name="BOB",
+            title="Bob Portfolio",
+            subtitle="Backend Developer",
+            location="Kolkata",
+            email="bob@example.com",
+            github="https://github.com/bob",
+            linkedin="https://linkedin.com/in/bob",
+            hero_eyebrow="Available for work",
+            hero_title="Building APIs",
+            hero_description="I build backend systems.",
+            about_title="About Bob",
+            about_description="Experienced backend engineer.",
+        )
+
+        response = self.client.post(
+            f"/api/shares/{portfolio_owner.share_token}/submissions/",
+            data=json.dumps(
+                {
+                    "name": "Visitor",
+                    "email": "visitor@example.com",
+                    "message": "Hello shared portfolio",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        submission = ContactFormSubmission.objects.get(email="visitor@example.com")
+        self.assertEqual(submission.owner, portfolio_owner)
+        self.assertEqual(submission.portfolio, portfolio)
+        self.assertEqual(response.json()["data"]["owner_user_id"], portfolio_owner.id)
+        self.assertEqual(response.json()["data"]["portfolio_id"], portfolio.id)
+
+    def test_submission_fails_when_share_token_is_disabled(self):
+        disabled_user = User.objects.create_user(
+            username="charlie",
+            email="charlie@example.com",
+            password="charliepass123",
+            enable_share_token=False,
+        )
+        PortfolioSettings.objects.create(
+            owner=disabled_user,
+            short_name="CHR",
+            title="Charlie Portfolio",
+            subtitle="Developer",
+            location="Kolkata",
+            email="charlie@example.com",
+            github="https://github.com/charlie",
+            linkedin="https://linkedin.com/in/charlie",
+            hero_eyebrow="Open",
+            hero_title="Building things",
+            hero_description="Portfolio",
+            about_title="About Charlie",
+            about_description="Software engineer.",
+        )
+
+        response = self.client.post(
+            f"/api/shares/{disabled_user.share_token}/submissions/",
+            data=json.dumps(
+                {
+                    "name": "Visitor",
+                    "email": "visitor-disabled@example.com",
                     "message": "Hello",
                 }
             ),
@@ -207,6 +289,49 @@ class SubmitFormTests(TestCase):
             ],
         )
 
+    def test_reorder_submissions_updates_full_order(self):
+        created = []
+        for number in range(3):
+            self.client.post(
+                f"/api/shares/{self.user.share_token}/submissions/",
+                data=json.dumps(
+                    {
+                        "name": f"Visitor {number}",
+                        "email": f"visitor{number}@example.com",
+                        "message": f"Hello {number}",
+                    }
+                ),
+                content_type="application/json",
+            )
+            created.append(
+                ContactFormSubmission.objects.get(email=f"visitor{number}@example.com")
+            )
+
+        bearer_token = self.login_and_get_bearer_token()
+
+        response = self.client.post(
+            "/api/submissions/reorder/",
+            data=json.dumps({"order": [created[1].id, created[2].id, created[0].id]}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        ordered = list(
+            ContactFormSubmission.objects.order_by("display_index").values_list(
+                "email",
+                "display_index",
+            )
+        )
+        self.assertEqual(
+            ordered,
+            [
+                ("visitor1@example.com", 1),
+                ("visitor2@example.com", 2),
+                ("visitor0@example.com", 3),
+            ],
+        )
+
     def test_share_token_cannot_update_form_without_login(self):
         submission = ContactFormSubmission.objects.create(
             owner=self.user,
@@ -270,4 +395,5 @@ class SubmitFormTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["enable_share_token"])
         self.assertEqual(response.json()["share_token"], self.user.share_token)

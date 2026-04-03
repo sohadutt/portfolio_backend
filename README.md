@@ -1,92 +1,135 @@
-# Portfolio Backend API
+# Portfolio Backend
 
-This project exposes a JSON API under `/api/`.
+This project is a Django + Django REST Framework backend for a portfolio site with:
 
-## Base Rules
+- user profile creation
+- JWT login
+- one portfolio per user
+- public form submission through a share link
+- private submission management for the portfolio owner
 
-- Base prefix: `/api/`
-- Write endpoints expect `Content-Type: application/json`
-- Protected endpoints require:
+All API routes are mounted under `/api/`.
+
+## How It Works
+
+### Core idea
+
+Each user has:
+
+- one account
+- one share token
+- one share toggle: `enable_share_token`
+- one portfolio settings record
+
+The public share link uses the user's share token:
+
+```text
+/api/shares/<user_share_token>/submissions/
+```
+
+If `enable_share_token` is `false`, that shared link does not work.
+
+If `enable_share_token` is `true`, anyone can submit the public contact form through that link, and the submission is saved for:
+
+- the owner user
+- that owner's single portfolio
+
+### Ownership model
+
+The backend follows this rule:
+
+- one user can have only one `PortfolioSettings`
+
+Portfolio-related models are owned by a user. The main ownership field is `owner`.
+
+For form submissions:
+
+- `ContactFormSubmission.owner` is the user who receives the form
+- `ContactFormSubmission.portfolio` is the portfolio the submission belongs to
+
+### Auth model
+
+Protected endpoints use JWT Bearer authentication.
+
+Login returns:
+
+- `temporary_token`: refresh token
+- `bearer_token`: access token
+- `token_type`: always `Bearer`
+
+Use the access token like this:
 
 ```http
 Authorization: Bearer <bearer_token>
 ```
 
-- Public form submissions use a profile's `share_token`
-- Login returns:
-  - `temporary_token`: refresh token
-  - `bearer_token`: access token
-  - `token_type`: always `Bearer`
+Refresh with the refresh token when needed.
 
-## Auth Flow
+## Main Models
 
-1. Create a profile with `POST /api/profiles/`
-2. Log in with `POST /api/auth/login/`
-3. Use the returned `bearer_token` in protected requests
-4. Refresh the bearer token with `POST /api/auth/refresh/` when needed
+### User
 
-## Endpoints
+Custom auth user with:
 
-### 1. Get CSRF Cookie
+- `email`
+- `enable_share_token`
+- `share_token`
+- `dashboard_token`
+- `created_at`
 
-`GET /api/csrf/`
+Important behavior:
 
-Auth: none
+- `share_token` is generated automatically
+- `enable_share_token` controls whether the public share link works
 
-Request body: none
+### PortfolioSettings
 
-Example response:
+This is the single portfolio configuration for one user.
 
-```json
-{
-  "detail": "CSRF cookie set"
-}
+Important behavior:
+
+- each owner can only have one `PortfolioSettings`
+- it does not store its own share token anymore
+- `PortfolioSettings.share_token` is derived from `owner.share_token`
+
+### ContactFormSubmission
+
+Stores form submissions coming from the public share link.
+
+Important fields:
+
+- `owner`
+- `portfolio`
+- `name`
+- `email`
+- `phone`
+- `message`
+- `for_work`
+- `priority`
+- `is_dismissed`
+- `display_index`
+
+Important behavior:
+
+- `display_index` auto-increments per owner
+- submissions can be reordered
+- reorder is stored per owner
+
+## Request Rules
+
+### Content type
+
+Write endpoints expect JSON:
+
+```http
+Content-Type: application/json
 ```
 
-### 2. Create Profile
+Do not use form-data for normal API writes.
 
-`POST /api/profiles/`
+### JSON example
 
-Auth: none
-
-Request body:
-
-```json
-{
-  "email": "bob@example.com",
-  "password": "bobpass123"
-}
-```
-
-Example success response:
-
-```json
-{
-  "message": "Profile created successfully",
-  "data": {
-    "user_id": 2,
-    "email": "bob@example.com",
-    "username": "bob",
-    "share_token": "share-token-here"
-  }
-}
-```
-
-Typical error response:
-
-```json
-{
-  "message": "A user with this email already exists"
-}
-```
-
-### 3. Login
-
-`POST /api/auth/login/`
-
-Auth: none
-
-Request body:
+Correct:
 
 ```json
 {
@@ -95,7 +138,73 @@ Request body:
 }
 ```
 
-Example success response:
+Incorrect in Postman/raw JSON:
+
+```python
+{
+    "email": self.user.email,
+    "password": "testpass123",
+}
+```
+
+That is valid Python in tests, but not valid raw JSON.
+
+## Full Flow
+
+### 1. Create account
+
+Create a user profile first.
+
+Endpoint:
+
+`POST /api/profiles/`
+
+Request:
+
+```json
+{
+  "email": "alice@example.com",
+  "password": "testpass123"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "Profile created successfully",
+  "data": {
+    "user_id": 1,
+    "email": "alice@example.com",
+    "username": "alice",
+    "enable_share_token": false,
+    "share_token": "generated-user-share-token"
+  }
+}
+```
+
+Notes:
+
+- `username` is generated from the email
+- `enable_share_token` starts as `false`
+- the user gets a `share_token` immediately, but the public link should be considered inactive until sharing is enabled
+
+### 2. Log in
+
+Endpoint:
+
+`POST /api/auth/login/`
+
+Request:
+
+```json
+{
+  "email": "alice@example.com",
+  "password": "testpass123"
+}
+```
+
+Response:
 
 ```json
 {
@@ -104,69 +213,52 @@ Example success response:
     "user_id": 1,
     "email": "alice@example.com",
     "username": "alice",
-    "share_token": "share-token-here",
-    "temporary_token": "refresh-token-here",
-    "bearer_token": "access-token-here",
+    "enable_share_token": true,
+    "share_token": "generated-user-share-token",
+    "temporary_token": "jwt-refresh-token",
+    "bearer_token": "jwt-access-token",
     "token_type": "Bearer"
   }
 }
 ```
 
-Typical error response:
+### 3. Read the user's share configuration
 
-```json
-{
-  "non_field_errors": [
-    "Invalid email or password"
-  ]
-}
-```
-
-### 4. Refresh Bearer Token
-
-`POST /api/auth/refresh/`
-
-Auth: none
-
-Request body:
-
-```json
-{
-  "refresh": "<temporary_token>"
-}
-```
-
-Example success response:
-
-```json
-{
-  "access": "new-access-token-here"
-}
-```
-
-### 5. Get Profile Tokens
+Endpoint:
 
 `GET /api/profile/tokens/`
 
-Auth: bearer token required
+Auth required: yes
 
-Request body: none
+Header:
 
-Example success response:
+```http
+Authorization: Bearer <bearer_token>
+```
+
+Response:
 
 ```json
 {
-  "share_token": "share-token-here"
+  "enable_share_token": true,
+  "share_token": "generated-user-share-token"
 }
 ```
 
-### 6. Submit Public Form
+This endpoint tells the frontend:
 
-`POST /api/shares/<share_token>/submissions/`
+- what the public share token is
+- whether that share token should currently be usable
 
-Auth: none
+### 4. Public visitor submits the form
 
-Request body:
+Endpoint:
+
+`POST /api/shares/<user_share_token>/submissions/`
+
+Auth required: no
+
+Request:
 
 ```json
 {
@@ -179,12 +271,17 @@ Request body:
 }
 ```
 
-Notes:
+What happens internally:
 
-- `phone` is optional
-- `for_work` should be `true` or `false`
-- `priority` is an integer
-- If omitted, `priority` defaults to `0`
+1. the backend finds the user by `share_token`
+2. it checks `enable_share_token=True`
+3. it finds that user's single `PortfolioSettings`
+4. it creates `ContactFormSubmission`
+5. the submission is saved under:
+   - `owner = that user`
+   - `portfolio = that user's portfolio`
+
+If sharing is disabled, the endpoint returns `404`.
 
 Example success response:
 
@@ -196,27 +293,174 @@ Example success response:
     "display_index": 1,
     "owner": "alice",
     "owner_user_id": 1,
+    "portfolio_id": 1,
     "name": "Visitor",
     "email": "visitor@example.com",
     "phone": "1234567890",
     "message": "Hello Alice",
     "for_work": true,
     "priority": 1,
+    "priority_label": "Medium",
     "is_dismissed": false,
     "submitted_at": "2026-04-03T10:00:00+05:30"
   }
 }
 ```
 
-### 7. List Your Submissions
+## API Reference
+
+### 1. CSRF
+
+`GET /api/csrf/`
+
+Auth required: no
+
+Response:
+
+```json
+{
+  "detail": "CSRF cookie set"
+}
+```
+
+### 2. Create profile
+
+`POST /api/profiles/`
+
+Auth required: no
+
+Request:
+
+```json
+{
+  "email": "alice@example.com",
+  "password": "testpass123"
+}
+```
+
+Validation:
+
+- `email` must be unique
+- `password` minimum length is 8
+
+### 3. Login
+
+`POST /api/auth/login/`
+
+Auth required: no
+
+Request:
+
+```json
+{
+  "email": "alice@example.com",
+  "password": "testpass123"
+}
+```
+
+Typical invalid credentials response:
+
+```json
+{
+  "non_field_errors": [
+    "Invalid email or password"
+  ]
+}
+```
+
+### 4. Refresh token
+
+`POST /api/auth/refresh/`
+
+Auth required: no
+
+Request:
+
+```json
+{
+  "refresh": "<temporary_token>"
+}
+```
+
+Response:
+
+```json
+{
+  "access": "new-access-token"
+}
+```
+
+### 5. Logout
+
+`POST /api/auth/logout/`
+
+Auth required: no bearer token header is required by the built-in endpoint, but you must send the refresh token to blacklist it.
+
+Request:
+
+```json
+{
+  "refresh": "<temporary_token>"
+}
+```
+
+### 6. Get share status and token
+
+`GET /api/profile/tokens/`
+
+Auth required: yes
+
+Response:
+
+```json
+{
+  "enable_share_token": true,
+  "share_token": "generated-user-share-token"
+}
+```
+
+### 7. Submit public form
+
+`POST /api/shares/<user_share_token>/submissions/`
+
+Auth required: no
+
+Request:
+
+```json
+{
+  "name": "Visitor",
+  "email": "visitor@example.com",
+  "phone": "1234567890",
+  "message": "Hello Alice",
+  "for_work": true,
+  "priority": 1
+}
+```
+
+Fields:
+
+- `name`: required
+- `email`: required
+- `phone`: optional
+- `message`: required
+- `for_work`: optional boolean
+- `priority`: optional integer
+
+Priority values:
+
+- `0` = Low
+- `1` = Medium
+- `2` = High
+- `3` = Urgent
+
+### 8. List submissions
 
 `GET /api/submissions/`
 
-Auth: bearer token required
+Auth required: yes
 
-Request body: none
-
-Example success response:
+Response:
 
 ```json
 {
@@ -228,12 +472,14 @@ Example success response:
       "display_index": 1,
       "owner": "alice",
       "owner_user_id": 1,
+      "portfolio_id": 1,
       "name": "Visitor",
       "email": "visitor@example.com",
       "phone": "1234567890",
       "message": "Hello Alice",
       "for_work": true,
       "priority": 1,
+      "priority_label": "Medium",
       "is_dismissed": false,
       "submitted_at": "2026-04-03T10:00:00+05:30"
     }
@@ -241,15 +487,7 @@ Example success response:
 }
 ```
 
-Typical auth error response:
-
-```json
-{
-  "detail": "Authentication credentials were not provided."
-}
-```
-
-### 8. Update Submission
+### 9. Update one submission
 
 `PATCH /api/submissions/<form_id>/`
 
@@ -257,9 +495,9 @@ Also supported:
 
 `POST /api/submissions/<form_id>/`
 
-Auth: bearer token required
+Auth required: yes
 
-Request body can be partial. Example:
+Request can be partial:
 
 ```json
 {
@@ -269,87 +507,175 @@ Request body can be partial. Example:
 }
 ```
 
-You can also send only one field:
-
-```json
-{
-  "display_index": 1
-}
-```
-
-Supported updatable fields:
+Updatable fields:
 
 - `is_dismissed`
 - `priority`
 - `display_index`
 
-Example success response:
+### 10. Reorder all submissions
+
+`POST /api/submissions/reorder/`
+
+Auth required: yes
+
+Request:
 
 ```json
 {
-  "message": "Form updated successfully",
-  "data": {
-    "id": 3,
-    "display_index": 1,
-    "owner": "alice",
-    "owner_user_id": 1,
-    "name": "Visitor 2",
-    "email": "visitor2@example.com",
-    "phone": null,
-    "message": "Hello 2",
-    "for_work": false,
-    "priority": 2,
-    "is_dismissed": true,
-    "submitted_at": "2026-04-03T10:00:00+05:30"
-  }
+  "order": [3, 1, 2]
 }
 ```
 
-## Quick Request Examples
+Rules:
 
-### Login
+- `order` must be a list of submission ids
+- it must include each of the owner's current submissions exactly once
 
-```http
-POST /api/auth/login/
-Content-Type: application/json
-```
+Response:
 
 ```json
 {
-  "email": "alice@example.com",
-  "password": "testpass123"
+  "message": "Submissions reordered successfully",
+  "submissions": [
+    {
+      "id": 3,
+      "display_index": 1,
+      "owner": "alice",
+      "owner_user_id": 1,
+      "portfolio_id": 1,
+      "name": "Visitor 3",
+      "email": "visitor3@example.com",
+      "phone": null,
+      "message": "Hello",
+      "for_work": false,
+      "priority": 0,
+      "priority_label": "Low",
+      "is_dismissed": false,
+      "submitted_at": "2026-04-03T10:00:00+05:30"
+    }
+  ]
 }
 ```
 
-### Protected Request
+## Share Link Rules
 
-```http
-GET /api/submissions/
-Authorization: Bearer <bearer_token>
+This is the most important business rule in the app.
+
+### Public share URL
+
+The app uses the user's share token:
+
+```text
+/api/shares/<user_share_token>/submissions/
 ```
 
-### Refresh Token
+### Share link works only when enabled
 
-```http
-POST /api/auth/refresh/
-Content-Type: application/json
-```
+The link works only if:
 
-```json
-{
-  "refresh": "<temporary_token>"
-}
-```
+- the user exists
+- the token matches `User.share_token`
+- `User.enable_share_token == true`
 
-## Important Notes
+If sharing is off, the backend behaves like the link does not exist.
 
-- Use JSON, not form-data, for API writes
-- In tests, Python expressions like `self.user.email` are valid because Django builds the request body
-- In Postman, Insomnia, or Thunder Client, replace those expressions with real strings
-- If you send invalid JSON, the API returns an error like:
+### Portfolio token behavior
+
+There is no separate stored portfolio share token.
+
+Instead:
+
+- the user owns the share token
+- the portfolio inherits that token conceptually
+- the form is always submitted to the owner of that shared link
+
+Because one user can only have one portfolio, the backend can safely attach the submission to that user's portfolio.
+
+## Ordered Portfolio Models
+
+Several content models are owner-scoped and ordered:
+
+- `HeroMetric`
+- `SkillGroup`
+- `Project`
+- `Experience`
+- `ShowcaseCategory`
+- `FeaturedModule`
+- `Link`
+
+They all inherit:
+
+- `owner`
+- `order`
+
+This makes them user-specific and sortable for portfolio rendering.
+
+## Common Errors
+
+### Invalid JSON
+
+Example:
 
 ```json
 {
   "detail": "JSON parse error - Expecting value: line 2 column 30 (char 31)"
 }
 ```
+
+Usually caused by:
+
+- invalid raw JSON
+- using Python expressions in Postman
+- missing quotes
+- trailing commas
+
+### Missing auth
+
+Example:
+
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+### Share link disabled or not found
+
+Current behavior:
+
+- returns `404`
+
+This is intentional so disabled share links do not reveal whether a token belongs to a real user.
+
+## Development Notes
+
+- The backend uses a custom `User` model
+- Protected routes use JWT auth from SimpleJWT
+- Write endpoints are JSON-only
+- Submission ordering is stored with `display_index`
+- One owner can have only one `PortfolioSettings`
+
+## Recommended Frontend Usage
+
+### For the owner dashboard
+
+1. create profile
+2. log in
+3. store `bearer_token`
+4. call `/api/profile/tokens/`
+5. show:
+   - `share_token`
+   - `enable_share_token`
+6. call `/api/submissions/` to manage incoming forms
+
+### For the public portfolio site
+
+1. build the shared form URL using the user's `share_token`
+2. submit to:
+
+```text
+/api/shares/<user_share_token>/submissions/
+```
+
+3. if the share link is disabled, expect `404`

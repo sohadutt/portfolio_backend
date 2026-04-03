@@ -1,6 +1,7 @@
 import secrets
 
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Max
 
@@ -17,19 +18,58 @@ class User(AbstractUser):
     objects = UserManager()
 
     email = models.EmailField(unique=True)
-    share_token = models.CharField(max_length=64,unique=True,default=generate_share_token,editable=False,)
-    dashboard_token = models.CharField(max_length=80, unique=True, default=generate_dashboard_token, editable=False)
+    enable_share_token = models.BooleanField(default=False)
+    share_token = models.CharField(
+        max_length=64,
+        unique=True,
+        default=generate_share_token,
+        editable=False,
+    )
+    dashboard_token = models.CharField(
+        max_length=80,
+        unique=True,
+        default=generate_dashboard_token,
+        editable=False,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.username
 
 
+class OwnedPortfolioModel(models.Model):
+    owner = models.ForeignKey(User,on_delete=models.CASCADE,related_name="%(class)ss",)
+
+    class Meta:
+        abstract = True
+
+
+class OrderedPortfolioModel(OwnedPortfolioModel):
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        abstract = True
+        ordering = ["order", "id"]
+
+
 class ContactFormSubmission(models.Model):
+    class Priority(models.IntegerChoices):
+        LOW = 0, "Low"
+        MEDIUM = 1, "Medium"
+        HIGH = 2, "High"
+        URGENT = 3, "Urgent"
+
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="submissions",
+    )
+    portfolio = models.ForeignKey(
+        "PortfolioSettings",
+        on_delete=models.SET_NULL,
+        related_name="submissions",
+        blank=True,
+        null=True,
     )
     name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -38,7 +78,7 @@ class ContactFormSubmission(models.Model):
     for_work = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(blank=True, null=True)
-    priority = models.IntegerField(default=0)
+    priority = models.IntegerField(choices=Priority.choices, default=Priority.LOW)
     is_dismissed = models.BooleanField(default=False)
     display_index = models.PositiveIntegerField()
 
@@ -93,8 +133,144 @@ class ContactFormSubmission(models.Model):
 
         self.display_index = new_index
 
+    @classmethod
+    @transaction.atomic
+    def reorder_for_owner(cls, owner, ordered_ids):
+        owner_submissions = list(
+            cls.objects.select_for_update()
+            .filter(owner=owner)
+            .order_by("display_index", "id")
+        )
+
+        if not ordered_ids:
+            return owner_submissions
+
+        current_ids = [submission.id for submission in owner_submissions]
+        if sorted(current_ids) != sorted(ordered_ids):
+            raise ValueError("Order must include each submission exactly once.")
+
+        id_to_submission = {submission.id: submission for submission in owner_submissions}
+        reordered = [id_to_submission[submission_id] for submission_id in ordered_ids]
+        offset = len(reordered) + 1000
+
+        for index, submission in enumerate(reordered, start=1):
+            submission.display_index = index + offset
+            submission.save(update_fields=["display_index"])
+
+        for index, submission in enumerate(reordered, start=1):
+            submission.display_index = index
+            submission.save(update_fields=["display_index"])
+
+        return reordered
+
     def __str__(self):
         return (
             f"{self.name} - {self.email} - {self.owner.username} - "
             f"{self.submitted_at.strftime('%Y-%m-%d %H:%M:%S')}"
         )
+
+
+class PortfolioSettings(OwnedPortfolioModel):
+    name = models.CharField(max_length=100, default="Soham Dutta")
+    short_name = models.CharField(max_length=10)
+    title = models.CharField(max_length=200)
+    subtitle = models.CharField(max_length=200)
+    location = models.CharField(max_length=100)
+    email = models.EmailField()
+    github = models.URLField()
+    linkedin = models.URLField()
+    hero_eyebrow = models.CharField(max_length=100)
+    hero_title = models.TextField()
+    hero_description = models.TextField()
+    about_title = models.CharField(max_length=200)
+    about_description = models.TextField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner"],
+                name="unique_portfolio_settings_per_owner",
+            )
+        ]
+        verbose_name_plural = "Portfolio Settings"
+
+    def clean(self):
+        if (
+            self.owner_id
+            and PortfolioSettings.objects.exclude(pk=self.pk)
+            .filter(owner=self.owner)
+            .exists()
+        ):
+            raise ValidationError("Each owner can only have one portfolio settings record.")
+
+    def __str__(self):
+        return f"{self.owner.username}'s Portfolio Settings"
+
+    @property
+    def share_token(self):
+        return self.owner.share_token
+
+
+class HeroMetric(OrderedPortfolioModel):
+    value = models.CharField(max_length=50)
+    label = models.CharField(max_length=200)
+
+
+class SkillGroup(OrderedPortfolioModel):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    items = models.JSONField(default=list, help_text="List of skill strings")
+
+
+class Project(OrderedPortfolioModel):
+    title = models.CharField(max_length=200)
+    eyebrow = models.CharField(max_length=100)
+    description = models.TextField()
+    stat = models.CharField(max_length=100)
+    stack = models.JSONField(default=list, help_text="List of tech stack strings")
+
+
+class Experience(OrderedPortfolioModel):
+    period = models.CharField(max_length=100)
+    title = models.CharField(max_length=200)
+    company = models.CharField(max_length=200)
+    relation = models.CharField(max_length=100)
+    summary = models.TextField()
+    highlights = models.JSONField(default=list)
+    related_components = models.JSONField(default=list)
+
+
+class ShowcaseCategory(OrderedPortfolioModel):
+    title = models.CharField(max_length=200)
+    icon_name = models.CharField(max_length=50, help_text="Lucide icon component name")
+    relation = models.CharField(max_length=100)
+    preview = models.TextField()
+    items = models.JSONField(default=list)
+
+    class Meta(OrderedPortfolioModel.Meta):
+        verbose_name_plural = "Showcase Categories"
+
+
+class FeaturedModule(OrderedPortfolioModel):
+    title = models.CharField(max_length=200)
+    icon_name = models.CharField(max_length=50)
+    relation = models.CharField(max_length=100)
+    body = models.TextField()
+    details = models.TextField()
+
+
+class Link(OrderedPortfolioModel):
+    class LinkType(models.TextChoices):
+        NAV = "NAV", "Navigation"
+        FOOTER = "FOOTER", "Footer"
+        CONTACT = "CONTACT", "Contact Method"
+        STATUS = "STATUS", "Status Pill"
+
+    type = models.CharField(max_length=20, choices=LinkType.choices)
+    label = models.CharField(max_length=100)
+    value = models.CharField(max_length=200, blank=True, null=True)
+    href = models.CharField(max_length=200, blank=True, null=True)
+    icon_name = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta(OrderedPortfolioModel.Meta):
+        ordering = ["type", "order", "id"]
