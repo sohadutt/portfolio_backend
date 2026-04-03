@@ -413,7 +413,7 @@ class SubmitFormTests(TestCase):
 class PublicPortfolioTests(TestCase):
     def setUp(self):
         self.default_user = User.objects.create_user(
-            id=1,
+            # Remove: id=1,
             username="soham",
             email="soham@example.com",
             password="testpass123",
