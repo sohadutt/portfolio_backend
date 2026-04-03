@@ -305,12 +305,22 @@ def get_profile_tokens(request):
 @permission_classes([AllowAny])
 def submit_mail_default_portfolio(request):
     owner = resolve_public_portfolio_owner()
+    portfolio = PortfolioSettings.objects.filter(owner=owner).first()
     serializer = SubmissionCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     form = serializer.save(
         owner=owner,
+        portfolio=portfolio,
         ip_address=get_request_ip(request),
         is_dismissed=False,
+    )
+
+    return Response(
+        {
+            "message": "Form submitted successfully",
+            "data": serialize_submission(form),
+        },
+        status=status.HTTP_201_CREATED,
     )
 
 @api_view(["POST"])
