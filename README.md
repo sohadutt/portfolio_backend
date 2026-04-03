@@ -18,7 +18,7 @@ Each user has:
 - one account
 - one share token
 - one share toggle: `enable_share_token`
-- one portfolio settings record
+- one portfolio record
 
 Important rule:
 

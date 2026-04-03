@@ -1,7 +1,19 @@
 from django.contrib.auth import authenticate
+from django.db import transaction
 from rest_framework import serializers
 
-from .models import ContactFormSubmission, User
+from .models import (
+    ContactFormSubmission,
+    Experience,
+    FeaturedModule,
+    HeroMetric,
+    Link,
+    PortfolioSettings,
+    Project,
+    ShowcaseCategory,
+    SkillGroup,
+    User,
+)
 
 
 class ProfileCreateSerializer(serializers.ModelSerializer):
@@ -119,3 +131,265 @@ class LoginSerializer(serializers.Serializer):
         attrs["user"] = authenticated_user
         attrs["email"] = email
         return attrs
+
+
+class PortfolioPersonalInfoSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    shortName = serializers.CharField(max_length=10)
+    title = serializers.CharField(max_length=200)
+    subtitle = serializers.CharField(max_length=200)
+    location = serializers.CharField(max_length=100)
+    email = serializers.EmailField()
+    github = serializers.URLField()
+    linkedin = serializers.URLField()
+
+
+class PortfolioHeroContentSerializer(serializers.Serializer):
+    eyebrow = serializers.CharField(max_length=100)
+    title = serializers.CharField()
+    description = serializers.CharField()
+
+
+class PortfolioAboutContentSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    description = serializers.CharField()
+
+
+class PortfolioLinkSerializer(serializers.Serializer):
+    label = serializers.CharField(max_length=100)
+    href = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
+
+
+class PortfolioHeroMetricSerializer(serializers.Serializer):
+    value = serializers.CharField(max_length=50)
+    label = serializers.CharField(max_length=200)
+
+
+class PortfolioSkillGroupSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=100)
+    description = serializers.CharField()
+    items = serializers.ListField(child=serializers.CharField(), default=list)
+
+
+class PortfolioProjectSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    eyebrow = serializers.CharField(max_length=100)
+    description = serializers.CharField()
+    stack = serializers.ListField(child=serializers.CharField(), default=list)
+    stat = serializers.CharField(max_length=100)
+
+
+class PortfolioExperienceSerializer(serializers.Serializer):
+    period = serializers.CharField(max_length=100)
+    title = serializers.CharField(max_length=200)
+    company = serializers.CharField(max_length=200)
+    relation = serializers.CharField(max_length=100)
+    summary = serializers.CharField()
+    highlights = serializers.ListField(child=serializers.CharField(), default=list)
+    relatedComponents = serializers.ListField(
+        child=serializers.CharField(),
+        default=list,
+    )
+
+
+class PortfolioShowcaseCategorySerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    relation = serializers.CharField(max_length=100)
+    preview = serializers.CharField()
+    items = serializers.ListField(child=serializers.CharField(), default=list)
+
+    def validate(self, attrs):
+        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
+        return attrs
+
+
+class PortfolioFeaturedModuleSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    relation = serializers.CharField(max_length=100)
+    body = serializers.CharField()
+    details = serializers.CharField()
+
+    def validate(self, attrs):
+        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
+        return attrs
+
+
+class PortfolioContactMethodSerializer(serializers.Serializer):
+    label = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
+    href = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
+    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+
+    def validate(self, attrs):
+        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
+        return attrs
+
+
+class PortfolioStatusPillSerializer(serializers.Serializer):
+    label = serializers.CharField(max_length=100)
+    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+
+    def validate(self, attrs):
+        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
+        return attrs
+
+
+class PortfolioSubmissionSerializer(serializers.Serializer):
+    personalInfo = PortfolioPersonalInfoSerializer()
+    navigationLinks = PortfolioLinkSerializer(many=True, default=list)
+    heroContent = PortfolioHeroContentSerializer()
+    heroMetrics = PortfolioHeroMetricSerializer(many=True, default=list)
+    aboutContent = PortfolioAboutContentSerializer()
+    skillGroups = PortfolioSkillGroupSerializer(many=True, default=list)
+    projects = PortfolioProjectSerializer(many=True, default=list)
+    experience = PortfolioExperienceSerializer(many=True, default=list)
+    showcaseCategories = PortfolioShowcaseCategorySerializer(many=True, default=list)
+    featuredModules = PortfolioFeaturedModuleSerializer(many=True, default=list)
+    contactMethods = PortfolioContactMethodSerializer(many=True, default=list)
+    footerLinks = PortfolioLinkSerializer(many=True, default=list)
+    statusPills = PortfolioStatusPillSerializer(many=True, default=list)
+
+    @transaction.atomic
+    def save(self, **kwargs):
+        owner = kwargs["owner"]
+        data = self.validated_data
+        personal_info = data["personalInfo"]
+        hero_content = data["heroContent"]
+        about_content = data["aboutContent"]
+
+        portfolio, _ = PortfolioSettings.objects.update_or_create(
+            owner=owner,
+            defaults={
+                "name": personal_info["name"],
+                "short_name": personal_info["shortName"],
+                "title": personal_info["title"],
+                "subtitle": personal_info["subtitle"],
+                "location": personal_info["location"],
+                "email": personal_info["email"],
+                "github": personal_info["github"],
+                "linkedin": personal_info["linkedin"],
+                "hero_eyebrow": hero_content["eyebrow"],
+                "hero_title": hero_content["title"],
+                "hero_description": hero_content["description"],
+                "about_title": about_content["title"],
+                "about_description": about_content["description"],
+            },
+        )
+
+        self._replace_ordered_records(
+            HeroMetric,
+            owner,
+            [
+                {"value": item["value"], "label": item["label"]}
+                for item in data["heroMetrics"]
+            ],
+        )
+        self._replace_ordered_records(
+            SkillGroup,
+            owner,
+            [
+                {
+                    "title": item["title"],
+                    "description": item["description"],
+                    "items": item["items"],
+                }
+                for item in data["skillGroups"]
+            ],
+        )
+        self._replace_ordered_records(
+            Project,
+            owner,
+            [
+                {
+                    "title": item["title"],
+                    "eyebrow": item["eyebrow"],
+                    "description": item["description"],
+                    "stack": item["stack"],
+                    "stat": item["stat"],
+                }
+                for item in data["projects"]
+            ],
+        )
+        self._replace_ordered_records(
+            Experience,
+            owner,
+            [
+                {
+                    "period": item["period"],
+                    "title": item["title"],
+                    "company": item["company"],
+                    "relation": item["relation"],
+                    "summary": item["summary"],
+                    "highlights": item["highlights"],
+                    "related_components": item["relatedComponents"],
+                }
+                for item in data["experience"]
+            ],
+        )
+        self._replace_ordered_records(
+            ShowcaseCategory,
+            owner,
+            [
+                {
+                    "title": item["title"],
+                    "icon_name": item["icon"],
+                    "relation": item["relation"],
+                    "preview": item["preview"],
+                    "items": item["items"],
+                }
+                for item in data["showcaseCategories"]
+            ],
+        )
+        self._replace_ordered_records(
+            FeaturedModule,
+            owner,
+            [
+                {
+                    "title": item["title"],
+                    "icon_name": item["icon"],
+                    "relation": item["relation"],
+                    "body": item["body"],
+                    "details": item["details"],
+                }
+                for item in data["featuredModules"]
+            ],
+        )
+
+        Link.objects.filter(owner=owner).delete()
+        self._create_links(owner, Link.LinkType.NAV, data["navigationLinks"])
+        self._create_links(owner, Link.LinkType.CONTACT, data["contactMethods"])
+        self._create_links(owner, Link.LinkType.FOOTER, data["footerLinks"])
+        self._create_links(owner, Link.LinkType.STATUS, data["statusPills"])
+
+        return portfolio
+
+    def _replace_ordered_records(self, model, owner, items):
+        model.objects.filter(owner=owner).delete()
+        objects = [
+            model(owner=owner, order=index, **item)
+            for index, item in enumerate(items, start=1)
+        ]
+        if objects:
+            model.objects.bulk_create(objects)
+
+    def _create_links(self, owner, link_type, items):
+        Link.objects.bulk_create(
+            [
+                Link(
+                    owner=owner,
+                    order=index,
+                    type=link_type,
+                    label=item["label"],
+                    value=item.get("value"),
+                    href=item.get("href"),
+                    icon_name=item.get("icon"),
+                )
+                for index, item in enumerate(items, start=1)
+            ]
+        )

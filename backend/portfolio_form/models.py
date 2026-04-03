@@ -191,7 +191,8 @@ class PortfolioSettings(OwnedPortfolioModel):
                 name="unique_portfolio_settings_per_owner",
             )
         ]
-        verbose_name_plural = "Portfolio Settings"
+        verbose_name = "Portfolio"
+        verbose_name_plural = "Portfolios"
 
     def clean(self):
         if (
@@ -201,11 +202,11 @@ class PortfolioSettings(OwnedPortfolioModel):
             .exists()
         ):
             raise ValidationError(
-                "Each owner can only have one portfolio settings record."
+                "Each owner can only have one portfolio record."
             )
 
     def __str__(self):
-        return f"{self.owner.username}'s Portfolio Settings"
+        return f"{self.owner.username}'s Portfolio"
 
     @property
     def share_token(self):

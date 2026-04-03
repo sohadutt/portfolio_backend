@@ -24,6 +24,7 @@ from .models import (
 )
 from .serializers import (
     LoginSerializer,
+    PortfolioSubmissionSerializer,
     ProfileCreateSerializer,
     SubmissionCreateSerializer,
     SubmissionReadSerializer,
@@ -422,3 +423,35 @@ def get_default_public_portfolio(request):
 def get_shared_public_portfolio(request, share_token):
     owner = resolve_public_portfolio_owner(share_token)
     return Response(serialize_public_portfolio(owner))
+
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+@permission_classes([IsAuthenticated])
+def submit_portfolio(request):
+    serializer = PortfolioSubmissionSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save(owner=request.user)
+    return Response(
+        {"message": "Portfolio saved successfully", "data": serialize_public_portfolio(request.user)},
+        status=status.HTTP_201_CREATED,
+    )
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+@permission_classes([IsAuthenticated])
+def update_portfolio(request):
+    portfolio = PortfolioSettings.objects.filter(owner=request.user).first()
+    if not portfolio:
+        return Response(
+            {"message": "Portfolio not found for user."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    serializer = PortfolioSubmissionSerializer(portfolio, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(
+        {"message": "Portfolio updated successfully", "data": serialize_public_portfolio(request.user)},
+        status=status.HTTP_200_OK,
+    )

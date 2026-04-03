@@ -44,6 +44,96 @@ class SubmitFormTests(TestCase):
         self.assertTrue(response.json()["data"]["bearer_token"])
         return response.json()["data"]["bearer_token"]
 
+    def build_portfolio_payload(self):
+        return {
+            "personalInfo": {
+                "name": "Alice Doe",
+                "shortName": "AD",
+                "title": "Full Stack Developer",
+                "subtitle": "Building reliable products",
+                "location": "Kolkata, India",
+                "email": self.user.email,
+                "github": "https://github.com/alice",
+                "linkedin": "https://linkedin.com/in/alice",
+            },
+            "navigationLinks": [
+                {"label": "About", "href": "#about"},
+                {"label": "Projects", "href": "#projects"},
+            ],
+            "heroContent": {
+                "eyebrow": "Available for work",
+                "title": "I build products end to end.",
+                "description": "Focused on thoughtful UX and maintainable systems.",
+            },
+            "heroMetrics": [
+                {"value": "3+", "label": "Years Experience"},
+                {"value": "12+", "label": "Projects"},
+            ],
+            "aboutContent": {
+                "title": "About Me",
+                "description": "I enjoy building dependable software.",
+            },
+            "skillGroups": [
+                {
+                    "title": "Backend",
+                    "description": "APIs and systems",
+                    "items": ["Django", "PostgreSQL"],
+                }
+            ],
+            "projects": [
+                {
+                    "title": "Portfolio Backend",
+                    "eyebrow": "Featured",
+                    "description": "A portfolio backend with nested content.",
+                    "stack": ["Django", "DRF"],
+                    "stat": "Live",
+                }
+            ],
+            "experience": [
+                {
+                    "period": "2024 - Present",
+                    "title": "Developer",
+                    "company": "Example Co",
+                    "relation": "Full-time",
+                    "summary": "Builds backend and frontend systems.",
+                    "highlights": ["Shipped APIs"],
+                    "relatedComponents": ["Portfolio", "Dashboard"],
+                }
+            ],
+            "showcaseCategories": [
+                {
+                    "title": "Web Apps",
+                    "icon": "Monitor",
+                    "relation": "Featured",
+                    "preview": "Modern product engineering work.",
+                    "items": ["Dashboards", "Portfolio Sites"],
+                }
+            ],
+            "featuredModules": [
+                {
+                    "title": "Case Studies",
+                    "icon": "Briefcase",
+                    "relation": "Selected Work",
+                    "body": "High-impact builds and experiments.",
+                    "details": "Backend systems, UX improvements, and launches.",
+                }
+            ],
+            "contactMethods": [
+                {
+                    "label": "Email",
+                    "value": self.user.email,
+                    "href": f"mailto:{self.user.email}",
+                    "icon": "Mail",
+                }
+            ],
+            "footerLinks": [
+                {"label": "GitHub", "href": "https://github.com/alice"}
+            ],
+            "statusPills": [
+                {"label": "Open to Work", "icon": "Sparkles"}
+            ],
+        }
+
     def test_create_profile_creates_user(self):
         response = self.client.post(
             "/api/profiles/",
@@ -408,6 +498,63 @@ class SubmitFormTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["enable_share_token"])
         self.assertEqual(response.json()["share_token"], self.user.share_token)
+
+    def test_authenticated_user_can_submit_portfolio(self):
+        bearer_token = self.login_and_get_bearer_token()
+
+        response = self.client.post(
+            "/api/submit_portfolio/",
+            data=json.dumps(self.build_portfolio_payload()),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        portfolio = PortfolioSettings.objects.get(owner=self.user)
+        self.assertEqual(portfolio.name, "Alice Doe")
+        self.assertEqual(portfolio.short_name, "AD")
+        self.assertEqual(HeroMetric.objects.filter(owner=self.user).count(), 2)
+        self.assertEqual(SkillGroup.objects.filter(owner=self.user).count(), 1)
+        self.assertEqual(Link.objects.filter(owner=self.user, type=Link.LinkType.NAV).count(), 2)
+        self.assertEqual(response.json()["data"]["personalInfo"]["name"], "Alice Doe")
+        self.assertEqual(
+            response.json()["data"]["showcaseCategories"][0]["icon"],
+            "Monitor",
+        )
+
+    def test_portfolio_submit_requires_authentication(self):
+        response = self.client.post(
+            "/api/submit_portfolio/",
+            data=json.dumps(self.build_portfolio_payload()),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_portfolio_submit_accepts_icon_name_aliases(self):
+        bearer_token = self.login_and_get_bearer_token()
+        payload = self.build_portfolio_payload()
+        payload["showcaseCategories"][0].pop("icon")
+        payload["showcaseCategories"][0]["iconName"] = "Sparkles"
+        payload["featuredModules"][0].pop("icon")
+        payload["featuredModules"][0]["iconName"] = "Database"
+        payload["contactMethods"][0].pop("icon")
+        payload["contactMethods"][0]["iconName"] = "Mail"
+        payload["statusPills"][0].pop("icon")
+        payload["statusPills"][0]["iconName"] = "ArrowUpRight"
+
+        response = self.client.post(
+            "/api/submit_portfolio/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["data"]["showcaseCategories"][0]["icon"], "Sparkles")
+        self.assertEqual(response.json()["data"]["featuredModules"][0]["icon"], "Database")
+        self.assertEqual(response.json()["data"]["contactMethods"][0]["icon"], "Mail")
+        self.assertEqual(response.json()["data"]["statusPills"][0]["icon"], "ArrowUpRight")
 
 
 class PublicPortfolioTests(TestCase):
