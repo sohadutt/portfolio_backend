@@ -203,17 +203,6 @@ The backend uses Django's email system for sending OTP codes. Configure the foll
 - `EMAIL_USE_TLS`: True for secure connections
 - `EMAIL_USE_SSL`: False (use TLS instead)
 
-Example for Gmail:
-
-```bash
-export EMAIL_HOST=smtp.gmail.com
-export EMAIL_PORT=587
-export EMAIL_HOST_USER=your-email@gmail.com
-export EMAIL_HOST_PASSWORD=your-app-password
-export EMAIL_USE_TLS=True
-export EMAIL_USE_SSL=False
-```
-
 ## Local Setup
 
 1. Install [uv](https://github.com/astral-sh/uv) if not already installed.

@@ -13,7 +13,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.mail import send_mail
+from .tasks import send_otp_email_task
 
 from .models import (
     ContactFormSubmission,
@@ -323,13 +323,19 @@ def public_portfolio_response(share_token=None):
 
 
 def save_portfolio_for_user(request, *, partial):
+    if not request.user.is_verified:
+        return Response(
+            {
+                "message": "Email verification required to save portfolio. Please check your email for the OTP code and verify your account.",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
     serializer_kwargs = {
         "data": request.data,
         "context": {"owner": request.user},
         "partial": partial,
     }
     success_message = "Portfolio updated successfully"
-
     if partial:
         portfolio = PortfolioSettings.objects.filter(owner=request.user).first()
         if not portfolio:
@@ -413,26 +419,20 @@ def auth_otp(request):
     # 2. Generate a secure 6-digit OTP
     secure_otp = ''.join(secrets.choice('0123456789') for i in range(6))
 
+    cache.set(f"otp:{email}", secure_otp, timeout=200) # Store OTP in cache for 3 minutes (200 seconds)
+
     # 3. Send the Email
     try:
-        send_mail(
-            subject="Your OTP Code",
-            message=f"Your OTP code is: {secure_otp}",
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[email],
-            fail_silently=False, 
-        )
+        send_otp_email_task.delay(email, secure_otp)
+
     except Exception as e:
+        # If Redis is completely down, .delay() might fail
         return Response(
-            {"message": "Failed to send email. Please try again later."},
+            {"message": "Failed to queue email. Please try again later."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
-    # 4. Store OTP in cache for 3 minutes (200 seconds)
-    cache.set(f"otp:{email}", secure_otp, timeout=200) 
-
     return Response(
-        {"message": "If the email is valid, an OTP has been sent."},
+        {"message": f"OTP will be sent to {email}. If you don't receive it within a minute, please check your spam folder or try again."},
         status=status.HTTP_200_OK,
     )
 

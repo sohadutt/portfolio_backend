@@ -14,12 +14,13 @@ class UserAdmin(DjangoUserAdmin):
         "enable_share_token",
         "share_token",
         "is_staff",
+        "is_verified",
         "is_active",
     )
-    search_fields = ("username", "email", "share_token")
+    search_fields = ("username", "email", "share_token", "is_verified")
     readonly_fields = ("share_token", "created_at")
     fieldsets = DjangoUserAdmin.fieldsets + (
-        ("Portfolio", {"fields": ("tier", "enable_share_token", "share_token", "created_at")}),
+        ("Portfolio", {"fields": ("tier", "enable_share_token", "share_token", "created_at", "is_verified")}),
     )
     add_fieldsets = DjangoUserAdmin.add_fieldsets
 
