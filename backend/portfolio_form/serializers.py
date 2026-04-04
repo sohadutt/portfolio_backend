@@ -27,20 +27,44 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "enable_share_token",
+            "is_verified",
             "share_token",
             "created_at",
         ]
-        read_only_fields = ["id", "share_token", "created_at"]
+        read_only_fields = ["id", "share_token", "created_at", "is_verified"]
 
     def validate_email(self, value):
         email = value.strip().lower()
-        if User.objects.filter(email=email).exists():
+        user = User.objects.filter(email=email).first()
+        
+        # Block the registration ONLY if the user exists AND is already verified.
+        if user and user.is_verified:
             raise serializers.ValidationError("A user with this email already exists.")
+            
+        # If the user does not exist, OR exists but is unverified, allow it to proceed.
         return email
 
     def create(self, validated_data):
+        email = validated_data.get("email")
         password = validated_data.pop("password")
-        return User.objects.create_user(password=password, **validated_data)
+        
+        # Look for an existing partial profile, or create a new user instance
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults=validated_data
+        )
+
+        # If a partial profile already existed, update any other provided fields (like username)
+        if not created:
+            for attr, value in validated_data.items():
+                setattr(user, attr, value)
+
+        # Set the usable password, mark the profile as fully verified, and save
+        user.set_password(password)
+        user.is_verified = True
+        user.save()
+        
+        return user
 
 
 class SubmissionReadSerializer(serializers.ModelSerializer):

@@ -25,6 +25,7 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
     tier = models.IntegerField(choices=Tier.choices, default=Tier.FREE)
+    is_verified = models.BooleanField(default=False)
     enable_share_token = models.BooleanField(default=False)
     share_token = models.CharField(
         max_length=64,

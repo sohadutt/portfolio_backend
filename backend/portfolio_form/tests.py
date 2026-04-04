@@ -5,6 +5,7 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.core import mail
 
 from .models import (
     ContactFormSubmission,
@@ -1007,3 +1008,159 @@ class PublicPortfolioTests(TestCase):
         response = self.client.get("/api/portfolio/invalid-token/")
 
         self.assertEqual(response.status_code, 404)
+
+class OTPAuthenticationTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        mail.outbox = [] # Clear the test email outbox
+
+    def test_request_otp_creates_partial_profile(self):
+        response = self.client.post(
+            "/api/profile/auth_otp/", # Adjust URL to match your exact routing
+            data=json.dumps({"email": "newuser@example.com"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["message"], "If the email is valid, an OTP has been sent.")
+        
+        # Verify a partial profile was created
+        user = User.objects.get(email="newuser@example.com")
+        self.assertFalse(user.is_verified)
+        self.assertFalse(user.has_usable_password())
+
+        # Verify an email was sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Your OTP Code", mail.outbox[0].subject)
+        self.assertEqual(mail.outbox[0].to, ["newuser@example.com"])
+
+        # Verify OTP is in cache
+        cached_otp = cache.get("otp:newuser@example.com")
+        self.assertIsNotNone(cached_otp)
+        self.assertEqual(len(cached_otp), 6)
+
+    def test_request_otp_for_existing_verified_user(self):
+        User.objects.create_user(
+            username="existing",
+            email="existing@example.com",
+            password="testpass123",
+            is_verified=True
+        )
+
+        response = self.client.post(
+            "/api/profile/auth_otp/", 
+            data=json.dumps({"email": "existing@example.com"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify user is STILL verified and wasn't overwritten
+        user = User.objects.get(email="existing@example.com")
+        self.assertTrue(user.is_verified)
+        self.assertTrue(user.has_usable_password())
+        
+        # Verify email was still sent (for login)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_verify_otp_completes_partial_profile_and_returns_tokens(self):
+        # 1. Setup a partial profile and an OTP in cache
+        user = User.objects.create(
+            username="partial_user",
+            email="partial@example.com",
+            is_verified=False
+        )
+        user.set_unusable_password()
+        user.save()
+        
+        valid_otp = "123456"
+        cache.set("otp:partial@example.com", valid_otp, timeout=300)
+
+        # 2. Attempt verification
+        response = self.client.post(
+            "/api/profile/verify_otp/", 
+            data=json.dumps({
+                "email": "partial@example.com",
+                "otp": valid_otp
+            }),
+            content_type="application/json",
+        )
+
+        # 3. Assertions
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("tokens", response.json())
+        self.assertIn("access", response.json()["tokens"])
+        
+        # Verify the user is now fully verified
+        user.refresh_from_db()
+        self.assertTrue(user.is_verified)
+        
+        # Verify the OTP was deleted from cache (single-use)
+        self.assertIsNone(cache.get("otp:partial@example.com"))
+
+    def test_verify_otp_fails_with_invalid_code(self):
+        cache.set("otp:test@example.com", "123456", timeout=300)
+
+        response = self.client.post(
+            "/api/profile/verify_otp/", 
+            data=json.dumps({
+                "email": "test@example.com",
+                "otp": "654321" # Wrong OTP
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["message"], "Invalid or expired OTP.")
+
+
+class ProfileRegistrationTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_password_registration_takes_over_partial_profile(self):
+        # Setup an unverified user (simulating someone who requested an OTP but abandoned it)
+        User.objects.create(
+            username="abandoned",
+            email="abandoned@example.com",
+            is_verified=False
+        )
+
+        # They now try to register using the standard password form
+        response = self.client.post(
+            "/api/profile/register/", 
+            data=json.dumps({
+                "email": "abandoned@example.com",
+                "password": "StrongPassword123!"
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        
+        user = User.objects.get(email="abandoned@example.com")
+        self.assertTrue(user.is_verified)
+        self.assertTrue(user.check_password("StrongPassword123!"))
+
+    def test_password_registration_blocked_for_verified_users(self):
+        # Setup a fully verified user
+        User.objects.create_user(
+            username="verified",
+            email="verified@example.com",
+            password="OldPassword123!",
+            is_verified=True
+        )
+
+        # They attempt to register again
+        response = self.client.post(
+            "/api/profile/register/", 
+            data=json.dumps({
+                "email": "verified@example.com",
+                "password": "NewPassword123!"
+            }),
+            content_type="application/json",
+        )
+
+        # Should be blocked by the serializer's validate_email
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("A user with this email already exists.", str(response.content))

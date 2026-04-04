@@ -1,5 +1,6 @@
 import re
 import time
+import secrets
 
 from django.conf import settings
 from django.core.cache import cache
@@ -12,6 +13,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.mail import send_mail
 
 from .models import (
     ContactFormSubmission,
@@ -377,11 +379,121 @@ def create_user_profile(request):
                 "username": user.username,
                 "enable_share_token": user.enable_share_token,
                 "share_token": user.share_token,
+                "is_verified": user.is_verified,
             },
         },
         status=status.HTTP_201_CREATED,
     )
 
+@api_view(["POST"])
+@parser_classes([JSONParser])
+@permission_classes([AllowAny])
+def auth_otp(request):
+    email = str(request.data.get("email", "")).strip().lower()
+    
+    if not email:
+        return Response(
+            {"message": "Email is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # 1. Create the "Partial Profile" if they don't exist
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        user = User.objects.create(
+            email=email,
+            username=generate_username_from_email(email),
+            is_verified=False # This makes it a partial profile
+        )
+        # Set an unusable password since they haven't set one yet
+        user.set_unusable_password() 
+        user.save()
+
+    # 2. Generate a secure 6-digit OTP
+    secure_otp = ''.join(secrets.choice('0123456789') for i in range(6))
+
+    # 3. Send the Email
+    try:
+        send_mail(
+            subject="Your OTP Code",
+            message=f"Your OTP code is: {secure_otp}",
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+            fail_silently=False, 
+        )
+    except Exception as e:
+        return Response(
+            {"message": "Failed to send email. Please try again later."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+    # 4. Store OTP in cache for 3 minutes (200 seconds)
+    cache.set(f"otp:{email}", secure_otp, timeout=200) 
+
+    return Response(
+        {"message": "If the email is valid, an OTP has been sent."},
+        status=status.HTTP_200_OK,
+    )
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+@permission_classes([AllowAny])
+def verify_otp(request):
+    email = str(request.data.get("email", "")).strip().lower()
+    otp_provided = str(request.data.get("otp", "")).strip()
+
+    if not email or not otp_provided:
+        return Response(
+            {"message": "Email and OTP are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # 1. Check if the OTP exists in the cache and matches
+    cached_otp = cache.get(f"otp:{email}")
+    
+    if cached_otp is None or cached_otp != otp_provided:
+        return Response(
+            {"message": "Invalid or expired OTP."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # 2. Fetch the user
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response(
+            {"message": "User not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # 3. Verify the user (Complete the partial profile)
+    if not user.is_verified:
+        user.is_verified = True
+        user.save()
+
+    # 4. Clear the OTP from the cache so it can't be reused
+    cache.delete(f"otp:{email}")
+
+    # 5. Generate JWT tokens for login
+    refresh = RefreshToken.for_user(user)
+
+    return Response(
+        {
+            "message": "OTP verified successfully.",
+            "data": {
+                "user_id": user.id,
+                "email": user.email,
+                "username": user.username,
+                "is_verified": user.is_verified,
+            },
+            "tokens": {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }
+        },
+        status=status.HTTP_200_OK,
+    )
 
 @api_view(["POST"])
 @parser_classes([JSONParser])

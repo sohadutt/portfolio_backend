@@ -96,15 +96,95 @@ There are two public submission endpoints:
 
 For token-based submissions, the backend also requires `enable_share_token=true`.
 
-## Auth Model
+## Authentication
+
+The backend supports two authentication methods: password-based login and OTP (One-Time Password) via email.
+
+### Password Authentication
+
+For existing users with passwords:
+
+`POST /api/auth/login`
+
+Request:
+
+```json
+{
+  "email": "alice@example.com",
+  "password": "testpass123"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "Login successful",
+  "data": {
+    "user_id": 1,
+    "email": "alice@example.com",
+    "username": "alice",
+    "enable_share_token": true,
+    "share_token": "generated-user-share-token",
+    "temporary_token": "jwt-refresh-token",
+    "bearer_token": "jwt-access-token",
+    "token_type": "Bearer"
+  }
+}
+```
+
+### OTP Authentication
+
+For email-based authentication:
+
+1. Request OTP: `POST /api/auth/otp`
+
+Request:
+
+```json
+{
+  "email": "alice@example.com"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "If the email is valid, an OTP has been sent."
+}
+```
+
+2. Verify OTP: `POST /api/auth/verify`
+
+Request:
+
+```json
+{
+  "email": "alice@example.com",
+  "otp": "123456"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "OTP verified successfully.",
+  "data": {
+    "user_id": 1,
+    "email": "alice@example.com",
+    "username": "alice",
+    "is_verified": true
+  },
+  "tokens": {
+    "refresh": "jwt-refresh-token",
+    "access": "jwt-access-token"
+  }
+}
+```
 
 Protected routes use JWT Bearer auth.
-
-Login returns:
-
-- `temporary_token`: refresh token
-- `bearer_token`: access token
-- `token_type`: always `Bearer`
 
 Use the access token like this:
 
@@ -112,21 +192,44 @@ Use the access token like this:
 Authorization: Bearer <bearer_token>
 ```
 
+## SMTP Configuration
+
+The backend uses Django's email system for sending OTP codes. Configure the following environment variables in `backend/config/settings.py`:
+
+- `EMAIL_HOST`: SMTP server host (e.g., 'smtp.gmail.com')
+- `EMAIL_PORT`: SMTP server port (e.g., 587)
+- `EMAIL_HOST_USER`: Email address for sending
+- `EMAIL_HOST_PASSWORD`: Password or app password
+- `EMAIL_USE_TLS`: True for secure connections
+- `EMAIL_USE_SSL`: False (use TLS instead)
+
+Example for Gmail:
+
+```bash
+export EMAIL_HOST=smtp.gmail.com
+export EMAIL_PORT=587
+export EMAIL_HOST_USER=your-email@gmail.com
+export EMAIL_HOST_PASSWORD=your-app-password
+export EMAIL_USE_TLS=True
+export EMAIL_USE_SSL=False
+```
+
 ## Local Setup
 
-1. Create and activate a virtual environment.
-2. Install dependencies.
-3. Configure PostgreSQL environment variables.
-4. Run migrations.
-5. Start the server.
+1. Install [uv](https://github.com/astral-sh/uv) if not already installed.
+2. Clone the repository and navigate to the project directory.
+3. Install dependencies using uv.
+4. Configure PostgreSQL environment variables.
+5. Run migrations.
+6. Start the server.
 
 Example:
 
 ```bash
-pip install -e .
+uv sync
 cd backend
-python manage.py migrate
-python manage.py runserver
+uv run manage.py migrate
+uv run manage.py runserver
 ```
 
 Environment variables used by `backend/config/settings.py`:
@@ -141,6 +244,49 @@ Environment variables used by `backend/config/settings.py`:
 - `PG_PORT`
 
 Defaults are development-oriented, but the database engine is PostgreSQL, so a reachable Postgres instance is still required unless you change settings.
+
+## SMTP Configuration
+
+The backend uses Django's email system for sending OTP codes. Configure the following environment variables in `backend/config/settings.py`:
+
+- `EMAIL_HOST`: SMTP server host (e.g., 'smtp.gmail.com')
+- `EMAIL_PORT`: SMTP server port (e.g., 587)
+- `EMAIL_HOST_USER`: Email address for sending
+- `EMAIL_HOST_PASSWORD`: Password or app password
+- `EMAIL_USE_TLS`: True for secure connections
+- `EMAIL_USE_SSL`: False (use TLS instead)
+
+Example for Gmail:
+
+```bash
+export EMAIL_HOST=smtp.gmail.com
+export EMAIL_PORT=587
+export EMAIL_HOST_USER=your-email@gmail.com
+export EMAIL_HOST_PASSWORD=your-app-password
+export EMAIL_USE_TLS=True
+export EMAIL_USE_SSL=False
+```
+
+## Testing
+
+To run the test suite:
+
+```bash
+cd backend
+uv run manage.py test
+```
+
+## Workflows
+
+### Share Token Management
+
+Use the `change_share` management command to manage user share tokens:
+
+- Enable share tokens for all users: `uv run manage.py change_share enable`
+- Disable share tokens for all users: `uv run manage.py change_share disable`
+- Regenerate share tokens for all users: `uv run manage.py change_share regenerate`
+
+To target specific users, modify `USER_IDS` in `backend/portfolio_form/management/commands/change_share.py`.
 
 ## Request Rules
 
@@ -209,6 +355,61 @@ Validation:
 
 - `email` must be unique
 - `password` minimum length is `8`
+
+### 2.1 Request OTP
+
+`POST /api/auth/otp`
+
+Auth required: no
+
+Request:
+
+```json
+{
+  "email": "alice@example.com"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "If the email is valid, an OTP has been sent."
+}
+```
+
+### 2.2 Verify OTP
+
+`POST /api/auth/verify`
+
+Auth required: no
+
+Request:
+
+```json
+{
+  "email": "alice@example.com",
+  "otp": "123456"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "OTP verified successfully.",
+  "data": {
+    "user_id": 1,
+    "email": "alice@example.com",
+    "username": "alice",
+    "is_verified": true
+  },
+  "tokens": {
+    "refresh": "jwt-refresh-token",
+    "access": "jwt-access-token"
+  }
+}
+```
 
 ### 3. Login
 
