@@ -133,6 +133,15 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
+class IconAliasSerializer(serializers.Serializer):
+    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+
+    def validate(self, attrs):
+        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
+        return attrs
+
+
 class PortfolioPersonalInfoSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     shortName = serializers.CharField(max_length=10)
@@ -157,7 +166,12 @@ class PortfolioAboutContentSerializer(serializers.Serializer):
 
 class PortfolioLinkSerializer(serializers.Serializer):
     label = serializers.CharField(max_length=100)
-    href = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
+    href = serializers.CharField(
+        max_length=200,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
 
 
 class PortfolioHeroMetricSerializer(serializers.Serializer):
@@ -192,52 +206,38 @@ class PortfolioExperienceSerializer(serializers.Serializer):
     )
 
 
-class PortfolioShowcaseCategorySerializer(serializers.Serializer):
+class PortfolioShowcaseCategorySerializer(IconAliasSerializer):
     title = serializers.CharField(max_length=200)
-    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
-    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     relation = serializers.CharField(max_length=100)
     preview = serializers.CharField()
     items = serializers.ListField(child=serializers.CharField(), default=list)
 
-    def validate(self, attrs):
-        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
-        return attrs
 
-
-class PortfolioFeaturedModuleSerializer(serializers.Serializer):
+class PortfolioFeaturedModuleSerializer(IconAliasSerializer):
     title = serializers.CharField(max_length=200)
-    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
-    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     relation = serializers.CharField(max_length=100)
     body = serializers.CharField()
     details = serializers.CharField()
 
-    def validate(self, attrs):
-        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
-        return attrs
 
-
-class PortfolioContactMethodSerializer(serializers.Serializer):
+class PortfolioContactMethodSerializer(IconAliasSerializer):
     label = serializers.CharField(max_length=100)
-    value = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
-    href = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
-    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
-    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    value = serializers.CharField(
+        max_length=200,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
+    href = serializers.CharField(
+        max_length=200,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+    )
 
-    def validate(self, attrs):
-        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
-        return attrs
 
-
-class PortfolioStatusPillSerializer(serializers.Serializer):
+class PortfolioStatusPillSerializer(IconAliasSerializer):
     label = serializers.CharField(max_length=100)
-    icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
-    iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
-
-    def validate(self, attrs):
-        attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
-        return attrs
 
 
 class PortfolioSubmissionSerializer(serializers.Serializer):

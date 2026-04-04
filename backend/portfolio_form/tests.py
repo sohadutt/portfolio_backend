@@ -98,6 +98,15 @@ class SubmitFormTests(TestCase):
                     "summary": "Builds backend and frontend systems.",
                     "highlights": ["Shipped APIs"],
                     "relatedComponents": ["Portfolio", "Dashboard"],
+                },
+                {
+                    "period": "2027 - Present",
+                    "title": "onlyfans",
+                    "company": "Example Co",
+                    "relation": "Full-time",
+                    "summary": "makes onlyfans",
+                    "highlights": ["sandwitches"],
+                    "relatedComponents": ["Portfolio", "Dashboard"],
                 }
             ],
             "showcaseCategories": [
@@ -210,6 +219,43 @@ class SubmitFormTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 415)
+
+    def test_portfolio_submit_url_is_not_captured_as_share_token(self):
+        bearer_token = self.login_and_get_bearer_token()
+
+        response = self.client.post(
+            "/api/portfolio/submit/",
+            data=json.dumps(self.build_portfolio_payload()),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(PortfolioSettings.objects.filter(owner=self.user).exists())
+
+    def test_portfolio_update_url_is_not_captured_as_share_token(self):
+        bearer_token = self.login_and_get_bearer_token()
+        self.client.post(
+            "/api/portfolio/submit/",
+            data=json.dumps(self.build_portfolio_payload()),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        payload = self.build_portfolio_payload()
+        payload["personalInfo"]["title"] = "Updated Portfolio Title"
+        response = self.client.post(
+            "/api/portfolio/update/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            PortfolioSettings.objects.get(owner=self.user).title,
+            "Updated Portfolio Title",
+        )
 
     def test_submission_is_saved_for_owner_from_token(self):
         response = self.client.post(
@@ -451,6 +497,27 @@ class SubmitFormTests(TestCase):
         self.assertEqual(response.status_code, 401)
         submission.refresh_from_db()
         self.assertFalse(submission.is_dismissed)
+
+    def test_bearer_token_can_dismiss_form_enquiry(self):
+        submission = ContactFormSubmission.objects.create(
+            owner=self.user,
+            name="Visitor",
+            email="visitor@example.com",
+            message="Hello",
+            display_index=1,
+        )
+        bearer_token = self.login_and_get_bearer_token()
+
+        response = self.client.patch(
+            f"/api/submissions/{submission.id}/",
+            data=json.dumps({"is_dismissed": True}),
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f"Bearer {bearer_token}",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        submission.refresh_from_db()
+        self.assertTrue(submission.is_dismissed)
 
     def test_share_token_cannot_view_dashboard_without_login(self):
         ContactFormSubmission.objects.create(

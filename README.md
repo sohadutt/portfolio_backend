@@ -72,7 +72,7 @@ Public submissions are stored with:
 
 ### Default public portfolio
 
-`GET /api/portfolio/`
+`GET /api/portfolio`
 
 The backend resolves the default owner like this:
 
@@ -83,7 +83,7 @@ If no users exist, the endpoint returns `404`.
 
 ### Shared public portfolio
 
-`GET /api/portfolio/<share_token>/`
+`GET /api/portfolio/<share_token>`
 
 This only works when the target user exists and `enable_share_token=true`. Otherwise it returns `404`.
 
@@ -91,8 +91,8 @@ This only works when the target user exists and `enable_share_token=true`. Other
 
 There are two public submission endpoints:
 
-- `POST /api/form_submit/` submits to the default public portfolio owner
-- `POST /api/shares/<share_token>/submissions/` submits to the shared owner resolved by token
+- `POST /api/forms/submit` submits to the default public portfolio owner
+- `POST /api/forms/submit/<share_token>` submits to the shared owner resolved by token
 
 For token-based submissions, the backend also requires `enable_share_token=true`.
 
@@ -163,7 +163,7 @@ Example:
 
 ### 1. CSRF cookie
 
-`GET /api/csrf/`
+`GET /api/csrf`
 
 Auth required: no
 
@@ -177,7 +177,7 @@ Response:
 
 ### 2. Create profile
 
-`POST /api/profiles/`
+`POST /api/profiles`
 
 Auth required: no
 
@@ -212,7 +212,7 @@ Validation:
 
 ### 3. Login
 
-`POST /api/auth/login/`
+`POST /api/auth/login`
 
 Auth required: no
 
@@ -245,7 +245,7 @@ Response:
 
 ### 4. Refresh token
 
-`POST /api/auth/refresh/`
+`POST /api/auth/refresh`
 
 Auth required: no
 
@@ -259,7 +259,7 @@ Request:
 
 ### 5. Logout
 
-`POST /api/auth/logout/`
+`POST /api/auth/logout`
 
 Auth required: no
 
@@ -273,7 +273,7 @@ Request:
 
 ### 6. Get public default portfolio
 
-`GET /api/portfolio/`
+`GET /api/portfolio`
 
 Auth required: no
 
@@ -320,7 +320,7 @@ Example:
 
 ### 7. Get shared public portfolio
 
-`GET /api/portfolio/<share_token>/`
+`GET /api/portfolio/<share_token>`
 
 Auth required: no
 
@@ -328,7 +328,7 @@ If the token is invalid or disabled, returns `404`.
 
 ### 8. Create or replace authenticated portfolio
 
-`POST /api/portfolio/submit/`
+`POST /api/portfolio/submit`
 
 Auth required: yes
 
@@ -437,17 +437,17 @@ Behavior:
 
 ### 9. Partially update authenticated portfolio
 
-`POST /api/portfolio/update/`
+`POST /api/portfolio/update`
 
 Auth required: yes
 
-This route performs a partial update using the same payload shape as `/api/portfolio/submit/`.
+This route performs a partial update using the same payload shape as `/api/portfolio/submit`.
 
 If the user has no existing portfolio, it returns `404`.
 
 ### 10. Get share status and token
 
-`GET /api/profile/tokens/`
+`GET /api/profile/tokens`
 
 Auth required: yes
 
@@ -462,7 +462,7 @@ Response:
 
 ### 11. Submit to the default public portfolio
 
-`POST /api/form_submit/`
+`POST /api/forms/submit`
 
 Auth required: no
 
@@ -483,7 +483,7 @@ Request:
 
 ### 12. Submit to a shared public portfolio
 
-`POST /api/shares/<share_token>/submissions/`
+`POST /api/forms/submit/<share_token>`
 
 Auth required: no
 
@@ -533,7 +533,7 @@ Example success response:
 
 ### 13. List dashboard submissions
 
-`GET /api/submissions/`
+`GET /api/forms/submissions`
 
 Auth required: yes
 
@@ -549,11 +549,11 @@ Response:
 
 ### 14. Update one dashboard submission
 
-`PATCH /api/submissions/<form_id>/`
+`PATCH /api/forms/submissions/<form_id>`
 
 Also supported:
 
-`POST /api/submissions/<form_id>/`
+`POST /api/forms/submissions/<form_id>`
 
 Auth required: yes
 
@@ -571,7 +571,7 @@ If `display_index` is provided, the backend reorders the owner's submission list
 
 ### 15. Reorder dashboard submissions
 
-`POST /api/submissions/reorder/`
+`POST /api/forms/submissions/reorder`
 
 Auth required: yes
 
@@ -628,20 +628,20 @@ This intentionally avoids revealing whether a disabled token belongs to a real u
 
 Default public site:
 
-- `GET /api/portfolio/`
-- `POST /api/form_submit/`
+- `GET /api/portfolio`
+- `POST /api/forms/submit`
 
 Shared public site:
 
-- `GET /api/portfolio/<share_token>/`
-- `POST /api/shares/<share_token>/submissions/`
+- `GET /api/portfolio/<share_token>`
+- `POST /api/forms/submit/<share_token>`
 
 Owner dashboard:
 
-- `POST /api/auth/login/`
-- `GET /api/profile/tokens/`
-- `POST /api/portfolio/submit/`
-- `POST /api/portfolio/update/`
-- `GET /api/submissions/`
-- `PATCH /api/submissions/<form_id>/`
-- `POST /api/submissions/reorder/`
+- `POST /api/auth/login`
+- `GET /api/profile/tokens`
+- `POST /api/portfolio/submit`
+- `POST /api/portfolio/update`
+- `GET /api/forms/submissions`
+- `PATCH /api/forms/submissions/<form_id>`
+- `POST /api/forms/submissions/reorder`

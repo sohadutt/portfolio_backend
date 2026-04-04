@@ -95,7 +95,7 @@ def build_login_response(user):
     }
 
 
-def resolve_share_submission_target(share_token):
+def get_owner_from_share_token(share_token):
     owner = User.objects.filter(
         share_token=share_token,
         enable_share_token=True,
@@ -120,7 +120,8 @@ def resolve_public_portfolio_owner(share_token=None):
     if share_token:
         owner = User.objects.filter(
             share_token=share_token,
-            enable_share_token=True,).first()
+            enable_share_token=True,
+        ).first()
         if owner is None:
             raise Http404("Share link not found.")
         return owner
@@ -244,6 +245,65 @@ def serialize_public_portfolio(owner):
     }
 
 
+def enquiry_submission_for_owner(request, owner, portfolio):
+    serializer = SubmissionCreateSerializer(
+        data=request.data,
+        context={"request": request},
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save(
+        owner=owner,
+        portfolio=portfolio,
+        ip_address=get_request_ip(request),
+        is_dismissed=False,
+    )
+    return Response(
+        {
+            "message": "Form submitted successfully",
+            "data": serialize_submission(serializer.instance),
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+def public_portfolio_response(share_token=None):
+    owner = resolve_public_portfolio_owner(share_token)
+    return Response(serialize_public_portfolio(owner))
+
+
+def save_portfolio_for_user(request, *, partial):
+    serializer_kwargs = {
+        "data": request.data,
+        "context": {"owner": request.user},
+        "partial": partial,
+    }
+    success_message = "Portfolio updated successfully"
+
+    if partial:
+        portfolio = PortfolioSettings.objects.filter(owner=request.user).first()
+        if not portfolio:
+            return Response(
+                {"message": "Portfolio not found for user."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = PortfolioSubmissionSerializer(portfolio, **serializer_kwargs)
+        success_status = status.HTTP_200_OK
+    else:
+        serializer = PortfolioSubmissionSerializer(**serializer_kwargs)
+        success_message = "Portfolio saved successfully"
+        success_status = status.HTTP_201_CREATED
+
+    serializer.is_valid(raise_exception=True)
+    serializer.save(owner=request.user)
+    return Response(
+        {
+            "message": success_message,
+            "data": serialize_public_portfolio(request.user),
+        },
+        status=success_status,
+    )
+
+
 @api_view(["POST"])
 @parser_classes([JSONParser])
 @permission_classes([AllowAny])
@@ -307,44 +367,15 @@ def get_profile_tokens(request):
 def submit_mail_default_portfolio(request):
     owner = resolve_public_portfolio_owner()
     portfolio = PortfolioSettings.objects.filter(owner=owner).first()
-    serializer = SubmissionCreateSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    form = serializer.save(
-        owner=owner,
-        portfolio=portfolio,
-        ip_address=get_request_ip(request),
-        is_dismissed=False,
-    )
+    return enquiry_submission_for_owner(request, owner, portfolio)
 
-    return Response(
-        {
-            "message": "Form submitted successfully",
-            "data": serialize_submission(form),
-        },
-        status=status.HTTP_201_CREATED,
-    )
 
 @api_view(["POST"])
 @parser_classes([JSONParser])
 @permission_classes([AllowAny])
 def submit_mail_public_portfolio(request, share_token):
-    owner, portfolio = resolve_share_submission_target(share_token)
-    serializer = SubmissionCreateSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    form = serializer.save(
-        owner=owner,
-        portfolio=portfolio,
-        ip_address=get_request_ip(request),
-        is_dismissed=False,
-    )
-
-    return Response(
-        {
-            "message": "Form submitted successfully",
-            "data": serialize_submission(form),
-        },
-        status=status.HTTP_201_CREATED,
-    )
+    owner, portfolio = get_owner_from_share_token(share_token)
+    return enquiry_submission_for_owner(request, owner, portfolio)
 
 
 @api_view(["GET"])
@@ -414,52 +445,24 @@ def reorder_dashboard_submissions(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_default_public_portfolio(request):
-    owner = resolve_public_portfolio_owner()
-    return Response(serialize_public_portfolio(owner))
+    return public_portfolio_response()
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_shared_public_portfolio(request, share_token):
-    owner = resolve_public_portfolio_owner(share_token)
-    return Response(serialize_public_portfolio(owner))
+    return public_portfolio_response(share_token)
 
 
 @api_view(["POST"])
 @parser_classes([JSONParser])
 @permission_classes([IsAuthenticated])
 def submit_portfolio(request):
-    serializer = PortfolioSubmissionSerializer(
-        data=request.data,
-        context={"owner": request.user},
-    )
-    serializer.is_valid(raise_exception=True)
-    serializer.save(owner=request.user)
-    return Response(
-        {"message": "Portfolio saved successfully", "data": serialize_public_portfolio(request.user)},
-        status=status.HTTP_201_CREATED,
-    )
+    return save_portfolio_for_user(request, partial=False)
+
 
 @api_view(["POST"])
 @parser_classes([JSONParser])
 @permission_classes([IsAuthenticated])
 def update_portfolio(request):
-    portfolio = PortfolioSettings.objects.filter(owner=request.user).first()
-    if not portfolio:
-        return Response(
-            {"message": "Portfolio not found for user."},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-
-    serializer = PortfolioSubmissionSerializer(
-        portfolio,
-        data=request.data,
-        partial=True,
-        context={"owner": request.user},
-    )
-    serializer.is_valid(raise_exception=True)
-    serializer.save(owner=request.user)
-    return Response(
-        {"message": "Portfolio updated successfully", "data": serialize_public_portfolio(request.user)},
-        status=status.HTTP_200_OK,
-    )
+    return save_portfolio_for_user(request, partial=True)
