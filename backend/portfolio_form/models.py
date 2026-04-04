@@ -21,6 +21,81 @@ class User(AbstractUser):
         PRO = 1, "Pro"
         PREMIUM = 2, "Premium"
 
+    # Standard Manager for Custom User models
+    objects = UserManager()
+
+    # Core Identity Fields
+    email = models.EmailField(unique=True, help_text="Primary identifier for login and OTP.")
+    tier = models.IntegerField(choices=Tier.choices, default=Tier.FREE)
+    
+    # Verification & Security State
+    is_verified = models.BooleanField(
+        default=False, 
+        help_text="Designates whether the user has verified their email via OTP."
+    )
+    
+    # Portfolio Sharing Controls
+    enable_share_token = models.BooleanField(
+        default=False,
+        help_text="Toggle to make the portfolio publicly accessible via the share_token."
+    )
+    share_token = models.CharField(
+        max_length=64,
+        unique=True,
+        default=generate_share_token,
+        editable=False,
+        help_text="The unique slug used in the public portfolio URL."
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # --- Properties for Logic Checks ---
+
+    @property
+    def is_free_tier(self):
+        return self.tier == self.Tier.FREE
+
+    @property
+    def su_tier(self):
+        """
+        Returns True if user is a Superuser OR a paying customer.
+        Used to bypass rate limits or item count restrictions.
+        """
+        return self.is_superuser or self.tier != self.Tier.FREE
+
+    # --- Validation & Integrity ---
+
+    def clean(self):
+        """
+        Custom validation to enforce the 'Verified-to-Share' rule.
+        This prevents sharing from being enabled via Django Admin by accident.
+        """
+        super().clean()
+        if self.enable_share_token and not self.is_verified:
+            raise ValidationError({
+                'enable_share_token': "A user must be verified before they can enable portfolio sharing."
+            })
+
+    def save(self, *args, **kwargs):
+        """
+        Overriding save to ensure full_clean is called, running our 
+        validation logic even outside of Django Forms.
+        """
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.username} ({self.email})"
+
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+        ordering = ['-created_at']
+    class Tier(models.IntegerChoices):
+        FREE = 0, "Free"
+        PRO = 1, "Pro"
+        PREMIUM = 2, "Premium"
+
     objects = UserManager()
 
     email = models.EmailField(unique=True)

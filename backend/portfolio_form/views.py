@@ -1,6 +1,7 @@
 import re
 import time
 import secrets
+import random
 
 from django.conf import settings
 from django.core.cache import cache
@@ -135,6 +136,7 @@ def build_login_response(user):
         "email": user.email,
         "username": user.username,
         "enable_share_token": user.enable_share_token,
+        "is_verified": user.is_verified,
         "share_token": user.share_token,
         "temporary_token": str(refresh),
         "bearer_token": str(refresh.access_token),
@@ -365,27 +367,61 @@ def save_portfolio_for_user(request, *, partial):
 @parser_classes([JSONParser])
 @permission_classes([AllowAny])
 def create_user_profile(request):
+    """
+    Creates a new user profile and immediately triggers an OTP 
+    verification email via Celery.
+    """
     email = str(request.data.get("email", "")).strip().lower()
+    password = request.data.get("password", "")
+
+    if not email or not password:
+        return Response(
+            {"message": "Email and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # 1. Validate and Create User
+    # We use the serializer to handle password hashing and unique email checks
     serializer = ProfileCreateSerializer(
         data={
             "email": email,
-            "password": request.data.get("password", ""),
+            "password": password,
             "username": generate_username_from_email(email),
         }
     )
-    serializer.is_valid(raise_exception=True)
+    
+    if not serializer.is_valid():
+        return Response(
+            {"message": "Registration failed.", "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     user = serializer.save()
+
+    # 2. Generate and Cache OTP for immediate verification
+    # This prevents the user from having to 'request' an OTP after signing up
+    secure_otp = ''.join(secrets.choice('0123456789') for i in range(6))
+    
+    # Store in cache (Redis) for 3 minutes
+    cache.set(f"otp:{email}", secure_otp, timeout=200)
+
+    # 3. Trigger Celery Task
+    try:
+        send_otp_email_task.delay(email, secure_otp)
+        otp_status = "OTP sent to your email."
+    except Exception:
+        # If Redis/Celery is down, the user is still created, 
+        # but they'll need to request a new OTP later via auth_otp.
+        otp_status = "Profile created, but we couldn't send the verification email. Please try logging in to resend."
 
     return Response(
         {
-            "message": "Profile created successfully",
+            "message": f"Profile created successfully. {otp_status}",
             "data": {
                 "user_id": user.id,
                 "email": user.email,
                 "username": user.username,
-                "enable_share_token": user.enable_share_token,
-                "share_token": user.share_token,
-                "is_verified": user.is_verified,
+                "is_verified": user.is_verified, # Will be False initially
             },
         },
         status=status.HTTP_201_CREATED,
@@ -403,36 +439,27 @@ def auth_otp(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # 1. Create the "Partial Profile" if they don't exist
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        user = User.objects.create(
-            email=email,
-            username=generate_username_from_email(email),
-            is_verified=False # This makes it a partial profile
-        )
-        # Set an unusable password since they haven't set one yet
-        user.set_unusable_password() 
-        user.save()
+    # 1. Silent Check: Look for the user
+    user = User.objects.filter(email=email).first()
 
-    # 2. Generate a secure 6-digit OTP
-    secure_otp = ''.join(secrets.choice('0123456789') for i in range(6))
+    # 2. Ambiguous Flow: 
+    if not user:
+        time.sleep(random.uniform(0.1, 0.3))
+    # If the user exists, we do the work. If not, we do NOTHING.
+    if user:
+        secure_otp = ''.join(secrets.choice('0123456789') for i in range(6))
+        cache.set(f"otp:{email}", secure_otp, timeout=200)
+        
+        try:
+            send_otp_email_task.delay(email, secure_otp)
+        except Exception:
+            # Log this internally, but don't tell the user why it failed
+            pass 
 
-    cache.set(f"otp:{email}", secure_otp, timeout=200) # Store OTP in cache for 3 minutes (200 seconds)
-
-    # 3. Send the Email
-    try:
-        send_otp_email_task.delay(email, secure_otp)
-
-    except Exception as e:
-        # If Redis is completely down, .delay() might fail
-        return Response(
-            {"message": "Failed to queue email. Please try again later."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    # 3. Identical Response: 
+    # Whether the user existed or not, the attacker sees the SAME message.
     return Response(
-        {"message": f"OTP will be sent to {email}. If you don't receive it within a minute, please check your spam folder or try again."},
+        {"message": "If an account is associated with this email, you will receive an OTP shortly."},
         status=status.HTTP_200_OK,
     )
 
@@ -502,6 +529,14 @@ def login_user(request):
     serializer = LoginSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     user = serializer.validated_data["user"]
+    is_verified = user.is_verified
+    if not is_verified:
+        return Response(
+            {
+                "message": "Email verification required. Please check your email for the OTP code and verify your account.",
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     return Response(
         {
@@ -627,3 +662,61 @@ def submit_portfolio(request):
 @permission_classes([IsAuthenticated])
 def update_portfolio(request):
     return save_portfolio_for_user(request, partial=True)
+
+@api_view(["POST"])
+@parser_classes([JSONParser])
+@permission_classes([IsAuthenticated])
+def status_share_token(request):
+    """
+    Toggles the share token on/off. 
+    Strictly requires the user to be verified first.
+    """
+    user = request.user
+    
+    # 1. Block unverified users from enabling sharing
+    if not user.is_verified:
+        return Response(
+            {"message": "Please verify your email address to enable portfolio sharing."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    # 2. Toggle the boolean
+    user.enable_share_token = not user.enable_share_token
+    user.save()
+    
+    status_label = "enabled" if user.enable_share_token else "disabled"
+    
+    return Response(
+        {
+            "message": f"Portfolio sharing is now {status_label}.",
+            "enable_share_token": user.enable_share_token,
+            "share_token": user.share_token if user.enable_share_token else None
+        },
+        status=status.HTTP_200_OK
+    )
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request):
+    """
+    Retrieves the logged-in user's profile details.
+    Hides the share_token string if the user is unverified or sharing is disabled.
+    """
+    user = request.user
+    
+    # Base data structure
+    profile_data = {
+        "user_id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "is_verified": user.is_verified,
+        "enable_share_token": user.enable_share_token,
+    }
+
+    # Only provide the actual token if the gatekeeping requirements are met
+    if user.is_verified and user.enable_share_token:
+        profile_data["share_token"] = user.share_token
+    else:
+        profile_data["share_token"] = None
+
+    return Response(profile_data, status=status.HTTP_200_OK)
