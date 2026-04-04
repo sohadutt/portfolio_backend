@@ -1,7 +1,10 @@
 import json
+from unittest.mock import patch
 
+from django.core.cache import cache
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from .models import (
     ContactFormSubmission,
@@ -21,6 +24,7 @@ User = get_user_model()
 
 class SubmitFormTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.user = User.objects.create_user(
             username="alice",
             email="alice@example.com",
@@ -518,6 +522,112 @@ class SubmitFormTests(TestCase):
         self.assertEqual(response.status_code, 200)
         submission.refresh_from_db()
         self.assertTrue(submission.is_dismissed)
+
+    @override_settings(
+        CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS=2,
+        CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS=60,
+        CONTACT_FORM_BLOCK_SECONDS=24 * 60 * 60,
+    )
+    def test_contact_form_blocks_after_too_many_requests_from_same_ip(self):
+        payload = {
+            "name": "Visitor",
+            "email": "visitor@example.com",
+            "message": "Hello Alice",
+        }
+
+        first_response = self.client.post(
+            "/api/forms/submit/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            REMOTE_ADDR="203.0.113.10",
+        )
+        second_response = self.client.post(
+            "/api/forms/submit/",
+            data=json.dumps(
+                {
+                    **payload,
+                    "email": "visitor2@example.com",
+                }
+            ),
+            content_type="application/json",
+            REMOTE_ADDR="203.0.113.10",
+        )
+        third_response = self.client.post(
+            "/api/forms/submit/",
+            data=json.dumps(
+                {
+                    **payload,
+                    "email": "visitor3@example.com",
+                }
+            ),
+            content_type="application/json",
+            REMOTE_ADDR="203.0.113.10",
+        )
+
+        self.assertEqual(first_response.status_code, 201)
+        self.assertEqual(second_response.status_code, 201)
+        self.assertEqual(third_response.status_code, 429)
+        self.assertEqual(ContactFormSubmission.objects.count(), 2)
+        self.assertEqual(third_response.json()["blocked_for_seconds"], 24 * 60 * 60)
+
+    @override_settings(
+        CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS=2,
+        CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS=60,
+        CONTACT_FORM_BLOCK_SECONDS=24 * 60 * 60,
+    )
+    def test_contact_form_block_persists_beyond_request_window(self):
+        payload = {
+            "name": "Visitor",
+            "email": "visitor@example.com",
+            "message": "Hello Alice",
+        }
+
+        with patch("portfolio_form.views.time.time", return_value=1_000):
+            self.client.post(
+                "/api/forms/submit/",
+                data=json.dumps(payload),
+                content_type="application/json",
+                REMOTE_ADDR="203.0.113.11",
+            )
+            self.client.post(
+                "/api/forms/submit/",
+                data=json.dumps(
+                    {
+                        **payload,
+                        "email": "visitor2@example.com",
+                    }
+                ),
+                content_type="application/json",
+                REMOTE_ADDR="203.0.113.11",
+            )
+            blocking_response = self.client.post(
+                "/api/forms/submit/",
+                data=json.dumps(
+                    {
+                        **payload,
+                        "email": "visitor3@example.com",
+                    }
+                ),
+                content_type="application/json",
+                REMOTE_ADDR="203.0.113.11",
+            )
+
+        with patch("portfolio_form.views.time.time", return_value=1_000 + 120):
+            blocked_response = self.client.post(
+                "/api/forms/submit/",
+                data=json.dumps(
+                    {
+                        **payload,
+                        "email": "visitor4@example.com",
+                    }
+                ),
+                content_type="application/json",
+                REMOTE_ADDR="203.0.113.11",
+            )
+
+        self.assertEqual(blocking_response.status_code, 429)
+        self.assertEqual(blocked_response.status_code, 429)
+        self.assertEqual(ContactFormSubmission.objects.count(), 2)
 
     def test_share_token_cannot_view_dashboard_without_login(self):
         ContactFormSubmission.objects.create(

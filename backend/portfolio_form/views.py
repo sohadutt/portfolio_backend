@@ -1,5 +1,8 @@
 import re
+import time
 
+from django.conf import settings
+from django.core.cache import cache
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -43,8 +46,50 @@ def get_csrf_token(request):
 def get_request_ip(request):
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        return x_forwarded_for.split(",")[0]
+        return x_forwarded_for.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR")
+
+
+def _submission_rate_limit_response(request):
+    client_ip = get_request_ip(request) or "unknown"
+    blocked_key = f"contact_form_blocked:{client_ip}"
+    attempts_key = f"contact_form_attempts:{client_ip}"
+
+    if cache.get(blocked_key):
+        return Response(
+            {
+                "message": "Too many requests from this client. Try again later.",
+                "blocked_for_seconds": settings.CONTACT_FORM_BLOCK_SECONDS,
+            },
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+    now = int(time.time())
+    window_start = now - settings.CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS
+    recent_attempts = [
+        attempt
+        for attempt in cache.get(attempts_key, [])
+        if attempt > window_start
+    ]
+
+    if len(recent_attempts) >= settings.CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS:
+        cache.set(blocked_key, True, timeout=settings.CONTACT_FORM_BLOCK_SECONDS)
+        cache.delete(attempts_key)
+        return Response(
+            {
+                "message": "Too many requests from this client. Access temporarily blocked.",
+                "blocked_for_seconds": settings.CONTACT_FORM_BLOCK_SECONDS,
+            },
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+    recent_attempts.append(now)
+    cache.set(
+        attempts_key,
+        recent_attempts,
+        timeout=settings.CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS,
+    )
+    return None
 
 
 def generate_username_from_email(email):
@@ -246,6 +291,10 @@ def serialize_public_portfolio(owner):
 
 
 def enquiry_submission_for_owner(request, owner, portfolio):
+    rate_limit_response = _submission_rate_limit_response(request)
+    if rate_limit_response is not None:
+        return rate_limit_response
+
     serializer = SubmissionCreateSerializer(
         data=request.data,
         context={"request": request},

@@ -133,6 +133,23 @@ REST_FRAMEWORK = {
     
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "portfolio-backend-cache",
+    }
+}
+
+CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS = int(
+    os.getenv("CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS", "10")
+)
+CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS = int(
+    os.getenv("CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS", "300")
+)
+CONTACT_FORM_BLOCK_SECONDS = int(
+    os.getenv("CONTACT_FORM_BLOCK_SECONDS", str(24 * 60 * 60))
+)
+
 SECURE_HSTS_SECONDS = 0
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = True
