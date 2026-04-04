@@ -12,7 +12,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -165,7 +165,7 @@ def login_user(request):
         }
     })
 
-# --- 3. PROFILE & VERCEL BLOB (Optimized) ---
+# --- 3. PROFILE & VERCEL BLOB ---
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -188,15 +188,12 @@ def update_user_profile(request):
     user.last_name = request.data.get("last_name", user.last_name)
 
     if "profile_picture" in request.FILES:
-        # Capture old URL for cleanup
         old_url = user.profile_picture_url
         original_file = request.FILES["profile_picture"]
         
-        # 1. Compress and Convert to WebP using imported utility
         webp_file = compress_to_webp(original_file)
 
         try:
-            # 2. Upload the WebP version
             resp = vercel_blob.put(
                 path=f"profile_pics/u{user.id}_{webp_file.name}", 
                 data=webp_file.read(), 
@@ -204,12 +201,11 @@ def update_user_profile(request):
             )
             user.profile_picture_url = resp["url"]
 
-            # 3. Cleanup: Delete the old file from Vercel
             if old_url:
                 try:
                     vercel_blob.delete(old_url)
                 except Exception:
-                    pass # Log but continue
+                    pass 
 
         except Exception as e:
             return Response({"error": f"Image upload failed: {str(e)}"}, status=500)
@@ -246,10 +242,10 @@ def get_profile_tokens(request):
         "share_token": request.user.share_token,
     })
 
-# --- 4. PORTFOLIO & PUBLIC VIEWS (Paginated) ---
+# --- 4. PORTFOLIO & PUBLIC VIEWS ---
 
 def serialize_portfolio_data(owner, request=None):
-    p = get_object_or_404(PortfolioSettings, owner=owner)
+    profile = get_object_or_404(PortfolioSettings, owner=owner)
 
     # Manual Pagination Helper
     def paginate_qs(queryset):
@@ -261,13 +257,22 @@ def serialize_portfolio_data(owner, request=None):
         return list(queryset)
 
     return {
-        "personalInfo": {"name": p.name, "shortName": p.short_name, "title": p.title, "subtitle": p.subtitle, "location": p.location, "email": p.email, "github": p.github, "linkedin": p.linkedin},
-        "heroContent": {"eyebrow": p.hero_eyebrow, "title": p.hero_title, "description": p.hero_description},
+        "personalInfo": {
+            "name": profile.name, 
+            "shortName": profile.short_name, 
+            "title": profile.title, 
+            "subtitle": profile.subtitle, 
+            "location": profile.location, 
+            "email": profile.email, 
+            "github": profile.github, 
+            "linkedin": profile.linkedin,
+            "profilePicture": owner.profile_picture_url  # Pulls directly from the User object
+        },
+        "heroContent": {"eyebrow": profile.hero_eyebrow, "title": profile.hero_title, "description": profile.hero_description},
         "heroMetrics": list(HeroMetric.objects.filter(owner=owner).values("value", "label")),
-        "aboutContent": {"title": p.about_title, "description": p.about_description},
+        "aboutContent": {"title": profile.about_title, "description": profile.about_description},
         "skillGroups": list(SkillGroup.objects.filter(owner=owner).values("title", "description", "items")),
         
-        # Paginated sub-lists
         "projects": paginate_qs(Project.objects.filter(owner=owner).values("title", "eyebrow", "description", "stack", "stat")),
         "experience": paginate_qs(Experience.objects.filter(owner=owner).values("period", "title", "company", "relation", "summary", "highlights")),
         
@@ -282,8 +287,10 @@ def serialize_portfolio_data(owner, request=None):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_default_public_portfolio(request):
-    owner = User.objects.filter(id=1).first() or User.objects.first()
-    if not owner: raise Http404()
+    # Attempts to find the primary owner (ID:1) or the first available user
+    owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
+    if not owner: 
+        raise Http404("No portfolio owners found.")
     return Response(serialize_portfolio_data(owner, request))
 
 @api_view(["GET"])
@@ -307,7 +314,7 @@ def submit_portfolio(request):
 def update_portfolio(request):
     return submit_portfolio(request)
 
-# --- 5. DASHBOARD & MESSAGES (Paginated) ---
+# --- 5. DASHBOARD & MESSAGES ---
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -327,7 +334,7 @@ def list_dashboard_submissions(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def submit_mail_default_portfolio(request):
-    owner = User.objects.filter(id=1).first() or User.objects.first()
+    owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
     if not owner: raise Http404()
     portfolio = PortfolioSettings.objects.filter(owner=owner).first()
     return _handle_mail_submission(request, owner, portfolio)
