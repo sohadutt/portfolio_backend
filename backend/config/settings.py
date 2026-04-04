@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from celery.schedules import crontab
 
 try:
     from dotenv import load_dotenv
@@ -69,6 +70,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'django_celery_results',
+    'django_celery_beat',
 ]
 
 if HAS_CORSHEADERS:
@@ -172,6 +174,15 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-unverified-users-every-hour': {
+        'task': 'portfolio_form.tasks.cleanup_unverified_users',
+        'schedule': crontab(minute=0, hour='*/12'),  # Every 12 hours
+    },
+}
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB limit for incoming request data
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

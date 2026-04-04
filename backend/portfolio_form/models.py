@@ -1,19 +1,22 @@
 import secrets
-
+import vercel_blob
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Max
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
+# --- Utility Functions ---
 
 def generate_share_token():
     return secrets.token_urlsafe(24)
 
-
-# Kept for migration compatibility with older schema history.
 def generate_dashboard_token():
+    """Kept for migration compatibility."""
     return secrets.token_urlsafe(32)
 
+# --- Core User Model ---
 
 class User(AbstractUser):
     class Tier(models.IntegerChoices):
@@ -21,23 +24,25 @@ class User(AbstractUser):
         PRO = 1, "Pro"
         PREMIUM = 2, "Premium"
 
-    # Standard Manager for Custom User models
     objects = UserManager()
 
-    # Core Identity Fields
+    # Identity & Profile
     email = models.EmailField(unique=True, help_text="Primary identifier for login and OTP.")
     tier = models.IntegerField(choices=Tier.choices, default=Tier.FREE)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    profile_picture_url = models.URLField(max_length=500, null=True, blank=True)
     
-    # Verification & Security State
+    # Verification State
     is_verified = models.BooleanField(
         default=False, 
         help_text="Designates whether the user has verified their email via OTP."
     )
     
-    # Portfolio Sharing Controls
+    # Portfolio Sharing
     enable_share_token = models.BooleanField(
         default=False,
-        help_text="Toggle to make the portfolio publicly accessible via the share_token."
+        help_text="Toggle to make the portfolio publicly accessible."
     )
     share_token = models.CharField(
         max_length=64,
@@ -49,27 +54,16 @@ class User(AbstractUser):
     
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # --- Properties for Logic Checks ---
-
     @property
     def is_free_tier(self):
         return self.tier == self.Tier.FREE
 
     @property
     def su_tier(self):
-        """
-        Returns True if user is a Superuser OR a paying customer.
-        Used to bypass rate limits or item count restrictions.
-        """
+        """Returns True if user is a Superuser OR a paying customer."""
         return self.is_superuser or self.tier != self.Tier.FREE
 
-    # --- Validation & Integrity ---
-
     def clean(self):
-        """
-        Custom validation to enforce the 'Verified-to-Share' rule.
-        This prevents sharing from being enabled via Django Admin by accident.
-        """
         super().clean()
         if self.enable_share_token and not self.is_verified:
             raise ValidationError({
@@ -77,12 +71,27 @@ class User(AbstractUser):
             })
 
     def save(self, *args, **kwargs):
-        """
-        Overriding save to ensure full_clean is called, running our 
-        validation logic even outside of Django Forms.
-        """
+        # Handle cleanup of old profile picture if the URL is being changed
+        if self.pk:
+            try:
+                old_obj = User.objects.get(pk=self.pk)
+                if old_obj.profile_picture_url and old_obj.profile_picture_url != self.profile_picture_url:
+                    vercel_blob.delete(old_obj.profile_picture_url)
+            except (User.DoesNotExist, Exception):
+                pass
+
         self.full_clean()
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Capture URL before deletion for the signal/manual cleanup
+        url_to_delete = self.profile_picture_url
+        super().delete(*args, **kwargs)
+        if url_to_delete:
+            try:
+                vercel_blob.delete(url_to_delete)
+            except Exception:
+                pass
 
     def __str__(self):
         return f"{self.username} ({self.email})"
@@ -91,36 +100,19 @@ class User(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "Users"
         ordering = ['-created_at']
-    class Tier(models.IntegerChoices):
-        FREE = 0, "Free"
-        PRO = 1, "Pro"
-        PREMIUM = 2, "Premium"
 
-    objects = UserManager()
+# --- Global Signals ---
 
-    email = models.EmailField(unique=True)
-    tier = models.IntegerField(choices=Tier.choices, default=Tier.FREE)
-    is_verified = models.BooleanField(default=False)
-    enable_share_token = models.BooleanField(default=False)
-    share_token = models.CharField(
-        max_length=64,
-        unique=True,
-        default=generate_share_token,
-        editable=False,
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
+@receiver(post_delete, sender=User)
+def auto_delete_vercel_blob_on_delete(sender, instance, **kwargs):
+    """Safety net: ensures the blob is deleted when a user is removed."""
+    if instance.profile_picture_url:
+        try:
+            vercel_blob.delete(instance.profile_picture_url)
+        except Exception:
+            pass
 
-    @property
-    def is_free_tier(self):
-        return self.tier == self.Tier.FREE
-
-    @property
-    def su_tier(self):
-        return self.is_superuser or not self.is_free_tier
-
-    def __str__(self):
-        return self.username
-
+# --- Base Abstract Models ---
 
 class OwnedPortfolioModel(models.Model):
     owner = models.ForeignKey(
@@ -128,18 +120,16 @@ class OwnedPortfolioModel(models.Model):
         on_delete=models.CASCADE,
         related_name="%(class)ss",
     )
-
     class Meta:
         abstract = True
 
-
 class OrderedPortfolioModel(OwnedPortfolioModel):
     order = models.PositiveIntegerField(default=0)
-
     class Meta:
         abstract = True
         ordering = ["order", "id"]
 
+# --- Functional Portfolio Models ---
 
 class ContactFormSubmission(models.Model):
     class Priority(models.IntegerChoices):
@@ -148,17 +138,12 @@ class ContactFormSubmission(models.Model):
         HIGH = 2, "High"
         URGENT = 3, "Urgent"
 
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="submissions",
-    )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submissions")
     portfolio = models.ForeignKey(
         "PortfolioSettings",
         on_delete=models.SET_NULL,
         related_name="submissions",
-        blank=True,
-        null=True,
+        blank=True, null=True,
     )
     name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -181,83 +166,45 @@ class ContactFormSubmission(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        if self._state.adding and not self.display_index:
-            max_index = (
-                ContactFormSubmission.objects.filter(owner=self.owner)
-                .aggregate(max_index=Max("display_index"))
-                .get("max_index")
-            )
-            self.display_index = (max_index or 0) + 1
+        if not self.display_index:
+            max_idx = ContactFormSubmission.objects.filter(owner=self.owner).aggregate(Max("display_index"))["display_index__max"]
+            self.display_index = (max_idx or 0) + 1
         super().save(*args, **kwargs)
 
     @transaction.atomic
     def move_to_index(self, new_index):
-        owner_submissions = list(
-            ContactFormSubmission.objects.select_for_update()
-            .filter(owner=self.owner)
-            .order_by("display_index", "id")
-        )
-        total = len(owner_submissions)
-        new_index = max(1, min(int(new_index), total))
-
+        submissions = list(ContactFormSubmission.objects.select_for_update().filter(owner=self.owner).order_by("display_index", "id"))
+        new_index = max(1, min(int(new_index), len(submissions)))
+        
         if new_index == self.display_index:
             return
 
-        moving_submission = next(
-            submission for submission in owner_submissions if submission.pk == self.pk
-        )
-        reordered = [
-            submission for submission in owner_submissions if submission.pk != self.pk
-        ]
-        reordered.insert(new_index - 1, moving_submission)
+        moving = next(s for s in submissions if s.pk == self.pk)
+        rem = [s for s in submissions if s.pk != self.pk]
+        rem.insert(new_index - 1, moving)
 
-        offset = total + 1000
-        for index, submission in enumerate(reordered, start=1):
-            submission.display_index = index + offset
-            submission.save(update_fields=["display_index"])
-
-        for index, submission in enumerate(reordered, start=1):
-            submission.display_index = index
-            submission.save(update_fields=["display_index"])
-
-        self.display_index = new_index
+        for i, s in enumerate(rem, 1):
+            s.display_index = i + 10000 
+            s.save(update_fields=["display_index"])
+        for i, s in enumerate(rem, 1):
+            s.display_index = i
+            s.save(update_fields=["display_index"])
 
     @classmethod
     @transaction.atomic
     def reorder_for_owner(cls, owner, ordered_ids):
-        owner_submissions = list(
-            cls.objects.select_for_update()
-            .filter(owner=owner)
-            .order_by("display_index", "id")
-        )
+        submissions = {s.id: s for s in cls.objects.select_for_update().filter(owner=owner)}
+        if sorted(submissions.keys()) != sorted(ordered_ids):
+            raise ValueError("Invalid ID list for reordering.")
 
-        if not ordered_ids:
-            return owner_submissions
-
-        current_ids = [submission.id for submission in owner_submissions]
-        if sorted(current_ids) != sorted(ordered_ids):
-            raise ValueError("Order must include each submission exactly once.")
-
-        id_to_submission = {submission.id: submission for submission in owner_submissions}
-        reordered = [id_to_submission[submission_id] for submission_id in ordered_ids]
-        offset = len(reordered) + 1000
-
-        for index, submission in enumerate(reordered, start=1):
-            submission.display_index = index + offset
-            submission.save(update_fields=["display_index"])
-
-        for index, submission in enumerate(reordered, start=1):
-            submission.display_index = index
-            submission.save(update_fields=["display_index"])
-
+        reordered = [submissions[sid] for sid in ordered_ids]
+        for i, s in enumerate(reordered, 1):
+            s.display_index = i + 10000
+            s.save(update_fields=["display_index"])
+        for i, s in enumerate(reordered, 1):
+            s.display_index = i
+            s.save(update_fields=["display_index"])
         return reordered
-
-    def __str__(self):
-        return (
-            f"{self.name} - {self.email} - {self.owner.username} - "
-            f"{self.submitted_at.strftime('%Y-%m-%d %H:%M:%S')}"
-        )
-
 
 class PortfolioSettings(OwnedPortfolioModel):
     name = models.CharField(max_length=100, default="Soham Dutta")
@@ -276,24 +223,14 @@ class PortfolioSettings(OwnedPortfolioModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["owner"],
-                name="unique_portfolio_settings_per_owner",
-            )
+            models.UniqueConstraint(fields=["owner"], name="unique_portfolio_settings_per_owner")
         ]
         verbose_name = "Portfolio"
         verbose_name_plural = "Portfolios"
 
     def clean(self):
-        if (
-            self.owner_id
-            and PortfolioSettings.objects.exclude(pk=self.pk)
-            .filter(owner=self.owner)
-            .exists()
-        ):
-            raise ValidationError(
-                "Each owner can only have one portfolio record."
-            )
+        if self.owner_id and PortfolioSettings.objects.exclude(pk=self.pk).filter(owner=self.owner).exists():
+            raise ValidationError("Each owner can only have one portfolio record.")
 
     def __str__(self):
         return f"{self.owner.username}'s Portfolio"
@@ -302,32 +239,24 @@ class PortfolioSettings(OwnedPortfolioModel):
     def share_token(self):
         return self.owner.share_token
 
-
 class HeroMetric(OrderedPortfolioModel):
     value = models.CharField(max_length=50)
     label = models.CharField(max_length=200)
 
-
 class SkillGroup(OrderedPortfolioModel):
     title = models.CharField(max_length=100)
     description = models.TextField()
-    items = models.JSONField(default=list, help_text="List of skill strings")
-
+    items = models.JSONField(default=list)
 
 class Project(OrderedPortfolioModel):
     title = models.CharField(max_length=200)
     eyebrow = models.CharField(max_length=100)
     description = models.TextField()
     stat = models.CharField(max_length=100)
-    stack = models.JSONField(default=list, help_text="List of tech stack strings")
-
+    stack = models.JSONField(default=list)
 
 class Experience(OrderedPortfolioModel):
     MAX_FREE_TIER_EXPERIENCES = 3
-    FREE_TIER_LIMIT_MESSAGE = (
-        f"Free tier users can only add up to {MAX_FREE_TIER_EXPERIENCES} experiences."
-    )
-
     period = models.CharField(max_length=100)
     title = models.CharField(max_length=200)
     company = models.CharField(max_length=200)
@@ -338,31 +267,23 @@ class Experience(OrderedPortfolioModel):
 
     def clean(self):
         super().clean()
-
-        if not self.owner_id or self.owner.su_tier:
-            return
-
-        existing_count = Experience.objects.filter(owner=self.owner).exclude(
-            pk=self.pk
-        ).count()
-        if existing_count >= self.MAX_FREE_TIER_EXPERIENCES:
-            raise ValidationError(self.FREE_TIER_LIMIT_MESSAGE)
+        if self.owner_id and not self.owner.su_tier:
+            count = Experience.objects.filter(owner=self.owner).exclude(pk=self.pk).count()
+            if count >= self.MAX_FREE_TIER_EXPERIENCES:
+                raise ValidationError(f"Free tier limit is {self.MAX_FREE_TIER_EXPERIENCES} experiences.")
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
-
 class ShowcaseCategory(OrderedPortfolioModel):
     title = models.CharField(max_length=200)
-    icon_name = models.CharField(max_length=50, help_text="Lucide icon component name")
+    icon_name = models.CharField(max_length=50, help_text="Lucide icon name")
     relation = models.CharField(max_length=100)
     preview = models.TextField()
     items = models.JSONField(default=list)
-
     class Meta(OrderedPortfolioModel.Meta):
         verbose_name_plural = "Showcase Categories"
-
 
 class FeaturedModule(OrderedPortfolioModel):
     title = models.CharField(max_length=200)
@@ -370,7 +291,6 @@ class FeaturedModule(OrderedPortfolioModel):
     relation = models.CharField(max_length=100)
     body = models.TextField()
     details = models.TextField()
-
 
 class Link(OrderedPortfolioModel):
     class LinkType(models.TextChoices):
@@ -384,6 +304,3 @@ class Link(OrderedPortfolioModel):
     value = models.CharField(max_length=200, blank=True, null=True)
     href = models.CharField(max_length=200, blank=True, null=True)
     icon_name = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta(OrderedPortfolioModel.Meta):
-        ordering = ["type", "order", "id"]

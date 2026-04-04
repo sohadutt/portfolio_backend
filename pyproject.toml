@@ -7,11 +7,15 @@ requires-python = ">=3.14"
 dependencies = [
     "celery>=5.6.3",
     "django>=6.0.3",
+    "django-celery-beat>=2.9.0",
     "django-celery-results>=2.6.0",
     "django-cors-headers>=4.9.0",
+    "django-redis>=6.0.0",
     "djangorestframework>=3.17.1",
     "djangorestframework-simplejwt>=5.5.1",
     "dotenv>=0.9.9",
+    "pillow>=12.2.0",
     "psycopg[binary]>=3.2.6",
     "redis>=7.4.0",
+    "vercel-blob>=0.4.2",
 ]
