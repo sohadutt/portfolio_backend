@@ -59,7 +59,8 @@ class UserAdmin(DjangoUserAdmin):
     fieldsets = DjangoUserAdmin.fieldsets + (
         ("Portfolio & Identity", {
             "fields": (
-                "tier", 
+                "tier",
+                "theme_mode",
                 "is_verified", 
                 "upload_profile_picture",
                 "profile_picture_url",     

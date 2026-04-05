@@ -48,7 +48,7 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "profile_picture"]
+        fields = ["first_name", "last_name", "profile_picture", "theme_mode"]
 
     def validate_profile_picture(self, value):
         if value.size > 2 * 1024 * 1024:

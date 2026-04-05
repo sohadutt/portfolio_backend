@@ -24,6 +24,13 @@ class User(AbstractUser):
         PRO = 1, "Pro"
         PREMIUM = 2, "Premium"
 
+    class ThemeMode(models.IntegerChoices):
+        OCEAN = 0, "Ocean"
+        FOREST = 1, "Forest"
+        DESERT = 2, "Desert"
+        SPACE = 3, "Space"
+        SUNSET = 4, "Sunset"
+
     objects = UserManager()
 
     # Identity & Profile
@@ -32,6 +39,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     profile_picture_url = models.URLField(max_length=500, null=True, blank=True)
+    theme_mode = models.IntegerField(choices=ThemeMode.choices, default=ThemeMode.OCEAN)
     
     # Verification State
     is_verified = models.BooleanField(

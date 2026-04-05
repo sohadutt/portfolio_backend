@@ -175,32 +175,57 @@ def get_user_profile(request):
         "user_id": u.id, "email": u.email, "username": u.username,
         "first_name": u.first_name, "last_name": u.last_name,
         "profile_picture": u.profile_picture_url,
+        "theme_mode": u.theme_mode,
+        "tier": u.tier,
         "is_verified": u.is_verified, "enable_share_token": u.enable_share_token,
         "share_token": u.share_token if (u.is_verified and u.enable_share_token) else None
     })
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-@parser_classes([MultiPartParser, FormParser])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def update_user_profile(request):
+    """
+    Handles updating user identity, theme preferences, and profile picture.
+    Includes automatic compression to WebP and old-file cleanup on Vercel Blob.
+    """
     user = request.user
+    
+    # 1. Update Basic Identity Fields
     user.first_name = request.data.get("first_name", user.first_name)
     user.last_name = request.data.get("last_name", user.last_name)
 
+    # 2. Update Theme Preference
+    # Since theme_mode is an IntegerChoice, we cast it to int
+    if "theme_mode" in request.data:
+        try:
+            user.theme_mode = int(request.data.get("theme_mode"))
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid theme_mode value. Must be an integer."}, status=400)
+
+    # 3. Handle Profile Picture Upload & Cleanup
     if "profile_picture" in request.FILES:
         old_url = user.profile_picture_url
         original_file = request.FILES["profile_picture"]
         
-        webp_file = compress_to_webp(original_file)
-
         try:
+            webp_file = compress_to_webp(original_file)
+            random_suffix = secrets.token_hex(3)
+            filename = f"u{user.id}_{random_suffix}.webp"
+            
             resp = vercel_blob.put(
-                path=f"profile_pics/u{user.id}_{webp_file.name}", 
+                path=f"profile_pics/{filename}", 
                 data=webp_file.read(), 
-                options={"access": "public", "content_type": "image/webp"}
+                options={
+                    "access": "public", 
+                    "content_type": "image/webp"
+                }
             )
+            
+            # Update the user record with the new Vercel URL
             user.profile_picture_url = resp["url"]
 
+            # Cleanup: Delete the old file from Vercel to save space
             if old_url:
                 try:
                     vercel_blob.delete(old_url)
@@ -208,17 +233,22 @@ def update_user_profile(request):
                     pass 
 
         except Exception as e:
-            return Response({"error": f"Image upload failed: {str(e)}"}, status=500)
+            return Response({"error": f"Image processing/upload failed: {str(e)}"}, status=500)
 
+    # 4. Finalize and Save
     user.save()
+    
     return Response({
-        "message": "Profile updated", 
+        "message": "Profile updated successfully.", 
         "data": {
             "first_name": user.first_name, 
             "last_name": user.last_name, 
-            "profile_picture": user.profile_picture_url
+            "theme_mode": user.theme_mode,
+            "profile_picture": user.profile_picture_url,
+            "tier": user.tier,
+            "username": user.username
         }
-    })
+    }, status=200)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
