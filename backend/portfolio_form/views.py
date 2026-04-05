@@ -30,8 +30,6 @@ from .serializers import (
     SubmissionUpdateSerializer
 )
 
-# --- 1. UTILITIES & PAGINATION ---
-
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -74,8 +72,6 @@ def generate_username_from_email(email):
         username = f"{base}{suffix}"
         suffix += 1
     return username
-
-# --- 2. AUTHENTICATION & OTP ---
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -165,8 +161,6 @@ def login_user(request):
         }
     })
 
-# --- 3. PROFILE & VERCEL BLOB ---
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_profile(request):
@@ -185,31 +179,28 @@ def get_user_profile(request):
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 def update_user_profile(request):
-    """
-    Handles updating user identity, theme preferences, and profile picture.
-    Includes automatic compression to WebP and old-file cleanup on Vercel Blob.
-    """
     user = request.user
     
-    # 1. Update Basic Identity Fields
+    # Update names
     user.first_name = request.data.get("first_name", user.first_name)
     user.last_name = request.data.get("last_name", user.last_name)
 
-    # 2. Update Theme Preference
-    # Since theme_mode is an IntegerChoice, we cast it to int
+    # Update theme
     if "theme_mode" in request.data:
         try:
             user.theme_mode = int(request.data.get("theme_mode"))
         except (ValueError, TypeError):
-            return Response({"error": "Invalid theme_mode value. Must be an integer."}, status=400)
+            return Response({"error": "theme_mode must be an integer."}, status=400)
 
-    # 3. Handle Profile Picture Upload & Cleanup
+    # Process Image
     if "profile_picture" in request.FILES:
         old_url = user.profile_picture_url
         original_file = request.FILES["profile_picture"]
         
         try:
             webp_file = compress_to_webp(original_file)
+            webp_file.seek(0)
+            
             random_suffix = secrets.token_hex(3)
             filename = f"u{user.id}_{random_suffix}.webp"
             
@@ -217,38 +208,35 @@ def update_user_profile(request):
                 path=f"profile_pics/{filename}", 
                 data=webp_file.read(), 
                 options={
-                    "access": "public", 
+                    "access": "public", # THIS WILL NOW WORK ON YOUR PUBLIC STORE
                     "content_type": "image/webp"
                 }
             )
             
-            # Update the user record with the new Vercel URL
             user.profile_picture_url = resp["url"]
 
-            # Cleanup: Delete the old file from Vercel to save space
-            if old_url:
+            # Clean up old blob if it exists
+            if old_url and "vercel-storage.com" in old_url:
                 try:
                     vercel_blob.delete(old_url)
                 except Exception:
                     pass 
 
         except Exception as e:
-            return Response({"error": f"Image processing/upload failed: {str(e)}"}, status=500)
-
-    # 4. Finalize and Save
+            return Response({"error": f"Upload failed: {str(e)}"}, status=500)
+    print(f"DEBUG: Updated profile picture URL: {user.profile_picture_url}")
     user.save()
-    
+
+    # Cast the URL to string to ensure it's JSON serializable
     return Response({
         "message": "Profile updated successfully.", 
         "data": {
             "first_name": user.first_name, 
             "last_name": user.last_name, 
             "theme_mode": user.theme_mode,
-            "profile_picture": user.profile_picture_url,
-            "tier": user.tier,
-            "username": user.username
+            "profile_picture": str(user.profile_picture_url) if user.profile_picture_url else None,
         }
-    }, status=200)
+    })
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -272,12 +260,9 @@ def get_profile_tokens(request):
         "share_token": request.user.share_token,
     })
 
-# --- 4. PORTFOLIO & PUBLIC VIEWS ---
-
 def serialize_portfolio_data(owner, request=None):
     profile = get_object_or_404(PortfolioSettings, owner=owner)
 
-    # Manual Pagination Helper
     def paginate_qs(queryset):
         if request:
             paginator = StandardResultsSetPagination()
@@ -289,24 +274,16 @@ def serialize_portfolio_data(owner, request=None):
     return {
         "themeMode": owner.theme_mode,
         "personalInfo": {
-            "name": profile.name, 
-            "shortName": profile.short_name, 
-            "title": profile.title, 
-            "subtitle": profile.subtitle, 
-            "location": profile.location, 
-            "email": profile.email, 
-            "github": profile.github, 
-            "linkedin": profile.linkedin,
-            "profilePicture": owner.profile_picture_url  # Pulls directly from the User object
+            "name": profile.name, "shortName": profile.short_name, "title": profile.title, 
+            "subtitle": profile.subtitle, "location": profile.location, "email": profile.email, 
+            "github": profile.github, "linkedin": profile.linkedin, "profilePicture": owner.profile_picture_url
         },
         "heroContent": {"eyebrow": profile.hero_eyebrow, "title": profile.hero_title, "description": profile.hero_description},
         "heroMetrics": list(HeroMetric.objects.filter(owner=owner).values("value", "label")),
         "aboutContent": {"title": profile.about_title, "description": profile.about_description},
         "skillGroups": list(SkillGroup.objects.filter(owner=owner).values("title", "description", "items")),
-        
         "projects": paginate_qs(Project.objects.filter(owner=owner).values("title", "eyebrow", "description", "stack", "stat")),
         "experience": paginate_qs(Experience.objects.filter(owner=owner).values("period", "title", "company", "relation", "summary", "highlights")),
-        
         "showcaseCategories": list(ShowcaseCategory.objects.filter(owner=owner).values("title", "icon_name", "relation", "preview", "items")),
         "featuredModules": list(FeaturedModule.objects.filter(owner=owner).values("title", "icon_name", "relation", "body", "details")),
         "contactMethods": list(Link.objects.filter(owner=owner, type="CONTACT").values("label", "value", "href", "icon_name")),
@@ -318,10 +295,8 @@ def serialize_portfolio_data(owner, request=None):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_default_public_portfolio(request):
-    # Attempts to find the primary owner (ID:1) or the first available user
     owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
-    if not owner: 
-        raise Http404("No portfolio owners found.")
+    if not owner: raise Http404()
     return Response(serialize_portfolio_data(owner, request))
 
 @api_view(["GET"])
@@ -345,20 +320,15 @@ def submit_portfolio(request):
 def update_portfolio(request):
     return submit_portfolio(request)
 
-# --- 5. DASHBOARD & MESSAGES ---
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_dashboard_submissions(request):
     subs = ContactFormSubmission.objects.filter(owner=request.user).order_by('-submitted_at')
-    
     paginator = StandardResultsSetPagination()
     page = paginator.paginate_queryset(subs, request)
-    
     if page is not None:
         serializer = SubmissionReadSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
-
     serializer = SubmissionReadSerializer(subs, many=True)
     return Response({"owner": request.user.username, "submissions": serializer.data})
 
