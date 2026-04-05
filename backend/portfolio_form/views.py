@@ -19,7 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.pagination import PageNumberPagination
 
 from .utils import compress_to_webp
-from .tasks import send_otp_email_task, cleanup_unverified_users, send_contact_notification_task
+from .tasks import send_otp_email_task, cleanup_unverified_users, process_daily_urgent_notifications
 from .models import (
     ContactFormSubmission, Experience, FeaturedModule, HeroMetric, 
     Link, PortfolioSettings, Project, ShowcaseCategory, SkillGroup, User
@@ -272,7 +272,6 @@ def serialize_portfolio_data(portfolio, request=None):
         return list(queryset)
 
     return {
-        # NEW: Provide portfolio-level metadata to the frontend
         "orderIndex": portfolio.order_index,
         "isEnabled": portfolio.is_enabled,
         "tier": portfolio.tier,
@@ -335,7 +334,6 @@ def update_portfolio(request, order_index=1):
     new_order_index = request.data.get("new_order_index")
     is_enabled = request.data.get("is_enabled")
     
-    # 1. LIGHTWEIGHT SETTINGS UPDATE: If payload only contains settings toggles (no heavy portfolio data)
     if "personalInfo" not in request.data and (new_order_index is not None or is_enabled is not None):
         portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
         updated = False
@@ -360,8 +358,6 @@ def update_portfolio(request, order_index=1):
                 "data": serialize_portfolio_data(portfolio)
             })
 
-    # 2. FULL UPDATE: Save all data normally
-    # Re-enforce tier restrictions before full save
     if int(order_index) > 1 and request.user.tier == User.Tier.FREE:
         return Response({"message": "Upgrade to Premium to create multiple portfolios."}, status=403)
 
@@ -372,7 +368,6 @@ def update_portfolio(request, order_index=1):
     serializer.is_valid(raise_exception=True)
     portfolio = serializer.save(owner=request.user)
 
-    # 3. REORDER AFTER SAVE: If a new index was passed alongside the data, shift it
     if new_order_index and int(new_order_index) != int(order_index):
         if int(new_order_index) > 1 and request.user.tier == User.Tier.FREE:
              return Response({"message": "Saved data, but upgrade to Premium to shift portfolio indices."}, status=403)
@@ -380,6 +375,43 @@ def update_portfolio(request, order_index=1):
         portfolio.refresh_from_db()
 
     return Response({"message": "Portfolio updated.", "data": serialize_portfolio_data(portfolio)})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_dashboard_portfolios(request):
+    portfolios = PortfolioSettings.objects.filter(owner=request.user).order_by("order_index")
+    
+    data = [
+        {
+            "order_index": p.order_index,
+            "name": p.name,
+            "title": p.title,
+            "is_enabled": p.is_enabled,
+            "tier": p.tier,
+        }
+        for p in portfolios
+    ]
+    
+    return Response({"owner": request.user.username, "portfolios": data})
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def toggle_portfolio_status(request, order_index):
+    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
+    
+    if not portfolio.is_enabled:
+        if portfolio.order_index > 1 and request.user.tier == User.Tier.FREE:
+            return Response({"message": "Upgrade to Premium to enable multiple portfolios."}, status=403)
+            
+    portfolio.is_enabled = not portfolio.is_enabled
+    portfolio.save(update_fields=['is_enabled'])
+    
+    status_text = "enabled" if portfolio.is_enabled else "disabled"
+    
+    return Response({
+        "message": f"Portfolio {order_index} is now {status_text}.", 
+        "is_enabled": portfolio.is_enabled
+    })
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -414,18 +446,7 @@ def _handle_mail_submission(request, owner, portfolio):
     
     serializer = SubmissionCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    submission = serializer.save(owner=owner, portfolio=portfolio, ip_address=get_request_ip(request))
-    
-    try:
-        send_contact_notification_task.delay(
-            to_email=owner.email,
-            sender_name=submission.name,
-            sender_email=submission.email,
-            message=submission.message
-        )
-    except Exception as e:
-        print(f"Failed to queue email task: {str(e)}")
-
+    serializer.save(owner=owner, portfolio=portfolio, ip_address=get_request_ip(request))
     return Response({"message": "Message sent."}, status=201)
 
 @api_view(["PATCH"])
@@ -464,43 +485,18 @@ def trigger_user_cleanup(request):
         return Response({"message": "Cleanup task executed successfully.", "details": result}, status=200)
     except Exception as e:
         return Response({"message": f"Task failed: {str(e)}"}, status=500)
-    
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def list_dashboard_portfolios(request):
-    portfolios = PortfolioSettings.objects.filter(owner=request.user).order_by("order_index")
-    
-    data = [
-        {
-            "order_index": p.order_index,
-            "name": p.name,
-            "title": p.title, # Acts as the description
-            "is_enabled": p.is_enabled,
-            "tier": p.tier,
-        }
-        for p in portfolios
-    ]
-    
-    return Response({"owner": request.user.username, "portfolios": data})
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def trigger_urgent_notifications(request):
+    expected_key = getattr(settings, 'CRON_SECRET_KEY', None)
+    provided_key = request.headers.get("X-Cron-Secret") or request.GET.get("secret")
 
-@api_view(["PATCH"])
-@permission_classes([IsAuthenticated])
-def toggle_portfolio_status(request, order_index):
-    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
-    
-    # If they are trying to turn it ON, ensure they aren't violating Free Tier limits
-    if not portfolio.is_enabled:
-        if portfolio.order_index > 1 and request.user.tier == User.Tier.FREE:
-            return Response({"message": "Upgrade to Premium to enable multiple portfolios."}, status=403)
-            
-    # Flip the boolean and save
-    portfolio.is_enabled = not portfolio.is_enabled
-    portfolio.save(update_fields=['is_enabled'])
-    
-    status_text = "enabled" if portfolio.is_enabled else "disabled"
-    
-    return Response({
-        "message": f"Portfolio {order_index} is now {status_text}.", 
-        "is_enabled": portfolio.is_enabled
-    })
+    if not expected_key or provided_key != expected_key:
+        return Response({"message": "Unauthorized request."}, status=403)
+
+    try:
+        result = process_daily_urgent_notifications() 
+        return Response({"message": "Urgent notifications processed.", "details": result}, status=200)
+    except Exception as e:
+        return Response({"message": f"Task failed: {str(e)}"}, status=500)

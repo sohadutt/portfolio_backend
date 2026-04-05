@@ -49,4 +49,5 @@ urlpatterns = [
     # --- Admin & External Triggers ---
     # Secure webhook for external cron job (cron-job.org / UptimeRobot)
     path("cron/cleanup/", views.trigger_user_cleanup, name="cron_cleanup"),
+    path("cron/urgent-notifications/", views.trigger_urgent_notifications, name="cron_urgent_notifications"),
 ]
