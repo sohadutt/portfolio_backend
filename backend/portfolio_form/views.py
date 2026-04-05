@@ -19,7 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.pagination import PageNumberPagination
 
 from .utils import compress_to_webp
-from .tasks import send_otp_email_task
+from .tasks import send_otp_email_task, cleanup_unverified_users, send_contact_notification_task
 from .models import (
     ContactFormSubmission, Experience, FeaturedModule, HeroMetric, 
     Link, PortfolioSettings, Project, ShowcaseCategory, SkillGroup, User
@@ -208,7 +208,7 @@ def update_user_profile(request):
                 path=f"profile_pics/{filename}", 
                 data=webp_file.read(), 
                 options={
-                    "access": "public", # THIS WILL NOW WORK ON YOUR PUBLIC STORE
+                    "access": "public",
                     "content_type": "image/webp"
                 }
             )
@@ -224,10 +224,10 @@ def update_user_profile(request):
 
         except Exception as e:
             return Response({"error": f"Upload failed: {str(e)}"}, status=500)
+            
     print(f"DEBUG: Updated profile picture URL: {user.profile_picture_url}")
     user.save()
 
-    # Cast the URL to string to ensure it's JSON serializable
     return Response({
         "message": "Profile updated successfully.", 
         "data": {
@@ -260,8 +260,8 @@ def get_profile_tokens(request):
         "share_token": request.user.share_token,
     })
 
-def serialize_portfolio_data(owner, request=None):
-    profile = get_object_or_404(PortfolioSettings, owner=owner)
+def serialize_portfolio_data(portfolio, request=None):
+    owner = portfolio.owner
 
     def paginate_qs(queryset):
         if request:
@@ -272,53 +272,114 @@ def serialize_portfolio_data(owner, request=None):
         return list(queryset)
 
     return {
+        # NEW: Provide portfolio-level metadata to the frontend
+        "orderIndex": portfolio.order_index,
+        "isEnabled": portfolio.is_enabled,
+        "tier": portfolio.tier,
         "themeMode": owner.theme_mode,
+        
         "personalInfo": {
-            "name": profile.name, "shortName": profile.short_name, "title": profile.title, 
-            "subtitle": profile.subtitle, "location": profile.location, "email": profile.email, 
-            "github": profile.github, "linkedin": profile.linkedin, "profilePicture": owner.profile_picture_url
+            "name": portfolio.name, "shortName": portfolio.short_name, "title": portfolio.title, 
+            "subtitle": portfolio.subtitle, "location": portfolio.location, "email": portfolio.email, 
+            "github": portfolio.github, "linkedin": portfolio.linkedin, "profilePicture": owner.profile_picture_url
         },
-        "heroContent": {"eyebrow": profile.hero_eyebrow, "title": profile.hero_title, "description": profile.hero_description},
-        "heroMetrics": list(HeroMetric.objects.filter(owner=owner).values("value", "label")),
-        "aboutContent": {"title": profile.about_title, "description": profile.about_description},
-        "skillGroups": list(SkillGroup.objects.filter(owner=owner).values("title", "description", "items")),
-        "projects": paginate_qs(Project.objects.filter(owner=owner).values("title", "eyebrow", "description", "stack", "stat")),
-        "experience": paginate_qs(Experience.objects.filter(owner=owner).values("period", "title", "company", "relation", "summary", "highlights")),
-        "showcaseCategories": list(ShowcaseCategory.objects.filter(owner=owner).values("title", "icon_name", "relation", "preview", "items")),
-        "featuredModules": list(FeaturedModule.objects.filter(owner=owner).values("title", "icon_name", "relation", "body", "details")),
-        "contactMethods": list(Link.objects.filter(owner=owner, type="CONTACT").values("label", "value", "href", "icon_name")),
-        "navigationLinks": list(Link.objects.filter(owner=owner, type="NAV").values("label", "href")),
-        "footerLinks": list(Link.objects.filter(owner=owner, type="FOOTER").values("label", "href")),
-        "statusPills": list(Link.objects.filter(owner=owner, type="STATUS").values("label", "icon_name")),
+        "heroContent": {"eyebrow": portfolio.hero_eyebrow, "title": portfolio.hero_title, "description": portfolio.hero_description},
+        "heroMetrics": list(HeroMetric.objects.filter(portfolio=portfolio).values("value", "label")),
+        "aboutContent": {"title": portfolio.about_title, "description": portfolio.about_description},
+        "skillGroups": list(SkillGroup.objects.filter(portfolio=portfolio).values("title", "description", "items")),
+        "projects": paginate_qs(Project.objects.filter(portfolio=portfolio).values("title", "eyebrow", "description", "stack", "stat")),
+        "experience": paginate_qs(Experience.objects.filter(portfolio=portfolio).values("period", "title", "company", "relation", "summary", "highlights")),
+        "showcaseCategories": list(ShowcaseCategory.objects.filter(portfolio=portfolio).values("title", "icon_name", "relation", "preview", "items")),
+        "featuredModules": list(FeaturedModule.objects.filter(portfolio=portfolio).values("title", "icon_name", "relation", "body", "details")),
+        "contactMethods": list(Link.objects.filter(portfolio=portfolio, type="CONTACT").values("label", "value", "href", "icon_name")),
+        "navigationLinks": list(Link.objects.filter(portfolio=portfolio, type="NAV").values("label", "href")),
+        "footerLinks": list(Link.objects.filter(portfolio=portfolio, type="FOOTER").values("label", "href")),
+        "statusPills": list(Link.objects.filter(portfolio=portfolio, type="STATUS").values("label", "icon_name")),
     }
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_default_public_portfolio(request):
+def get_default_public_portfolio(request, order_index=1):
     owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
     if not owner: raise Http404()
-    return Response(serialize_portfolio_data(owner, request))
+    portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index, is_enabled=True)
+    return Response(serialize_portfolio_data(portfolio, request))
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_shared_public_portfolio(request, share_token):
+def get_shared_public_portfolio(request, share_token, order_index=1):
     owner = get_object_or_404(User, share_token=share_token, enable_share_token=True)
-    return Response(serialize_portfolio_data(owner, request))
+    portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index, is_enabled=True)
+    return Response(serialize_portfolio_data(portfolio, request))
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def submit_portfolio(request):
+def submit_portfolio(request, order_index=1):
     if not request.user.is_verified:
         return Response({"message": "Verify first."}, status=403)
-    serializer = PortfolioSubmissionSerializer(data=request.data, context={"owner": request.user})
-    serializer.is_valid(raise_exception=True)
-    serializer.save(owner=request.user)
-    return Response({"message": "Portfolio saved.", "data": serialize_portfolio_data(request.user)})
+        
+    if int(order_index) > 1 and request.user.tier == User.Tier.FREE:
+        return Response({"message": "Upgrade to Premium to create multiple portfolios."}, status=403)
 
-@api_view(["POST"])
+    serializer = PortfolioSubmissionSerializer(data=request.data, context={"owner": request.user, "order_index": order_index})
+    serializer.is_valid(raise_exception=True)
+    portfolio = serializer.save(owner=request.user)
+    return Response({"message": "Portfolio saved.", "data": serialize_portfolio_data(portfolio)})
+
+@api_view(["POST", "PATCH"])
 @permission_classes([IsAuthenticated])
-def update_portfolio(request):
-    return submit_portfolio(request)
+def update_portfolio(request, order_index=1):
+    if not request.user.is_verified:
+        return Response({"message": "Verify first."}, status=403)
+        
+    new_order_index = request.data.get("new_order_index")
+    is_enabled = request.data.get("is_enabled")
+    
+    # 1. LIGHTWEIGHT SETTINGS UPDATE: If payload only contains settings toggles (no heavy portfolio data)
+    if "personalInfo" not in request.data and (new_order_index is not None or is_enabled is not None):
+        portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
+        updated = False
+        
+        if new_order_index and int(new_order_index) != int(order_index):
+            if int(new_order_index) > 1 and request.user.tier == User.Tier.FREE:
+                return Response({"message": "Upgrade to Premium to create multiple portfolios."}, status=403)
+            portfolio.move_to_index(int(new_order_index))
+            updated = True
+            
+        if is_enabled is not None:
+            if bool(is_enabled) and portfolio.order_index > 1 and request.user.tier == User.Tier.FREE:
+                 return Response({"message": "Upgrade to Premium to enable multiple portfolios."}, status=403)
+            portfolio.is_enabled = bool(is_enabled)
+            portfolio.save(update_fields=['is_enabled'])
+            updated = True
+            
+        if updated:
+            portfolio.refresh_from_db()
+            return Response({
+                "message": "Portfolio settings updated.", 
+                "data": serialize_portfolio_data(portfolio)
+            })
+
+    # 2. FULL UPDATE: Save all data normally
+    # Re-enforce tier restrictions before full save
+    if int(order_index) > 1 and request.user.tier == User.Tier.FREE:
+        return Response({"message": "Upgrade to Premium to create multiple portfolios."}, status=403)
+
+    serializer = PortfolioSubmissionSerializer(
+        data=request.data, 
+        context={"owner": request.user, "order_index": order_index}
+    )
+    serializer.is_valid(raise_exception=True)
+    portfolio = serializer.save(owner=request.user)
+
+    # 3. REORDER AFTER SAVE: If a new index was passed alongside the data, shift it
+    if new_order_index and int(new_order_index) != int(order_index):
+        if int(new_order_index) > 1 and request.user.tier == User.Tier.FREE:
+             return Response({"message": "Saved data, but upgrade to Premium to shift portfolio indices."}, status=403)
+        portfolio.move_to_index(int(new_order_index))
+        portfolio.refresh_from_db()
+
+    return Response({"message": "Portfolio updated.", "data": serialize_portfolio_data(portfolio)})
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -334,25 +395,37 @@ def list_dashboard_submissions(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def submit_mail_default_portfolio(request):
+def submit_mail_default_portfolio(request, order_index=1):
     owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
     if not owner: raise Http404()
-    portfolio = PortfolioSettings.objects.filter(owner=owner).first()
+    portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index)
     return _handle_mail_submission(request, owner, portfolio)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def submit_mail_public_portfolio(request, share_token):
+def submit_mail_public_portfolio(request, share_token, order_index=1):
     owner = get_object_or_404(User, share_token=share_token, enable_share_token=True)
-    portfolio = PortfolioSettings.objects.filter(owner=owner).first()
+    portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index)
     return _handle_mail_submission(request, owner, portfolio)
 
 def _handle_mail_submission(request, owner, portfolio):
     limit_check = _check_rate_limit(request)
     if limit_check: return limit_check
+    
     serializer = SubmissionCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save(owner=owner, portfolio=portfolio, ip_address=get_request_ip(request))
+    submission = serializer.save(owner=owner, portfolio=portfolio, ip_address=get_request_ip(request))
+    
+    try:
+        send_contact_notification_task.delay(
+            to_email=owner.email,
+            sender_name=submission.name,
+            sender_email=submission.email,
+            message=submission.message
+        )
+    except Exception as e:
+        print(f"Failed to queue email task: {str(e)}")
+
     return Response({"message": "Message sent."}, status=201)
 
 @api_view(["PATCH"])
@@ -376,3 +449,58 @@ def reorder_dashboard_submissions(request):
         return Response({"submissions": [SubmissionReadSerializer(s).data for s in reordered]})
     except ValueError as e:
         return Response({"message": str(e)}, status=400)
+    
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def trigger_user_cleanup(request):
+    expected_key = getattr(settings, 'CRON_SECRET_KEY', None)
+    provided_key = request.headers.get("X-Cron-Secret") or request.GET.get("secret")
+
+    if not expected_key or provided_key != expected_key:
+        return Response({"message": "Unauthorized request."}, status=403)
+
+    try:
+        result = cleanup_unverified_users() 
+        return Response({"message": "Cleanup task executed successfully.", "details": result}, status=200)
+    except Exception as e:
+        return Response({"message": f"Task failed: {str(e)}"}, status=500)
+    
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_dashboard_portfolios(request):
+    portfolios = PortfolioSettings.objects.filter(owner=request.user).order_by("order_index")
+    
+    data = [
+        {
+            "order_index": p.order_index,
+            "name": p.name,
+            "title": p.title, # Acts as the description
+            "is_enabled": p.is_enabled,
+            "tier": p.tier,
+        }
+        for p in portfolios
+    ]
+    
+    return Response({"owner": request.user.username, "portfolios": data})
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def toggle_portfolio_status(request, order_index):
+    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
+    
+    # If they are trying to turn it ON, ensure they aren't violating Free Tier limits
+    if not portfolio.is_enabled:
+        if portfolio.order_index > 1 and request.user.tier == User.Tier.FREE:
+            return Response({"message": "Upgrade to Premium to enable multiple portfolios."}, status=403)
+            
+    # Flip the boolean and save
+    portfolio.is_enabled = not portfolio.is_enabled
+    portfolio.save(update_fields=['is_enabled'])
+    
+    status_text = "enabled" if portfolio.is_enabled else "disabled"
+    
+    return Response({
+        "message": f"Portfolio {order_index} is now {status_text}.", 
+        "is_enabled": portfolio.is_enabled
+    })

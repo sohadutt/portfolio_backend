@@ -131,11 +131,31 @@ class OwnedPortfolioModel(models.Model):
     class Meta:
         abstract = True
 
-class OrderedPortfolioModel(OwnedPortfolioModel):
+class OrderedPortfolioModel(models.Model):
+    MAX_FREE_TIER_ITEMS = 3 # Global default limit for free tier
+
+    portfolio = models.ForeignKey(
+        'PortfolioSettings',
+        on_delete=models.CASCADE,
+        related_name="%(class)ss"
+    )
     order = models.PositiveIntegerField(default=0)
+    
     class Meta:
         abstract = True
         ordering = ["order", "id"]
+
+    def clean(self):
+        super().clean()
+        # Enforce the limit for Free Tier users
+        if self.portfolio_id and hasattr(self.portfolio, 'owner') and not self.portfolio.owner.su_tier:
+            count = self.__class__.objects.filter(portfolio=self.portfolio).exclude(pk=self.pk).count()
+            if count >= self.MAX_FREE_TIER_ITEMS:
+                raise ValidationError(f"Free tier limit is {self.MAX_FREE_TIER_ITEMS} items. Please upgrade to Premium.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 # --- Functional Portfolio Models ---
 
@@ -215,6 +235,11 @@ class ContactFormSubmission(models.Model):
         return reordered
 
 class PortfolioSettings(OwnedPortfolioModel):
+    # NEW FIELDS FOR MULTI-PORTFOLIO SUPPORT
+    order_index = models.PositiveIntegerField(default=1)
+    is_enabled = models.BooleanField(default=True)
+    tier = models.IntegerField(choices=User.Tier.choices, default=User.Tier.FREE)
+
     name = models.CharField(max_length=100, default="Soham Dutta")
     short_name = models.CharField(max_length=10)
     title = models.CharField(max_length=200)
@@ -231,17 +256,49 @@ class PortfolioSettings(OwnedPortfolioModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["owner"], name="unique_portfolio_settings_per_owner")
+            # Allow multiple portfolios per user, separated by their order_index
+            models.UniqueConstraint(fields=["owner", "order_index"], name="unique_portfolio_settings_per_owner_index")
         ]
         verbose_name = "Portfolio"
         verbose_name_plural = "Portfolios"
 
     def clean(self):
-        if self.owner_id and PortfolioSettings.objects.exclude(pk=self.pk).filter(owner=self.owner).exists():
-            raise ValidationError("Each owner can only have one portfolio record.")
+        # Enforce free tier limitations
+        if self.owner_id and self.order_index > 1 and self.owner.tier == User.Tier.FREE:
+            raise ValidationError("Free tier users can only have one portfolio.")
+
+    @transaction.atomic
+    def move_to_index(self, new_index):
+        """Safely shifts portfolios to maintain a continuous 1-based index."""
+        portfolios = list(
+            PortfolioSettings.objects.select_for_update()
+            .filter(owner=self.owner)
+            .order_by("order_index")
+        )
+        
+        # Ensure we don't move it out of bounds
+        new_index = max(1, min(int(new_index), len(portfolios)))
+        
+        if new_index == self.order_index:
+            return
+
+        # Pop the moving portfolio and insert it at the new position
+        moving = next(p for p in portfolios if p.pk == self.pk)
+        rem = [p for p in portfolios if p.pk != self.pk]
+        rem.insert(new_index - 1, moving)
+
+        # Step 1: Temporary shift (+10000) to avoid UniqueConstraint collisions during save
+        for i, p in enumerate(rem, 1):
+            p.order_index = i + 10000
+            p.save(update_fields=["order_index"])
+            
+        # Step 2: Set the final correct sequential indices
+        for i, p in enumerate(rem, 1):
+            p.order_index = i
+            p.save(update_fields=["order_index"])
 
     def __str__(self):
-        return f"{self.owner.username}'s Portfolio"
+        return f"{self.owner.username}'s Portfolio #{self.order_index}"
 
     @property
     def share_token(self):
@@ -264,7 +321,6 @@ class Project(OrderedPortfolioModel):
     stack = models.JSONField(default=list)
 
 class Experience(OrderedPortfolioModel):
-    MAX_FREE_TIER_EXPERIENCES = 3
     period = models.CharField(max_length=100)
     title = models.CharField(max_length=200)
     company = models.CharField(max_length=200)
@@ -272,17 +328,6 @@ class Experience(OrderedPortfolioModel):
     summary = models.TextField()
     highlights = models.JSONField(default=list)
     related_components = models.JSONField(default=list)
-
-    def clean(self):
-        super().clean()
-        if self.owner_id and not self.owner.su_tier:
-            count = Experience.objects.filter(owner=self.owner).exclude(pk=self.pk).count()
-            if count >= self.MAX_FREE_TIER_EXPERIENCES:
-                raise ValidationError(f"Free tier limit is {self.MAX_FREE_TIER_EXPERIENCES} experiences.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
 
 class ShowcaseCategory(OrderedPortfolioModel):
     title = models.CharField(max_length=200)
@@ -301,6 +346,9 @@ class FeaturedModule(OrderedPortfolioModel):
     details = models.TextField()
 
 class Link(OrderedPortfolioModel):
+    # Override the default 3 limit so navbars and footers don't break for free users
+    MAX_FREE_TIER_ITEMS = 3
+    
     class LinkType(models.TextChoices):
         NAV = "NAV", "Navigation"
         FOOTER = "FOOTER", "Footer"

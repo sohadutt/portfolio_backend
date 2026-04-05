@@ -70,7 +70,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'django_celery_results',
-    'django_celery_beat',
+    # 'django_celery_beat',
 ]
 
 if HAS_CORSHEADERS:
@@ -174,13 +174,14 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+CRON_SECRET_KEY = os.getenv('CRON_SECRET_KEY', 'your-super-secret-cron-key-change-in-production')
 
-CELERY_BEAT_SCHEDULE = {
-    'cleanup-unverified-users-every-hour': {
-        'task': 'portfolio_form.tasks.cleanup_unverified_users',
-        'schedule': crontab(minute=0, hour='*/12'),  # Every 12 hours
-    },
-}
+# CELERY_BEAT_SCHEDULE = {
+#     'cleanup-unverified-users-every-hour': {
+#         'task': 'portfolio_form.tasks.cleanup_unverified_users',
+#         'schedule': crontab(minute=0, hour='*/12'),  # Every 12 hours
+#     },
+# }
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB limit for incoming request data
 

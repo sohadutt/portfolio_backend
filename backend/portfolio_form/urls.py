@@ -19,20 +19,34 @@ urlpatterns = [
     path("profile/get-token/", views.get_profile_tokens, name="profile_token"),
 
     # --- Public Portfolio Viewing ---
-    path("portfolio/default/", views.get_default_public_portfolio, name="portfolio_public_default"),
-    path("portfolio/shared/<str:share_token>/", views.get_shared_public_portfolio, name="portfolio_public_shared"),
+    # Default User Routes
+    path("portfolio/default/", views.get_default_public_portfolio, {"order_index": 1}, name="portfolio_default_primary"),
+    path("portfolio/default/<int:order_index>/", views.get_default_public_portfolio, name="portfolio_default_indexed"),
+    
+    # Shared Token Routes
+    path("portfolio/shared/<str:share_token>/", views.get_shared_public_portfolio, {"order_index": 1}, name="portfolio_shared_primary"),
+    path("portfolio/shared/<str:share_token>/<int:order_index>/", views.get_shared_public_portfolio, name="portfolio_shared_indexed"),
 
     # --- Portfolio Content Management (Authenticated) ---
-    path("portfolio/save/", views.submit_portfolio, name="portfolio_save"), 
-    # Note: submit_portfolio handles both create and update (partial) in your optimized views
+    path("portfolio/submit/", views.submit_portfolio, {"order_index": 1}, name="portfolio_submit_primary"),
+    path("portfolio/submit/<int:order_index>/", views.submit_portfolio, name="portfolio_submit_indexed"),
+    
+    path("portfolio/update/", views.update_portfolio, {"order_index": 1}, name="portfolio_update_primary"),
+    path("portfolio/update/<int:order_index>/", views.update_portfolio, name="portfolio_update_indexed"),
 
     # --- Contact Form & Submissions ---
     # Public endpoints for visitors
-    path("forms/submit/default/", views.submit_mail_default_portfolio, name="form_submit_default"),
-    path("forms/submit/shared/<str:share_token>/", views.submit_mail_public_portfolio, name="form_submit_shared"),
+    path("forms/submit/default/<int:order_index>/", views.submit_mail_default_portfolio, name="form_submit_default_indexed"),
+    path("forms/submit/shared/<str:share_token>/", views.submit_mail_public_portfolio, {"order_index": 1}, name="form_submit_shared_primary"),
 
     # Dashboard endpoints for owners
     path("dashboard/submissions/", views.list_dashboard_submissions, name="dashboard_submissions_list"),
     path("dashboard/submissions/<int:form_id>/", views.update_dashboard_submission, name="dashboard_submission_update"),
     path("dashboard/submissions/reorder/", views.reorder_dashboard_submissions, name="dashboard_submissions_reorder"),
+    path("dashboard/portfolios/", views.list_dashboard_portfolios, name="dashboard_portfolios_list"),
+    path("dashboard/portfolios/<int:order_index>/toggle/", views.toggle_portfolio_status, name="dashboard_portfolio_toggle"),
+
+    # --- Admin & External Triggers ---
+    # Secure webhook for external cron job (cron-job.org / UptimeRobot)
+    path("cron/cleanup/", views.trigger_user_cleanup, name="cron_cleanup"),
 ]

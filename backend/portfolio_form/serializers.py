@@ -227,15 +227,44 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         owner = self.context.get("owner")
-        experience = attrs.get("experience")
-        if owner and experience and not owner.su_tier:
-            if len(experience) > Experience.MAX_FREE_TIER_EXPERIENCES:
-                raise serializers.ValidationError({"experience": Experience.FREE_TIER_LIMIT_MESSAGE})
+        
+        # Enforce Free Tier Array Limits
+        if owner and not owner.su_tier:
+            restrict_to_3 = [
+                ("heroMetrics", "hero metrics"),
+                ("skillGroups", "skill groups"),
+                ("projects", "projects"),
+                ("experience", "experiences"),
+                ("showcaseCategories", "showcase categories"),
+                ("featuredModules", "featured modules"),
+            ]
+            
+            restrict_to_5 = [
+                ("navigationLinks", "navigation links"),
+                ("footerLinks", "footer links"),
+                ("contactMethods", "contact methods"),
+                ("statusPills", "status pills"),
+            ]
+            
+            errors = {}
+            for field_key, display_name in restrict_to_3:
+                if len(attrs.get(field_key, [])) > 3:
+                    errors[field_key] = f"Free tier limit is 3 {display_name}. Upgrade to Premium for unlimited."
+                    
+            for field_key, display_name in restrict_to_5:
+                if len(attrs.get(field_key, [])) > 5:
+                    errors[field_key] = f"Free tier limit is 5 {display_name}."
+                    
+            if errors:
+                raise serializers.ValidationError(errors)
+
         return attrs
 
     @transaction.atomic
     def save(self, **kwargs):
         owner = kwargs.get("owner") or self.context.get("owner")
+        order_index = self.context.get("order_index", 1)
+        
         if not owner:
             raise ValueError("PortfolioSubmissionSerializer.save() requires an owner.")
 
@@ -244,16 +273,18 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
 
         portfolio, _ = PortfolioSettings.objects.update_or_create(
             owner=owner,
+            order_index=order_index,
             defaults={
                 "name": pi["name"], "short_name": pi["shortName"], "title": pi["title"],
                 "subtitle": pi["subtitle"], "location": pi["location"], "email": pi["email"],
                 "github": pi["github"], "linkedin": pi["linkedin"],
                 "hero_eyebrow": hc["eyebrow"], "hero_title": hc["title"], "hero_description": hc["description"],
                 "about_title": ac["title"], "about_description": ac["description"],
+                "tier": owner.tier # Cascade current tier state to the portfolio record
             },
         )
 
-        # Mapping for efficient updates
+        # Mapping for efficient updates - Attach to PORTFOLIO instead of owner
         mapping = [
             (HeroMetric, data["heroMetrics"], lambda x: x),
             (SkillGroup, data["skillGroups"], lambda x: x),
@@ -274,11 +305,11 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
         ]
 
         for model, items, parser in mapping:
-            model.objects.filter(owner=owner).delete()
-            model.objects.bulk_create([model(owner=owner, order=idx, **parser(item)) for idx, item in enumerate(items, 1)])
+            model.objects.filter(portfolio=portfolio).delete()
+            model.objects.bulk_create([model(portfolio=portfolio, order=idx, **parser(item)) for idx, item in enumerate(items, 1)])
 
-        # Handle Links
-        Link.objects.filter(owner=owner).delete()
+        # Handle Links - Attach to PORTFOLIO
+        Link.objects.filter(portfolio=portfolio).delete()
         link_types = [
             (Link.LinkType.NAV, data["navigationLinks"]),
             (Link.LinkType.CONTACT, data["contactMethods"]),
@@ -289,7 +320,7 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
         all_links = []
         for l_type, items in link_types:
             all_links.extend([
-                Link(owner=owner, order=idx, type=l_type, label=item["label"], 
+                Link(portfolio=portfolio, order=idx, type=l_type, label=item["label"], 
                      value=item.get("value"), href=item.get("href"), icon_name=item.get("icon"))
                 for idx, item in enumerate(items, 1)
             ])
