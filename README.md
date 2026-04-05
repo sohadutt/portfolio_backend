@@ -1,771 +1,422 @@
-# Portfolio Backend
+# 📘 Portfolio Backend API — Professional Documentation
 
-Django + Django REST Framework backend for a portfolio site with:
+A scalable, production-ready **Django REST Framework backend** for a portfolio platform featuring secure authentication, multi-portfolio management, public sharing, and a structured dashboard system.
 
-- email-based profile creation
-- JWT login with refresh + access tokens
-- one portfolio per user
-- public portfolio reads
-- public contact submissions for the default portfolio and shared portfolios
-- authenticated dashboard access for submission management
+---
 
-All API routes are mounted under `/api/`.
+# 🌐 Base URL
 
-## Stack
+```bash
+/api/
+```
 
-- Python `>=3.14`
-- Django `6.0.3`
-- Django REST Framework
-- `djangorestframework-simplejwt`
-- PostgreSQL
+---
 
-## Data Model
+# 🧱 Architecture Overview
 
-### User
+This backend is designed with:
 
-Custom auth user fields used by this project:
+* **Modular portfolio components** (fully JSON-driven)
+* **Tier-based feature control** (Free vs Premium)
+* **Token-based public access**
+* **Secure authentication (JWT + OTP)**
+* **Ordered relational data models**
+* **Asynchronous task support (email, cleanup jobs)**
 
-- `email` is unique
-- `username` is generated from the email prefix on signup
-- `enable_share_token` gates token-based public routes
-- `share_token` is auto-generated and unique
+---
 
-### PortfolioSettings
+# 🔐 Authentication & Security
 
-Each user can have exactly one portfolio record.
+Supports:
 
-`PortfolioSettings.share_token` is derived from `owner.share_token`; the portfolio model does not store a separate token.
+* Email + Password login
+* OTP-based verification
+* JWT (Access + Refresh tokens)
+* Token blacklisting for logout
 
-### Ordered portfolio content
+---
 
-These models are owner-scoped and ordered:
+## 🔑 Authentication Endpoints
 
-- `HeroMetric`
-- `SkillGroup`
-- `Project`
-- `Experience`
-- `ShowcaseCategory`
-- `FeaturedModule`
-- `Link`
+### 1. Register User
 
-`Link.type` is one of:
+**POST** `/api/auth/register/`
 
-- `NAV`
-- `FOOTER`
-- `CONTACT`
-- `STATUS`
+Creates a new user and sends an OTP for verification.
 
-### ContactFormSubmission
-
-Public submissions are stored with:
-
-- `owner`
-- `portfolio` (nullable)
-- `display_index`
-- `priority`
-- `is_dismissed`
-- request IP when available
-
-`display_index` auto-increments per owner and can be reordered later from the dashboard.
-
-## Public Routing Rules
-
-### Default public portfolio
-
-`GET /api/portfolio`
-
-The backend resolves the default owner like this:
-
-1. User with `id=1`, if present
-2. Otherwise the earliest user by `id`
-
-If no users exist, the endpoint returns `404`.
-
-### Shared public portfolio
-
-`GET /api/portfolio/<share_token>`
-
-This only works when the target user exists and `enable_share_token=true`. Otherwise it returns `404`.
-
-### Public contact form
-
-There are two public submission endpoints:
-
-- `POST /api/forms/submit` submits to the default public portfolio owner
-- `POST /api/forms/submit/<share_token>` submits to the shared owner resolved by token
-
-For token-based submissions, the backend also requires `enable_share_token=true`.
-
-## Authentication
-
-The backend supports two authentication methods: password-based login and OTP (One-Time Password) via email.
-
-### Password Authentication
-
-For existing users with passwords:
-
-`POST /api/auth/login`
-
-Request:
+#### Request
 
 ```json
 {
-  "email": "alice@example.com",
-  "password": "testpass123"
+  "email": "user@example.com",
+  "password": "strongpassword"
 }
 ```
 
-Response:
+#### Response
+
+```json
+{
+  "message": "Profile created. OTP sent to your email.",
+  "data": {
+    "user_id": 1,
+    "email": "user@example.com"
+  }
+}
+```
+
+---
+
+### 2. Request OTP
+
+**POST** `/api/auth/otp/request/`
+
+Triggers OTP for login/verification.
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+---
+
+### 3. Verify OTP
+
+**POST** `/api/auth/otp/verify/`
+
+```json
+{
+  "email": "user@example.com",
+  "otp": "123456"
+}
+```
+
+#### Response
+
+```json
+{
+  "message": "OTP verified.",
+  "data": {
+    "user_id": 1,
+    "email": "user@example.com",
+    "username": "user"
+  },
+  "tokens": {
+    "refresh": "<refresh_token>",
+    "access": "<access_token>"
+  }
+}
+```
+
+---
+
+### 4. Login
+
+**POST** `/api/auth/login/`
+
+```json
+{
+  "email": "user@example.com",
+  "password": "strongpassword"
+}
+```
+
+#### Response
 
 ```json
 {
   "message": "Login successful",
   "data": {
     "user_id": 1,
-    "email": "alice@example.com",
-    "username": "alice",
+    "email": "user@example.com",
+    "username": "user",
     "enable_share_token": true,
-    "share_token": "generated-user-share-token",
-    "temporary_token": "jwt-refresh-token",
-    "bearer_token": "jwt-access-token",
-    "token_type": "Bearer"
+    "share_token": "token",
+    "tokens": {
+      "refresh": "<refresh_token>",
+      "access": "<access_token>"
+    }
   }
 }
 ```
 
-### OTP Authentication
+---
 
-For email-based authentication:
+### 5. Refresh Token
 
-1. Request OTP: `POST /api/auth/otp`
-
-Request:
+**POST** `/api/auth/refresh/`
 
 ```json
 {
-  "email": "alice@example.com"
+  "refresh": "<refresh_token>"
 }
 ```
 
-Response:
+---
+
+### 6. Logout
+
+**POST** `/api/auth/logout/`
 
 ```json
 {
-  "message": "If the email is valid, an OTP has been sent."
+  "refresh": "<refresh_token>"
 }
 ```
 
-2. Verify OTP: `POST /api/auth/verify`
+---
 
-Request:
+# 👤 User Profile Management
 
-```json
-{
-  "email": "alice@example.com",
-  "otp": "123456"
-}
-```
+---
 
-Response:
+### 1. Get Profile
 
-```json
-{
-  "message": "OTP verified successfully.",
-  "data": {
-    "user_id": 1,
-    "email": "alice@example.com",
-    "username": "alice",
-    "is_verified": true
-  },
-  "tokens": {
-    "refresh": "jwt-refresh-token",
-    "access": "jwt-access-token"
-  }
-}
-```
+**GET** `/api/profile/`
+🔒 Requires Authentication
 
-Protected routes use JWT Bearer auth.
-
-Use the access token like this:
-
-```http
-Authorization: Bearer <bearer_token>
-```
-
-## SMTP Configuration
-
-The backend uses Django's email system for sending OTP codes. Configure the following environment variables in `backend/config/settings.py`:
-
-- `EMAIL_HOST`: SMTP server host (e.g., 'smtp.gmail.com')
-- `EMAIL_PORT`: SMTP server port (e.g., 587)
-- `EMAIL_HOST_USER`: Email address for sending
-- `EMAIL_HOST_PASSWORD`: Password or app password
-- `EMAIL_USE_TLS`: True for secure connections
-- `EMAIL_USE_SSL`: False (use TLS instead)
-
-## Local Setup
-
-1. Install [uv](https://github.com/astral-sh/uv) if not already installed.
-2. Clone the repository and navigate to the project directory.
-3. Install dependencies using uv.
-4. Configure PostgreSQL environment variables.
-5. Run migrations.
-6. Start the server.
-
-Example:
-
-```bash
-uv sync
-cd backend
-uv run manage.py migrate
-uv run manage.py runserver
-```
-
-Environment variables used by `backend/config/settings.py`:
-
-- `SECRET_KEY`
-- `DEBUG`
-- `ALLOWED_HOSTS`
-- `PG_NAME`
-- `PG_USER`
-- `PG_PASSWORD`
-- `PG_HOST`
-- `PG_PORT`
-
-Defaults are development-oriented, but the database engine is PostgreSQL, so a reachable Postgres instance is still required unless you change settings.
-
-## SMTP Configuration
-
-The backend uses Django's email system for sending OTP codes. Configure the following environment variables in `backend/config/settings.py`:
-
-- `EMAIL_HOST`: SMTP server host (e.g., 'smtp.gmail.com')
-- `EMAIL_PORT`: SMTP server port (e.g., 587)
-- `EMAIL_HOST_USER`: Email address for sending
-- `EMAIL_HOST_PASSWORD`: Password or app password
-- `EMAIL_USE_TLS`: True for secure connections
-- `EMAIL_USE_SSL`: False (use TLS instead)
-
-Example for Gmail:
-
-```bash
-export EMAIL_HOST=smtp.gmail.com
-export EMAIL_PORT=587
-export EMAIL_HOST_USER=your-email@gmail.com
-export EMAIL_HOST_PASSWORD=your-app-password
-export EMAIL_USE_TLS=True
-export EMAIL_USE_SSL=False
-```
-
-## Testing
-
-To run the test suite:
-
-```bash
-cd backend
-uv run manage.py test
-```
-
-## Workflows
-
-### Share Token Management
-
-Use the `change_share` management command to manage user share tokens:
-
-- Enable share tokens for all users: `uv run manage.py change_share enable`
-- Disable share tokens for all users: `uv run manage.py change_share disable`
-- Regenerate share tokens for all users: `uv run manage.py change_share regenerate`
-
-To target specific users, modify `USER_IDS` in `backend/portfolio_form/management/commands/change_share.py`.
-
-## Request Rules
-
-Write endpoints expect JSON:
-
-```http
-Content-Type: application/json
-```
-
-Example:
+#### Response
 
 ```json
 {
-  "email": "alice@example.com",
-  "password": "testpass123"
-}
-```
-
-## API Reference
-
-### 1. CSRF cookie
-
-`GET /api/csrf`
-
-Auth required: no
-
-Response:
-
-```json
-{
-  "detail": "CSRF cookie set"
-}
-```
-
-### 2. Create profile
-
-`POST /api/profiles`
-
-Auth required: no
-
-Request:
-
-```json
-{
-  "email": "alice@example.com",
-  "password": "testpass123"
-}
-```
-
-Response:
-
-```json
-{
-  "message": "Profile created successfully",
-  "data": {
-    "user_id": 1,
-    "email": "alice@example.com",
-    "username": "alice",
-    "enable_share_token": false,
-    "share_token": "generated-user-share-token"
-  }
-}
-```
-
-Validation:
-
-- `email` must be unique
-- `password` minimum length is `8`
-
-### 2.1 Request OTP
-
-`POST /api/auth/otp`
-
-Auth required: no
-
-Request:
-
-```json
-{
-  "email": "alice@example.com"
-}
-```
-
-Response:
-
-```json
-{
-  "message": "If the email is valid, an OTP has been sent."
-}
-```
-
-### 2.2 Verify OTP
-
-`POST /api/auth/verify`
-
-Auth required: no
-
-Request:
-
-```json
-{
-  "email": "alice@example.com",
-  "otp": "123456"
-}
-```
-
-Response:
-
-```json
-{
-  "message": "OTP verified successfully.",
-  "data": {
-    "user_id": 1,
-    "email": "alice@example.com",
-    "username": "alice",
-    "is_verified": true
-  },
-  "tokens": {
-    "refresh": "jwt-refresh-token",
-    "access": "jwt-access-token"
-  }
-}
-```
-
-### 3. Login
-
-`POST /api/auth/login`
-
-Auth required: no
-
-Request:
-
-```json
-{
-  "email": "alice@example.com",
-  "password": "testpass123"
-}
-```
-
-Response:
-
-```json
-{
-  "message": "Login successful",
-  "data": {
-    "user_id": 1,
-    "email": "alice@example.com",
-    "username": "alice",
-    "enable_share_token": true,
-    "share_token": "generated-user-share-token",
-    "temporary_token": "jwt-refresh-token",
-    "bearer_token": "jwt-access-token",
-    "token_type": "Bearer"
-  }
-}
-```
-
-### 4. Refresh token
-
-`POST /api/auth/refresh`
-
-Auth required: no
-
-Request:
-
-```json
-{
-  "refresh": "<temporary_token>"
-}
-```
-
-### 5. Logout
-
-`POST /api/auth/logout`
-
-Auth required: no
-
-Request:
-
-```json
-{
-  "refresh": "<temporary_token>"
-}
-```
-
-### 6. Get public default portfolio
-
-`GET /api/portfolio`
-
-Auth required: no
-
-Response shape is frontend-oriented and includes:
-
-- `personalInfo`
-- `navigationLinks`
-- `heroContent`
-- `heroMetrics`
-- `aboutContent`
-- `skillGroups`
-- `projects`
-- `experience`
-- `showcaseCategories`
-- `featuredModules`
-- `contactMethods`
-- `footerLinks`
-- `statusPills`
-
-Example:
-
-```json
-{
-  "personalInfo": {
-    "name": "Alice Doe",
-    "shortName": "AD",
-    "title": "Full Stack Developer",
-    "subtitle": "Building reliable products",
-    "location": "Kolkata, India",
-    "email": "alice@example.com",
-    "github": "https://github.com/alice",
-    "linkedin": "https://linkedin.com/in/alice"
-  },
-  "navigationLinks": [
-    { "label": "About", "href": "#about" }
-  ],
-  "heroContent": {
-    "eyebrow": "Available for work",
-    "title": "I build products end to end.",
-    "description": "Focused on thoughtful UX and maintainable systems."
-  }
-}
-```
-
-### 7. Get shared public portfolio
-
-`GET /api/portfolio/<share_token>`
-
-Auth required: no
-
-If the token is invalid or disabled, returns `404`.
-
-### 8. Create or replace authenticated portfolio
-
-`POST /api/portfolio/submit`
-
-Auth required: yes
-
-Header:
-
-```http
-Authorization: Bearer <bearer_token>
-```
-
-Request body:
-
-```json
-{
-  "personalInfo": {
-    "name": "Alice Doe",
-    "shortName": "AD",
-    "title": "Full Stack Developer",
-    "subtitle": "Building reliable products",
-    "location": "Kolkata, India",
-    "email": "alice@example.com",
-    "github": "https://github.com/alice",
-    "linkedin": "https://linkedin.com/in/alice"
-  },
-  "navigationLinks": [
-    { "label": "About", "href": "#about" }
-  ],
-  "heroContent": {
-    "eyebrow": "Available for work",
-    "title": "I build products end to end.",
-    "description": "Focused on thoughtful UX and maintainable systems."
-  },
-  "heroMetrics": [
-    { "value": "3+", "label": "Years Experience" }
-  ],
-  "aboutContent": {
-    "title": "About Me",
-    "description": "I enjoy building dependable software."
-  },
-  "skillGroups": [
-    {
-      "title": "Backend",
-      "description": "APIs and systems",
-      "items": ["Django", "PostgreSQL"]
-    }
-  ],
-  "projects": [
-    {
-      "title": "Portfolio Backend",
-      "eyebrow": "Featured",
-      "description": "A portfolio backend with nested content.",
-      "stack": ["Django", "DRF"],
-      "stat": "Live"
-    }
-  ],
-  "experience": [
-    {
-      "period": "2024 - Present",
-      "title": "Developer",
-      "company": "Example Co",
-      "relation": "Full-time",
-      "summary": "Builds backend and frontend systems.",
-      "highlights": ["Shipped APIs"],
-      "relatedComponents": ["Portfolio", "Dashboard"]
-    }
-  ],
-  "showcaseCategories": [
-    {
-      "title": "Web Apps",
-      "icon": "Monitor",
-      "relation": "Featured",
-      "preview": "Modern product engineering work.",
-      "items": ["Dashboards", "Portfolio Sites"]
-    }
-  ],
-  "featuredModules": [
-    {
-      "title": "Case Studies",
-      "icon": "Briefcase",
-      "relation": "Selected Work",
-      "body": "High-impact builds and experiments.",
-      "details": "Backend systems, UX improvements, and launches."
-    }
-  ],
-  "contactMethods": [
-    {
-      "label": "Email",
-      "value": "alice@example.com",
-      "href": "mailto:alice@example.com",
-      "icon": "Mail"
-    }
-  ],
-  "footerLinks": [
-    { "label": "GitHub", "href": "https://github.com/alice" }
-  ],
-  "statusPills": [
-    { "label": "Open to Work", "icon": "Sparkles" }
-  ]
-}
-```
-
-Behavior:
-
-- creates the portfolio if it does not exist
-- updates the portfolio if it already exists
-- replaces all ordered child collections for that owner
-
-### 9. Partially update authenticated portfolio
-
-`POST /api/portfolio/update`
-
-Auth required: yes
-
-This route performs a partial update using the same payload shape as `/api/portfolio/submit`.
-
-If the user has no existing portfolio, it returns `404`.
-
-### 10. Get share status and token
-
-`GET /api/profile/tokens`
-
-Auth required: yes
-
-Response:
-
-```json
-{
+  "user_id": 1,
+  "email": "user@example.com",
+  "username": "user",
+  "first_name": "John",
+  "last_name": "Doe",
+  "profile_picture": "https://...",
+  "theme_mode": 0,
+  "tier": 0,
+  "is_verified": true,
   "enable_share_token": true,
-  "share_token": "generated-user-share-token"
+  "share_token": "token"
 }
 ```
 
-### 11. Submit to the default public portfolio
+---
 
-`POST /api/forms/submit`
+### 2. Update Profile
 
-Auth required: no
+**PATCH** `/api/profile/update/`
 
-This creates a `ContactFormSubmission` for the default public owner.
+Supports JSON and multipart (file upload).
 
-Request:
+#### Request (JSON)
 
 ```json
 {
-  "name": "Visitor",
-  "email": "visitor@example.com",
-  "phone": "1234567890",
-  "message": "Hello there",
-  "for_work": true,
-  "priority": 1
+  "first_name": "John",
+  "last_name": "Doe",
+  "theme_mode": 2
 }
 ```
 
-### 12. Submit to a shared public portfolio
-
-`POST /api/forms/submit/<share_token>`
-
-Auth required: no
-
-Request:
+#### Response
 
 ```json
 {
-  "name": "Visitor",
-  "email": "visitor@example.com",
-  "phone": "1234567890",
-  "message": "Hello Alice",
-  "for_work": true,
-  "priority": 1
-}
-```
-
-Priority values:
-
-- `0` = Low
-- `1` = Medium
-- `2` = High
-- `3` = Urgent
-
-Example success response:
-
-```json
-{
-  "message": "Form submitted successfully",
+  "message": "Profile updated successfully.",
   "data": {
-    "id": 1,
-    "display_index": 1,
-    "owner": "alice",
-    "owner_user_id": 1,
-    "portfolio_id": 1,
-    "name": "Visitor",
-    "email": "visitor@example.com",
-    "phone": "1234567890",
-    "message": "Hello Alice",
-    "for_work": true,
-    "priority": 1,
-    "priority_label": "Medium",
-    "is_dismissed": false,
-    "submitted_at": "2026-04-03T10:00:00+05:30"
+    "first_name": "John",
+    "last_name": "Doe",
+    "theme_mode": 2,
+    "profile_picture": "https://..."
   }
 }
 ```
 
-### 13. List dashboard submissions
+---
 
-`GET /api/forms/submissions`
+### 3. Toggle Share Token
 
-Auth required: yes
+**POST** `/api/profile/share-toggle/`
 
-Response:
+Enables/disables public portfolio sharing.
+
+---
+
+### 4. Get Share Token
+
+**GET** `/api/profile/get-token/`
+
+---
+
+# 🌐 Public Portfolio APIs
+
+---
+
+## Default Portfolio
+
+**GET** `/api/portfolio/default/`
+**GET** `/api/portfolio/default/<order_index>/`
+
+### Behavior
+
+* Resolves default user:
+
+  1. `id=1`
+  2. First available user
+
+---
+
+## Shared Portfolio
+
+**GET** `/api/portfolio/shared/<share_token>/`
+**GET** `/api/portfolio/shared/<share_token>/<order_index>/`
+
+### Requirements
+
+* `enable_share_token = true`
+* Verified user
+
+---
+
+## Response Structure
 
 ```json
 {
-  "owner": "alice",
-  "owner_user_id": 1,
-  "submissions": []
+  "orderIndex": 1,
+  "isEnabled": true,
+  "tier": 0,
+  "themeMode": 0,
+  "personalInfo": {},
+  "heroContent": {},
+  "heroMetrics": [],
+  "aboutContent": {},
+  "skillGroups": [],
+  "projects": [],
+  "experience": [],
+  "showcaseCategories": [],
+  "featuredModules": [],
+  "contactMethods": [],
+  "navigationLinks": [],
+  "footerLinks": [],
+  "statusPills": []
 }
 ```
 
-### 14. Update one dashboard submission
+---
 
-`PATCH /api/forms/submissions/<form_id>`
+# ✏️ Portfolio Management
 
-Also supported:
+---
 
-`POST /api/forms/submissions/<form_id>`
+## 1. Create / Replace Portfolio
 
-Auth required: yes
+**POST** `/api/portfolio/submit/`
+**POST** `/api/portfolio/submit/<order_index>/`
 
-Request can be partial:
+🔒 Requires Authentication
+
+### Key Characteristics
+
+* Idempotent (creates or replaces)
+* Fully JSON-driven
+* Rebuilds ordered child models
+* Applies tier constraints
+
+---
+
+## 2. Update Portfolio
+
+**POST / PATCH** `/api/portfolio/update/<order_index>/`
+
+### Supports:
+
+* Partial updates
+* Reordering portfolios
+* Enable/disable state
+* Full content updates
+
+---
+
+### Example: Change Order
+
+```json
+{
+  "new_order_index": 2
+}
+```
+
+---
+
+### Example: Toggle Visibility
+
+```json
+{
+  "is_enabled": false
+}
+```
+
+---
+
+# 📬 Contact Form System
+
+---
+
+## Public Submission
+
+### Default Portfolio
+
+**POST** `/api/forms/submit/default/<order_index>/`
+
+### Shared Portfolio
+
+**POST** `/api/forms/submit/shared/<share_token>/`
+
+---
+
+### Request
+
+```json
+{
+  "name": "Visitor",
+  "email": "visitor@example.com",
+  "phone": "1234567890",
+  "message": "Hello!",
+  "for_work": true,
+  "priority": 2
+}
+```
+
+---
+
+### Features
+
+* IP-based rate limiting
+* Priority classification
+* Portfolio-linked submissions
+
+---
+
+# 📊 Dashboard APIs (Authenticated)
+
+---
+
+## Submissions
+
+### List
+
+**GET** `/api/dashboard/submissions/`
+
+### Update
+
+**PATCH** `/api/dashboard/submissions/<form_id>/`
 
 ```json
 {
   "is_dismissed": true,
-  "priority": 2,
+  "priority": 3,
   "display_index": 1
 }
 ```
 
-If `display_index` is provided, the backend reorders the owner's submission list.
+---
 
-### 15. Reorder dashboard submissions
+### Reorder
 
-`POST /api/forms/submissions/reorder`
-
-Auth required: yes
-
-Request:
+**POST** `/api/dashboard/submissions/reorder/`
 
 ```json
 {
@@ -773,14 +424,69 @@ Request:
 }
 ```
 
-Rules:
+---
 
-- `order` must include each current submission exactly once
-- the reorder happens within the authenticated owner only
+## Portfolio Management
 
-## Common Errors
+### List Portfolios
 
-### Missing auth
+**GET** `/api/dashboard/portfolios/`
+
+### Toggle Portfolio
+
+**PATCH** `/api/dashboard/portfolios/<order_index>/toggle/`
+
+---
+
+# 🧠 Tier-Based Constraints
+
+---
+
+## Free Tier
+
+* Single portfolio only
+* Max 3 items per core section
+* Max 5 link entries
+
+---
+
+## Premium Tier
+
+* Multiple portfolios
+* Unlimited items
+* Advanced customization
+
+---
+
+# ⚙️ Background Jobs (Cron APIs)
+
+---
+
+## Cleanup Unverified Users
+
+**GET / POST** `/api/cron/cleanup/`
+
+---
+
+## Urgent Notifications
+
+**GET / POST** `/api/cron/urgent-notifications/`
+
+---
+
+### Security Header
+
+```bash
+X-Cron-Secret: <CRON_SECRET_KEY>
+```
+
+---
+
+# ⚠️ Error Handling
+
+---
+
+## Authentication Error
 
 ```json
 {
@@ -788,50 +494,65 @@ Rules:
 }
 ```
 
-### Unsupported media type
+---
 
-If a JSON-only endpoint receives form-encoded data:
-
-```json
-{
-  "detail": "Unsupported media type \"multipart/form-data\" in request."
-}
-```
-
-### Invalid JSON
+## OTP Failure
 
 ```json
 {
-  "detail": "JSON parse error ..."
+  "message": "Invalid or expired OTP."
 }
 ```
 
-### Share token disabled or not found
+---
 
-Current behavior:
+## Tier Restriction
 
-- returns `404`
+```json
+{
+  "message": "Upgrade to Premium to create multiple portfolios."
+}
+```
 
-This intentionally avoids revealing whether a disabled token belongs to a real user.
+---
 
-## Frontend Integration Notes
+# 🔒 Security Considerations
 
-Default public site:
+* JWT-based authentication for protected routes
+* OTP verification required for sharing
+* Rate limiting on public forms
+* Token-based portfolio access
+* Secure cron endpoints
 
-- `GET /api/portfolio`
-- `POST /api/forms/submit`
+---
 
-Shared public site:
+# 📎 Integration Notes
 
-- `GET /api/portfolio/<share_token>`
-- `POST /api/forms/submit/<share_token>`
+---
 
-Owner dashboard:
+### Authorization Header
 
-- `POST /api/auth/login`
-- `GET /api/profile/tokens`
-- `POST /api/portfolio/submit`
-- `POST /api/portfolio/update`
-- `GET /api/forms/submissions`
-- `PATCH /api/forms/submissions/<form_id>`
-- `POST /api/forms/submissions/reorder`
+```bash
+Authorization: Bearer <access_token>
+```
+
+---
+
+### Content Type
+
+```bash
+Content-Type: application/json
+```
+
+---
+
+# 📌 Conclusion
+
+This backend provides a **robust, scalable foundation** for a portfolio platform with:
+
+* Structured content modeling
+* Clean API design
+* Strong security practices
+* Flexible frontend integration
+
+---
