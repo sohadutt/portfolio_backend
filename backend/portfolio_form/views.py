@@ -287,6 +287,7 @@ def serialize_portfolio_data(owner, request=None):
         return list(queryset)
 
     return {
+        "themeMode": owner.theme_mode,
         "personalInfo": {
             "name": profile.name, 
             "shortName": profile.short_name, 
