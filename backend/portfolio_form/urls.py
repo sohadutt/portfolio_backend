@@ -16,7 +16,7 @@ urlpatterns = [
     path("profile/", views.get_user_profile, name="profile_get"),
     path("profile/update/", views.update_user_profile, name="profile_update"),
     path("profile/share-toggle/", views.status_share_token, name="profile_share_toggle"),
-    path("profile/tokens/", views.get_profile_tokens, name="profile_tokens"),
+    path("profile/get-token/", views.get_profile_tokens, name="profile_token"),
 
     # --- Public Portfolio Viewing ---
     path("portfolio/default/", views.get_default_public_portfolio, name="portfolio_public_default"),
