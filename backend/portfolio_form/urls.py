@@ -28,10 +28,7 @@ urlpatterns = [
     path("portfolio/shared/<str:share_token>/<int:order_index>/", views.get_shared_public_portfolio, name="portfolio_shared_indexed"),
 
     # --- Portfolio Content Management (Authenticated) ---
-    path("portfolio/submit/", views.submit_portfolio, {"order_index": 1}, name="portfolio_submit_primary"),
-    path("portfolio/submit/<int:order_index>/", views.submit_portfolio, name="portfolio_submit_indexed"),
-    
-    path("portfolio/update/", views.update_portfolio, {"order_index": 1}, name="portfolio_update_primary"),
+    path("portfolio/submit/<int:order_index>/", views.submit_portfolio, name="portfolio_submit_indexed"), 
     path("portfolio/update/<int:order_index>/", views.update_portfolio, name="portfolio_update_indexed"),
 
     # --- Contact Form & Submissions ---
@@ -40,8 +37,8 @@ urlpatterns = [
     path("forms/submit/shared/<str:share_token>/", views.submit_mail_public_portfolio, {"order_index": 1}, name="form_submit_shared_primary"),
 
     # Dashboard endpoints for owners
-    path("dashboard/submissions/", views.list_dashboard_submissions, name="dashboard_submissions_list"),
-    path("dashboard/submissions/<int:form_id>/", views.update_dashboard_submission, name="dashboard_submission_update"),
+    path("dashboard/submissions/view/", views.list_dashboard_submissions, name="dashboard_submissions_list"),
+    path("dashboard/submissions/update/<int:form_id>/", views.update_dashboard_submission, name="dashboard_submission_update"),
     path("dashboard/submissions/reorder/", views.reorder_dashboard_submissions, name="dashboard_submissions_reorder"),
     path("dashboard/portfolios/", views.list_dashboard_portfolios, name="dashboard_portfolios_list"),
     path("dashboard/portfolios/<int:order_index>/toggle/", views.toggle_portfolio_status, name="dashboard_portfolio_toggle"),
