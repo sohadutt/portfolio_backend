@@ -171,6 +171,7 @@ def get_user_profile(request):
         "profile_picture": u.profile_picture_url,
         "theme_mode": u.theme_mode,
         "tier": u.tier,
+        "portfolio_count": PortfolioSettings.objects.filter(owner=u).count(),
         "is_verified": u.is_verified, "enable_share_token": u.enable_share_token,
         "share_token": u.share_token if (u.is_verified and u.enable_share_token) else None
     })
