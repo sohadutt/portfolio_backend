@@ -36,12 +36,15 @@ urlpatterns = [
     path("forms/submit/default/<int:order_index>/", views.submit_mail_default_portfolio, name="form_submit_default_indexed"),
     path("forms/submit/shared/<str:share_token>/", views.submit_mail_public_portfolio, {"order_index": 1}, name="form_submit_shared_primary"),
 
-    # Dashboard endpoints for owners
+    # --- Dashboard Management (Authenticated) ---
+    # Submissions
     path("dashboard/submissions/view/", views.list_dashboard_submissions, name="dashboard_submissions_list"),
     path("dashboard/submissions/update/<int:form_id>/", views.update_dashboard_submission, name="dashboard_submission_update"),
     path("dashboard/submissions/reorder/", views.reorder_dashboard_submissions, name="dashboard_submissions_reorder"),
-    path("dashboard/portfolios/", views.list_dashboard_portfolios, name="dashboard_portfolios_list"),
+    
+    # Portfolios
     path("dashboard/portfolios/<int:order_index>/toggle/", views.toggle_portfolio_status, name="dashboard_portfolio_toggle"),
+    path("dashboard/portfolios/all/", views.get_all_portfolios, name="dashboard_all_portfolios"),
     path("dashboard/portfolios/preview/<int:order_index>/", views.get_portfolio_preview, name="dashboard_portfolio_preview"),
 
     # --- Admin & External Triggers ---

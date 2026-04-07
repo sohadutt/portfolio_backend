@@ -380,24 +380,6 @@ def update_portfolio(request, order_index=1):
 
     return Response({"message": "Portfolio updated.", "data": serialize_portfolio_data(portfolio)})
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def list_dashboard_portfolios(request):
-    portfolios = PortfolioSettings.objects.filter(owner=request.user).order_by("order_index")
-    
-    data = [
-        {
-            "order_index": p.order_index,
-            "name": p.name,
-            "title": p.title,
-            "is_enabled": p.is_enabled,
-            "tier": p.tier,
-        }
-        for p in portfolios
-    ]
-    
-    return Response({"owner": request.user.username, "portfolios": data})
-
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def toggle_portfolio_status(request, order_index):
