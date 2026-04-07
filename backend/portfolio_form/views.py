@@ -182,18 +182,15 @@ def get_user_profile(request):
 def update_user_profile(request):
     user = request.user
     
-    # Update names
     user.first_name = request.data.get("first_name", user.first_name)
     user.last_name = request.data.get("last_name", user.last_name)
 
-    # Update theme
     if "theme_mode" in request.data:
         try:
             user.theme_mode = int(request.data.get("theme_mode"))
         except (ValueError, TypeError):
             return Response({"error": "theme_mode must be an integer."}, status=400)
 
-    # Process Image
     if "profile_picture" in request.FILES:
         old_url = user.profile_picture_url
         original_file = request.FILES["profile_picture"]
@@ -216,7 +213,6 @@ def update_user_profile(request):
             
             user.profile_picture_url = resp["url"]
 
-            # Clean up old blob if it exists
             if old_url and "vercel-storage.com" in old_url:
                 try:
                     vercel_blob.delete(old_url)
@@ -239,15 +235,21 @@ def update_user_profile(request):
         }
     })
 
-@api_view(["POST"])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def status_share_token(request):
     user = request.user
     if not user.is_verified:
         return Response({"message": "Verify email to enable sharing."}, status=403)
 
-    user.enable_share_token = not user.enable_share_token
-    user.save()
+    if "enable_share_token" in request.data:
+        val = request.data.get("enable_share_token")
+        user.enable_share_token = str(val).lower() in ['true', '1', 't'] if isinstance(val, str) else bool(val)
+    else:
+        user.enable_share_token = not user.enable_share_token
+        
+    user.save(update_fields=["enable_share_token"])
+    
     return Response({
         "enable_share_token": user.enable_share_token,
         "share_token": user.share_token if user.enable_share_token else None
@@ -326,7 +328,7 @@ def submit_portfolio(request, order_index=1):
     portfolio = serializer.save(owner=request.user)
     return Response({"message": "Portfolio saved.", "data": serialize_portfolio_data(portfolio)})
 
-@api_view(["POST", "PATCH"])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_portfolio(request, order_index=1):
     if not request.user.is_verified:
@@ -364,7 +366,8 @@ def update_portfolio(request, order_index=1):
 
     serializer = PortfolioSubmissionSerializer(
         data=request.data, 
-        context={"owner": request.user, "order_index": order_index}
+        context={"owner": request.user, "order_index": order_index},
+        partial=True
     )
     serializer.is_valid(raise_exception=True)
     portfolio = serializer.save(owner=request.user)
