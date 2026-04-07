@@ -222,7 +222,6 @@ def update_user_profile(request):
         except Exception as e:
             return Response({"error": f"Upload failed: {str(e)}"}, status=500)
             
-    print(f"DEBUG: Updated profile picture URL: {user.profile_picture_url}")
     user.save()
 
     return Response({
@@ -274,6 +273,10 @@ def serialize_portfolio_data(portfolio, request=None):
                 return paginator.get_paginated_response(list(page)).data
         return list(queryset)
 
+    # --- OPTIMIZATION: 1 Query instead of 4 ---
+    # We fetch all links once, then sort them into lists in Python
+    all_links = list(Link.objects.filter(portfolio=portfolio).values("type", "label", "value", "href", "icon_name"))
+    
     return {
         "orderIndex": portfolio.order_index,
         "isEnabled": portfolio.is_enabled,
@@ -293,10 +296,12 @@ def serialize_portfolio_data(portfolio, request=None):
         "experience": paginate_qs(Experience.objects.filter(portfolio=portfolio).values("period", "title", "company", "relation", "summary", "highlights")),
         "showcaseCategories": list(ShowcaseCategory.objects.filter(portfolio=portfolio).values("title", "icon_name", "relation", "preview", "items")),
         "featuredModules": list(FeaturedModule.objects.filter(portfolio=portfolio).values("title", "icon_name", "relation", "body", "details")),
-        "contactMethods": list(Link.objects.filter(portfolio=portfolio, type="CONTACT").values("label", "value", "href", "icon_name")),
-        "navigationLinks": list(Link.objects.filter(portfolio=portfolio, type="NAV").values("label", "href")),
-        "footerLinks": list(Link.objects.filter(portfolio=portfolio, type="FOOTER").values("label", "href")),
-        "statusPills": list(Link.objects.filter(portfolio=portfolio, type="STATUS").values("label", "icon_name")),
+        
+        # Using the single query results
+        "contactMethods": [{"label": l["label"], "value": l["value"], "href": l["href"], "icon_name": l["icon_name"]} for l in all_links if l["type"] == "CONTACT"],
+        "navigationLinks": [{"label": l["label"], "href": l["href"]} for l in all_links if l["type"] == "NAV"],
+        "footerLinks": [{"label": l["label"], "href": l["href"]} for l in all_links if l["type"] == "FOOTER"],
+        "statusPills": [{"label": l["label"], "icon_name": l["icon_name"]} for l in all_links if l["type"] == "STATUS"],
     }
 
 @api_view(["GET"])
@@ -487,21 +492,18 @@ def trigger_urgent_notifications(request):
     except Exception as e:
         return Response({"message": f"Task failed: {str(e)}"}, status=500)
     
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_all_portfolios(request):
-    portfolios = PortfolioSettings.objects.filter(owner=request.user).order_by('order_index')
-    portfolio_list = []
-    for p in portfolios:
-        portfolio_list.append({
-            "order_index": p.order_index,
-            "name": p.name,
-            "title": p.title,
-            "is_enabled": p.is_enabled,
-            "theme_mode": request.user.theme_mode, 
-        })
-        
+def preview_all_portfolios(request):
+    portfolios = PortfolioSettings.objects.filter(
+        owner=request.user
+    ).values(
+        'order_index', 'name', 'title', 'is_enabled'
+    ).order_by('order_index')
+    portfolio_list = [
+        {**p, "theme_mode": request.user.theme_mode} 
+        for p in portfolios
+    ]      
     return Response({
         "message": "Portfolios retrieved successfully.",
         "portfolios": portfolio_list
