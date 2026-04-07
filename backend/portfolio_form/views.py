@@ -504,3 +504,23 @@ def trigger_urgent_notifications(request):
         return Response({"message": "Urgent notifications processed.", "details": result}, status=200)
     except Exception as e:
         return Response({"message": f"Task failed: {str(e)}"}, status=500)
+    
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_all_portfolios(request):
+    portfolios = PortfolioSettings.objects.filter(owner=request.user).order_by('order_index')
+    portfolio_list = []
+    for p in portfolios:
+        portfolio_list.append({
+            "order_index": p.order_index,
+            "name": p.name,
+            "title": p.title,
+            "is_enabled": p.is_enabled,
+            "theme_mode": request.user.theme_mode, 
+        })
+        
+    return Response({
+        "message": "Portfolios retrieved successfully.",
+        "portfolios": portfolio_list
+    }, status=status.HTTP_200_OK)

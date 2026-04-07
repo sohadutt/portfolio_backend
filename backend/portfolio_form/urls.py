@@ -42,6 +42,7 @@ urlpatterns = [
     path("dashboard/submissions/reorder/", views.reorder_dashboard_submissions, name="dashboard_submissions_reorder"),
     path("dashboard/portfolios/", views.list_dashboard_portfolios, name="dashboard_portfolios_list"),
     path("dashboard/portfolios/<int:order_index>/toggle/", views.toggle_portfolio_status, name="dashboard_portfolio_toggle"),
+    path("dashboard/portfolios/preview/<int:order_index>/", views.get_portfolio_preview, name="dashboard_portfolio_preview"),
 
     # --- Admin & External Triggers ---
     # Secure webhook for external cron job (cron-job.org / UptimeRobot)
