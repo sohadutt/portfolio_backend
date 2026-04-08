@@ -154,25 +154,628 @@ All routes are mounted under `/api/`.
 
 Full route definitions are in [`urls.py`](/Users/ssohadutt/developement/portfolio_backend/backend/portfolio_form/urls.py).
 
-## Portfolio Payload Contract
+## API Inputs And Outputs
 
-The create/update portfolio endpoints expect a nested JSON payload with these top-level keys:
+### General notes
 
-- `personalInfo`
-- `navigationLinks`
-- `heroContent`
-- `heroMetrics`
-- `aboutContent`
-- `skillGroups`
-- `projects`
-- `experience`
-- `showcaseCategories`
-- `featuredModules`
-- `contactMethods`
-- `footerLinks`
-- `statusPills`
+- Authenticated routes require `Authorization: Bearer <access_token>`.
+- `PATCH /api/profile/update/` accepts either JSON or `multipart/form-data`.
+- `GET /api/portfolio/default/<order_index>/`, `GET /api/portfolio/shared/<share_token>/<order_index>/`, and `GET /api/dashboard/submissions/view/` can return paginated collections when DRF pagination is active.
+- Public write payloads for icons accept `icon` or `iconName`; public portfolio reads return `icon_name`.
+
+### Authentication and security
+
+`GET /api/csrf/`
+
+- Accepts: no body.
+- Returns:
+
+```json
+{
+  "detail": "CSRF cookie set"
+}
+```
+
+`POST /api/auth/register/`
+
+- Accepts:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "strong-password"
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "Profile created. OTP sent to your email.",
+  "data": {
+    "user_id": 1,
+    "email": "user@example.com"
+  }
+}
+```
+
+`POST /api/auth/login/`
+
+- Accepts:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "strong-password"
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "Login successful",
+  "data": {
+    "user_id": 1,
+    "email": "user@example.com",
+    "username": "user",
+    "enable_share_token": false,
+    "share_token": "generated-share-token",
+    "tokens": {
+      "refresh": "jwt-refresh-token",
+      "access": "jwt-access-token"
+    }
+  }
+}
+```
+
+`POST /api/auth/otp/request/`
+
+- Accepts:
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "If an account exists, an OTP will be sent shortly."
+}
+```
+
+`POST /api/auth/otp/verify/`
+
+- Accepts:
+
+```json
+{
+  "email": "user@example.com",
+  "otp": "123456"
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "OTP verified.",
+  "data": {
+    "user_id": 1,
+    "email": "user@example.com",
+    "username": "user"
+  },
+  "tokens": {
+    "refresh": "jwt-refresh-token",
+    "access": "jwt-access-token"
+  }
+}
+```
+
+`POST /api/auth/refresh/`
+
+- Accepts:
+
+```json
+{
+  "refresh": "jwt-refresh-token"
+}
+```
+
+- Returns:
+
+```json
+{
+  "access": "new-jwt-access-token"
+}
+```
+
+`POST /api/auth/logout/`
+
+- Accepts:
+
+```json
+{
+  "refresh": "jwt-refresh-token"
+}
+```
+
+- Returns: Simple JWT blacklist response with `205 Reset Content` on success.
+
+### Profile
+
+`GET /api/profile/`
+
+- Accepts: no body.
+- Returns:
+
+```json
+{
+  "user_id": 1,
+  "email": "user@example.com",
+  "username": "user",
+  "first_name": "Soham",
+  "last_name": "Dutta",
+  "profile_picture": "https://...",
+  "theme_mode": 0,
+  "tier": 0,
+  "portfolio_count": 1,
+  "is_verified": true,
+  "enable_share_token": false,
+  "share_token": null
+}
+```
+
+`PATCH /api/profile/update/`
+
+- Accepts any subset of:
+
+```json
+{
+  "first_name": "Soham",
+  "last_name": "Dutta",
+  "theme_mode": 0
+}
+```
+
+- Also accepts `profile_picture` as a multipart file field.
+- Returns:
+
+```json
+{
+  "message": "Profile updated successfully.",
+  "data": {
+    "first_name": "Soham",
+    "last_name": "Dutta",
+    "theme_mode": 0,
+    "profile_picture": "https://..."
+  }
+}
+```
+
+`PATCH /api/profile/share-toggle/`
+
+- Accepts either no body to toggle automatically, or:
+
+```json
+{
+  "enable_share_token": true
+}
+```
+
+- Returns:
+
+```json
+{
+  "enable_share_token": true,
+  "share_token": "generated-share-token"
+}
+```
+
+`GET /api/profile/get-token/`
+
+- Accepts: no body.
+- Returns:
+
+```json
+{
+  "enable_share_token": true,
+  "share_token": "generated-share-token"
+}
+```
+
+### Portfolio write payload
+
+`POST /api/portfolio/submit/<order_index>/`
+
+- Accepts the full portfolio document:
+
+```json
+{
+  "personalInfo": {
+    "name": "Soham Dutta",
+    "shortName": "SD",
+    "title": "Backend Developer",
+    "subtitle": "Building reliable APIs",
+    "location": "Kolkata, India",
+    "email": "user@example.com",
+    "github": "https://github.com/example",
+    "linkedin": "https://linkedin.com/in/example"
+  },
+  "navigationLinks": [
+    { "label": "Projects", "href": "#projects" }
+  ],
+  "heroContent": {
+    "eyebrow": "Available for work",
+    "title": "I build backend systems",
+    "description": "Portfolio hero copy"
+  },
+  "heroMetrics": [
+    { "value": "5+", "label": "Years experience" }
+  ],
+  "aboutContent": {
+    "title": "About me",
+    "description": "Bio text"
+  },
+  "skillGroups": [
+    {
+      "title": "Backend",
+      "description": "Main tools",
+      "items": ["Python", "Django", "PostgreSQL"]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Portfolio API",
+      "eyebrow": "Featured",
+      "description": "Project summary",
+      "stack": ["Django", "Redis"],
+      "stat": "Live"
+    }
+  ],
+  "experience": [
+    {
+      "period": "2023-Present",
+      "title": "Backend Engineer",
+      "company": "Example Co",
+      "relation": "Full-time",
+      "summary": "Role summary",
+      "highlights": ["Built APIs"],
+      "relatedComponents": ["projects", "contact"]
+    }
+  ],
+  "showcaseCategories": [
+    {
+      "title": "APIs",
+      "icon": "server",
+      "relation": "Core work",
+      "preview": "Preview text",
+      "items": ["Auth", "Payments"]
+    }
+  ],
+  "featuredModules": [
+    {
+      "title": "Open to work",
+      "iconName": "briefcase",
+      "relation": "Status",
+      "body": "Module body",
+      "details": "Extra details"
+    }
+  ],
+  "contactMethods": [
+    {
+      "label": "Email",
+      "value": "user@example.com",
+      "href": "mailto:user@example.com",
+      "icon": "mail"
+    }
+  ],
+  "footerLinks": [
+    { "label": "GitHub", "href": "https://github.com/example" }
+  ],
+  "statusPills": [
+    { "label": "Remote", "icon": "globe" }
+  ]
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "Portfolio saved.",
+  "data": {
+    "orderIndex": 1,
+    "isEnabled": true,
+    "tier": 0,
+    "themeMode": 0,
+    "personalInfo": {
+      "name": "Soham Dutta",
+      "shortName": "SD",
+      "title": "Backend Developer",
+      "subtitle": "Building reliable APIs",
+      "location": "Kolkata, India",
+      "email": "user@example.com",
+      "github": "https://github.com/example",
+      "linkedin": "https://linkedin.com/in/example",
+      "profilePicture": "https://..."
+    },
+    "heroContent": {
+      "eyebrow": "Available for work",
+      "title": "I build backend systems",
+      "description": "Portfolio hero copy"
+    },
+    "heroMetrics": [
+      { "value": "5+", "label": "Years experience" }
+    ],
+    "aboutContent": {
+      "title": "About me",
+      "description": "Bio text"
+    },
+    "skillGroups": [],
+    "projects": [],
+    "experience": [],
+    "showcaseCategories": [],
+    "featuredModules": [],
+    "contactMethods": [
+      {
+        "label": "Email",
+        "value": "user@example.com",
+        "href": "mailto:user@example.com",
+        "icon_name": "mail"
+      }
+    ],
+    "navigationLinks": [
+      { "label": "Projects", "href": "#projects" }
+    ],
+    "footerLinks": [
+      { "label": "GitHub", "href": "https://github.com/example" }
+    ],
+    "statusPills": [
+      { "label": "Remote", "icon_name": "globe" }
+    ]
+  }
+}
+```
+
+`PATCH /api/portfolio/update/<order_index>/`
+
+- Accepts either the same full payload as `submit`, or a settings-only payload:
+
+```json
+{
+  "new_order_index": 2,
+  "is_enabled": true
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "Portfolio updated.",
+  "data": {
+    "...": "same serialized portfolio shape as submit"
+  }
+}
+```
+
+or, for settings-only updates:
+
+```json
+{
+  "message": "Portfolio settings updated.",
+  "data": {
+    "...": "same serialized portfolio shape as submit"
+  }
+}
+```
 
 Validation and persistence are handled in [`serializers.py`](/Users/ssohadutt/developement/portfolio_backend/backend/portfolio_form/serializers.py). Public responses are assembled in [`views.py`](/Users/ssohadutt/developement/portfolio_backend/backend/portfolio_form/views.py).
+
+### Public portfolio reads
+
+`GET /api/portfolio/default/`
+`GET /api/portfolio/default/<order_index>/`
+`GET /api/portfolio/shared/<share_token>/`
+`GET /api/portfolio/shared/<share_token>/<order_index>/`
+
+- Accepts: no body.
+- Returns the same serialized portfolio shape shown above under `data`, without the outer `message` wrapper.
+- `projects` and `experience` may be paginated if you pass pagination query params such as `?page=1&page_size=10`.
+
+### Public contact-form submission
+
+`POST /api/forms/submit/default/<order_index>/`
+`POST /api/forms/submit/shared/<share_token>/`
+
+- Accepts:
+
+```json
+{
+  "name": "Visitor Name",
+  "email": "visitor@example.com",
+  "phone": "+91-9999999999",
+  "message": "I would like to work together.",
+  "for_work": true,
+  "priority": 2
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "Message sent."
+}
+```
+
+- Priority values are `0=Low`, `1=Medium`, `2=High`, `3=Urgent`.
+
+### Dashboard submission management
+
+`GET /api/dashboard/submissions/view/`
+
+- Accepts: no body.
+- Returns a paginated DRF response when pagination is active:
+
+```json
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 10,
+      "display_index": 1,
+      "owner_username": "user",
+      "owner_user_id": 1,
+      "portfolio_id": 3,
+      "name": "Visitor Name",
+      "email": "visitor@example.com",
+      "phone": "+91-9999999999",
+      "message": "I would like to work together.",
+      "for_work": true,
+      "priority": 2,
+      "priority_label": "High",
+      "is_dismissed": false,
+      "submitted_at": "2026-04-09T10:00:00Z"
+    }
+  ]
+}
+```
+
+`PATCH /api/dashboard/submissions/update/<form_id>/`
+
+- Accepts any subset of:
+
+```json
+{
+  "is_dismissed": true,
+  "priority": 3,
+  "display_index": 1
+}
+```
+
+- Returns:
+
+```json
+{
+  "message": "Updated.",
+  "data": {
+    "id": 10,
+    "display_index": 1,
+    "owner_username": "user",
+    "owner_user_id": 1,
+    "portfolio_id": 3,
+    "name": "Visitor Name",
+    "email": "visitor@example.com",
+    "phone": "+91-9999999999",
+    "message": "I would like to work together.",
+    "for_work": true,
+    "priority": 3,
+    "priority_label": "Urgent",
+    "is_dismissed": true,
+    "submitted_at": "2026-04-09T10:00:00Z"
+  }
+}
+```
+
+`POST /api/dashboard/submissions/reorder/`
+
+- Accepts:
+
+```json
+{
+  "order": [10, 8, 5]
+}
+```
+
+- Returns:
+
+```json
+{
+  "submissions": [
+    {
+      "id": 10,
+      "display_index": 1,
+      "owner_username": "user",
+      "owner_user_id": 1,
+      "portfolio_id": 3,
+      "name": "Visitor Name",
+      "email": "visitor@example.com",
+      "phone": "+91-9999999999",
+      "message": "I would like to work together.",
+      "for_work": true,
+      "priority": 2,
+      "priority_label": "High",
+      "is_dismissed": false,
+      "submitted_at": "2026-04-09T10:00:00Z"
+    }
+  ]
+}
+```
+
+### Dashboard portfolio management
+
+`PATCH /api/dashboard/portfolios/<order_index>/toggle/`
+
+- Accepts: no body.
+- Returns:
+
+```json
+{
+  "message": "Portfolio 1 is now enabled.",
+  "is_enabled": true
+}
+```
+
+`GET /api/dashboard/portfolios/all/`
+
+- Accepts: no body.
+- Returns:
+
+```json
+{
+  "message": "Portfolios retrieved successfully.",
+  "portfolios": [
+    {
+      "order_index": 1,
+      "name": "Soham Dutta",
+      "title": "Backend Developer",
+      "is_enabled": true,
+      "theme_mode": 0
+    }
+  ]
+}
+```
+
+### Cron-style triggers
+
+`GET|POST /api/cron/cleanup/`
+`GET|POST /api/cron/urgent-notifications/`
+
+- Accepts either the `X-Cron-Secret` header or `?secret=<CRON_SECRET_KEY>`.
+- Returns:
+
+```json
+{
+  "message": "Cleanup task executed successfully.",
+  "details": {}
+}
+```
+
+or:
+
+```json
+{
+  "message": "Urgent notifications processed.",
+  "details": {}
+}
+```
 
 ## Background Jobs
 
