@@ -26,6 +26,7 @@ from .models import (
 )
 from .serializers import (
     LoginSerializer, PortfolioSubmissionSerializer, ProfileCreateSerializer,
+    serialize_portfolio_payload,
     SubmissionCreateSerializer, SubmissionReadSerializer, SubmissionReorderSerializer,
     SubmissionUpdateSerializer
 )
@@ -263,46 +264,10 @@ def get_profile_tokens(request):
     })
 
 def serialize_portfolio_data(portfolio, request=None):
-    owner = portfolio.owner
-
-    def paginate_qs(queryset):
-        if request:
-            paginator = StandardResultsSetPagination()
-            page = paginator.paginate_queryset(queryset, request)
-            if page is not None:
-                return paginator.get_paginated_response(list(page)).data
-        return list(queryset)
-
-    # --- OPTIMIZATION: 1 Query instead of 4 ---
-    # We fetch all links once, then sort them into lists in Python
-    all_links = list(Link.objects.filter(portfolio=portfolio).values("type", "label", "value", "href", "icon_name"))
-    
-    return {
-        "orderIndex": portfolio.order_index,
-        "isEnabled": portfolio.is_enabled,
-        "tier": portfolio.tier,
-        "themeMode": owner.theme_mode,
-        
-        "personalInfo": {
-            "name": portfolio.name, "shortName": portfolio.short_name, "title": portfolio.title, 
-            "subtitle": portfolio.subtitle, "location": portfolio.location, "email": portfolio.email, 
-            "github": portfolio.github, "linkedin": portfolio.linkedin, "profilePicture": owner.profile_picture_url
-        },
-        "heroContent": {"eyebrow": portfolio.hero_eyebrow, "title": portfolio.hero_title, "description": portfolio.hero_description},
-        "heroMetrics": list(HeroMetric.objects.filter(portfolio=portfolio).values("value", "label")),
-        "aboutContent": {"title": portfolio.about_title, "description": portfolio.about_description},
-        "skillGroups": list(SkillGroup.objects.filter(portfolio=portfolio).values("title", "description", "items")),
-        "projects": paginate_qs(Project.objects.filter(portfolio=portfolio).values("title", "eyebrow", "description", "stack", "stat")),
-        "experience": paginate_qs(Experience.objects.filter(portfolio=portfolio).values("period", "title", "company", "relation", "summary", "highlights")),
-        "showcaseCategories": list(ShowcaseCategory.objects.filter(portfolio=portfolio).values("title", "icon_name", "relation", "preview", "items")),
-        "featuredModules": list(FeaturedModule.objects.filter(portfolio=portfolio).values("title", "icon_name", "relation", "body", "details")),
-        
-        # Using the single query results
-        "contactMethods": [{"label": l["label"], "value": l["value"], "href": l["href"], "icon_name": l["icon_name"]} for l in all_links if l["type"] == "CONTACT"],
-        "navigationLinks": [{"label": l["label"], "href": l["href"]} for l in all_links if l["type"] == "NAV"],
-        "footerLinks": [{"label": l["label"], "href": l["href"]} for l in all_links if l["type"] == "FOOTER"],
-        "statusPills": [{"label": l["label"], "icon_name": l["icon_name"]} for l in all_links if l["type"] == "STATUS"],
-    }
+    data = serialize_portfolio_payload(portfolio)
+    data["tier"] = portfolio.tier
+    data["themeMode"] = portfolio.owner.theme_mode
+    return data
 
 @api_view(["GET"])
 @permission_classes([AllowAny])

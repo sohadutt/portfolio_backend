@@ -16,6 +16,37 @@ def generate_dashboard_token():
     """Kept for migration compatibility."""
     return secrets.token_urlsafe(32)
 
+
+def default_hero_actions():
+    return {
+        "primary": {"label": "", "href": ""},
+        "secondary": {"label": "", "href": ""},
+    }
+
+
+def default_hero_focus():
+    return {
+        "eyebrow": "",
+        "title": "",
+        "areas": [],
+    }
+
+
+def default_section_copy():
+    return {
+        "projects": {"eyebrow": "", "title": "", "description": ""},
+        "experience": {"eyebrow": "", "title": "", "description": ""},
+        "components": {"eyebrow": "", "title": "", "description": ""},
+        "contact": {"eyebrow": "", "title": "", "description": ""},
+    }
+
+
+def default_page_copy():
+    return {
+        "loadingTitle": "",
+        "loadingDescription": "",
+    }
+
 # --- Core User Model ---
 
 class User(AbstractUser):
@@ -251,8 +282,14 @@ class PortfolioSettings(OwnedPortfolioModel):
     hero_eyebrow = models.CharField(max_length=100)
     hero_title = models.TextField()
     hero_description = models.TextField()
+    hero_actions = models.JSONField(default=default_hero_actions)
+    hero_focus = models.JSONField(default=default_hero_focus)
+    hero_badges = models.JSONField(default=list)
+    hero_highlights = models.JSONField(default=list)
     about_title = models.CharField(max_length=200)
     about_description = models.TextField()
+    section_copy = models.JSONField(default=default_section_copy)
+    page_copy = models.JSONField(default=default_page_copy)
 
     class Meta:
         constraints = [

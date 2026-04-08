@@ -68,7 +68,9 @@ Each portfolio stores:
 
 - personal information
 - hero content
+- hero actions, focus, badges, and highlights
 - about content
+- section copy and page copy
 - enabled/disabled state
 - tier snapshot
 
@@ -160,8 +162,9 @@ Full route definitions are in [`urls.py`](/Users/ssohadutt/developement/portfoli
 
 - Authenticated routes require `Authorization: Bearer <access_token>`.
 - `PATCH /api/profile/update/` accepts either JSON or `multipart/form-data`.
-- `GET /api/portfolio/default/<order_index>/`, `GET /api/portfolio/shared/<share_token>/<order_index>/`, and `GET /api/dashboard/submissions/view/` can return paginated collections when DRF pagination is active.
-- Public write payloads for icons accept `icon` or `iconName`; public portfolio reads return `icon_name`.
+- `GET /api/dashboard/submissions/view/` can return paginated collections when DRF pagination is active.
+- Portfolio write payloads for icon-bearing fields accept `icon` or `iconName`.
+- Portfolio reads return the same nested document shape used for writes, with `icon` keys and `profilePicture` inside `personalInfo`.
 
 ### Authentication and security
 
@@ -395,90 +398,146 @@ Full route definitions are in [`urls.py`](/Users/ssohadutt/developement/portfoli
 
 ```json
 {
+  "new_order_index": 1,
+  "is_enabled": true,
   "personalInfo": {
     "name": "Soham Dutta",
-    "shortName": "SD",
-    "title": "Backend Developer",
-    "subtitle": "Building reliable APIs",
-    "location": "Kolkata, India",
-    "email": "user@example.com",
-    "github": "https://github.com/example",
-    "linkedin": "https://linkedin.com/in/example"
+    "shortName": "sohadutt",
+    "title": "Full-stack Developer",
+    "subtitle": "JavaScript, Python, Django, React",
+    "location": "India",
+    "email": "sohadutt@outlook.com",
+    "github": "https://github.com/sohadutt",
+    "linkedin": "https://linkedin.com/in/sohadutt",
+    "profilePicture": "https://example.com/profile.webp"
   },
   "navigationLinks": [
+    { "label": "About", "href": "#about" },
     { "label": "Projects", "href": "#projects" }
   ],
   "heroContent": {
-    "eyebrow": "Available for work",
-    "title": "I build backend systems",
-    "description": "Portfolio hero copy"
+    "eyebrow": "Soham Dutta",
+    "title": "Backend-focused full-stack developer building reliable systems and polished frontend experiences.",
+    "description": "I work across Django, Python automation, PostgreSQL, REST APIs, React, and Tailwind CSS."
+  },
+  "heroActions": {
+    "primary": {
+      "label": "View projects",
+      "href": "#projects"
+    },
+    "secondary": {
+      "label": "GitHub",
+      "href": "https://github.com/sohadutt"
+    }
   },
   "heroMetrics": [
-    { "value": "5+", "label": "Years experience" }
+    { "value": "2024", "label": "started backend and config automation work at Imagine.io" }
+  ],
+  "heroFocus": {
+    "eyebrow": "Current focus",
+    "title": "Automation + product delivery",
+    "areas": [
+      { "label": "Backend systems", "value": 78 }
+    ]
+  },
+  "heroBadges": [
+    { "label": "Full-stack" }
+  ],
+  "heroHighlights": [
+    {
+      "title": "Backend systems",
+      "description": "Django, APIs, automation workflows and scalable backend logic."
+    }
   ],
   "aboutContent": {
-    "title": "About me",
-    "description": "Bio text"
+    "title": "A portfolio shaped around your actual engineering profile.",
+    "description": "This version reflects backend automation, frontend delivery, and workflow thinking."
   },
   "skillGroups": [
     {
-      "title": "Backend",
-      "description": "Main tools",
-      "items": ["Python", "Django", "PostgreSQL"]
+      "title": "Backend & APIs",
+      "description": "Building Django services, safe admin tooling, and API-driven automation for production systems.",
+      "items": ["Python", "Django", "REST APIs"]
     }
   ],
   "projects": [
     {
-      "title": "Portfolio API",
-      "eyebrow": "Featured",
-      "description": "Project summary",
-      "stack": ["Django", "Redis"],
-      "stat": "Live"
+      "title": "Internal Config Management Tool",
+      "eyebrow": "Backend automation",
+      "description": "Developed Django management commands and Python API scripts for secure configuration management.",
+      "stack": ["Django", "Python", "REST APIs"],
+      "stat": "70% fewer routine config requests"
     }
   ],
   "experience": [
     {
-      "period": "2023-Present",
-      "title": "Backend Engineer",
-      "company": "Example Co",
-      "relation": "Full-time",
-      "summary": "Role summary",
-      "highlights": ["Built APIs"],
-      "relatedComponents": ["projects", "contact"]
+      "period": "2024 - Present",
+      "title": "Associate - Backend & Config Automation",
+      "company": "Imagine.io | Delhi, India",
+      "relation": "automation",
+      "summary": "Designed Django management commands for controlled database updates.",
+      "highlights": ["Controlled config changes through safe Django command flows."],
+      "relatedComponents": ["Command", "Alert Dialog", "Data Table", "Toast"]
     }
   ],
   "showcaseCategories": [
     {
-      "title": "APIs",
-      "icon": "server",
-      "relation": "Core work",
-      "preview": "Preview text",
-      "items": ["Auth", "Payments"]
+      "title": "Data & Forms",
+      "icon": "Workflow",
+      "relation": "automation",
+      "preview": "Forms and data controls connect directly to the automation work.",
+      "items": ["Command", "Data Table", "Alert Dialog"]
     }
   ],
   "featuredModules": [
     {
-      "title": "Open to work",
-      "iconName": "briefcase",
-      "relation": "Status",
-      "body": "Module body",
-      "details": "Extra details"
+      "title": "Config automation",
+      "icon": "Database",
+      "relation": "automation",
+      "body": "Highlights your backend work around Django management commands, data safety, and automation.",
+      "details": "This state emphasizes data-heavy components and safer review patterns."
     }
   ],
   "contactMethods": [
     {
       "label": "Email",
-      "value": "user@example.com",
-      "href": "mailto:user@example.com",
-      "icon": "mail"
+      "value": "sohadutt@outlook.com",
+      "href": "mailto:sohadutt@outlook.com",
+      "icon": "Mail"
     }
   ],
   "footerLinks": [
-    { "label": "GitHub", "href": "https://github.com/example" }
+    { "label": "GitHub", "href": "https://github.com/sohadutt" }
   ],
   "statusPills": [
-    { "label": "Remote", "icon": "globe" }
-  ]
+    { "label": "Backend and config automation", "icon": "ArrowUpRight" }
+  ],
+  "sectionCopy": {
+    "projects": {
+      "eyebrow": "Projects",
+      "title": "Selected work from configuration systems to frontend delivery.",
+      "description": "These cards reflect secure configuration tooling, deployment reliability, and reusable UI work."
+    },
+    "experience": {
+      "eyebrow": "Experience",
+      "title": "Experience across backend automation, frontend delivery, and production workflows.",
+      "description": "Hover a role to expand the story and related component direction."
+    },
+    "components": {
+      "eyebrow": "UI System",
+      "title": "Related components now respond to the same hover story.",
+      "description": "The page feels connected instead of sectioned off."
+    },
+    "contact": {
+      "eyebrow": "Contact",
+      "title": "Open to roles and collaborations where backend reliability meets strong product thinking.",
+      "description": "Reach out for backend automation, Django and API work, or frontend implementation."
+    }
+  },
+  "pageCopy": {
+    "loadingTitle": "Loading portfolio",
+    "loadingDescription": "Preparing the showcase experience."
+  }
 }
 ```
 
@@ -488,32 +547,58 @@ Full route definitions are in [`urls.py`](/Users/ssohadutt/developement/portfoli
 {
   "message": "Portfolio saved.",
   "data": {
-    "orderIndex": 1,
-    "isEnabled": true,
+    "new_order_index": 1,
+    "is_enabled": true,
     "tier": 0,
     "themeMode": 0,
     "personalInfo": {
       "name": "Soham Dutta",
-      "shortName": "SD",
-      "title": "Backend Developer",
-      "subtitle": "Building reliable APIs",
-      "location": "Kolkata, India",
-      "email": "user@example.com",
-      "github": "https://github.com/example",
-      "linkedin": "https://linkedin.com/in/example",
+      "shortName": "sohadutt",
+      "title": "Full-stack Developer",
+      "subtitle": "JavaScript, Python, Django, React",
+      "location": "India",
+      "email": "sohadutt@outlook.com",
+      "github": "https://github.com/sohadutt",
+      "linkedin": "https://linkedin.com/in/sohadutt",
       "profilePicture": "https://..."
     },
     "heroContent": {
-      "eyebrow": "Available for work",
-      "title": "I build backend systems",
-      "description": "Portfolio hero copy"
+      "eyebrow": "Soham Dutta",
+      "title": "Backend-focused full-stack developer building reliable systems and polished frontend experiences.",
+      "description": "I work across Django, Python automation, PostgreSQL, REST APIs, React, and Tailwind CSS."
+    },
+    "heroActions": {
+      "primary": {
+        "label": "View projects",
+        "href": "#projects"
+      },
+      "secondary": {
+        "label": "GitHub",
+        "href": "https://github.com/sohadutt"
+      }
     },
     "heroMetrics": [
-      { "value": "5+", "label": "Years experience" }
+      { "value": "2024", "label": "started backend and config automation work at Imagine.io" }
+    ],
+    "heroFocus": {
+      "eyebrow": "Current focus",
+      "title": "Automation + product delivery",
+      "areas": [
+        { "label": "Backend systems", "value": 78 }
+      ]
+    },
+    "heroBadges": [
+      { "label": "Full-stack" }
+    ],
+    "heroHighlights": [
+      {
+        "title": "Backend systems",
+        "description": "Django, APIs, automation workflows and scalable backend logic."
+      }
     ],
     "aboutContent": {
-      "title": "About me",
-      "description": "Bio text"
+      "title": "A portfolio shaped around your actual engineering profile.",
+      "description": "This version reflects backend automation, frontend delivery, and workflow thinking."
     },
     "skillGroups": [],
     "projects": [],
@@ -523,27 +608,39 @@ Full route definitions are in [`urls.py`](/Users/ssohadutt/developement/portfoli
     "contactMethods": [
       {
         "label": "Email",
-        "value": "user@example.com",
-        "href": "mailto:user@example.com",
-        "icon_name": "mail"
+        "value": "sohadutt@outlook.com",
+        "href": "mailto:sohadutt@outlook.com",
+        "icon": "Mail"
       }
     ],
     "navigationLinks": [
+      { "label": "About", "href": "#about" },
       { "label": "Projects", "href": "#projects" }
     ],
     "footerLinks": [
-      { "label": "GitHub", "href": "https://github.com/example" }
+      { "label": "GitHub", "href": "https://github.com/sohadutt" }
     ],
     "statusPills": [
-      { "label": "Remote", "icon_name": "globe" }
-    ]
+      { "label": "Backend and config automation", "icon": "ArrowUpRight" }
+    ],
+    "sectionCopy": {
+      "projects": {
+        "eyebrow": "Projects",
+        "title": "Selected work from configuration systems to frontend delivery.",
+        "description": "These cards reflect secure configuration tooling, deployment reliability, and reusable UI work."
+      }
+    },
+    "pageCopy": {
+      "loadingTitle": "Loading portfolio",
+      "loadingDescription": "Preparing the showcase experience."
+    }
   }
 }
 ```
 
 `PATCH /api/portfolio/update/<order_index>/`
 
-- Accepts either the same full payload as `submit`, or a settings-only payload:
+- Accepts either the same full payload as `submit`, a partial nested portfolio payload, or a settings-only payload:
 
 ```json
 {
@@ -585,7 +682,6 @@ Validation and persistence are handled in [`serializers.py`](/Users/ssohadutt/de
 
 - Accepts: no body.
 - Returns the same serialized portfolio shape shown above under `data`, without the outer `message` wrapper.
-- `projects` and `experience` may be paginated if you pass pagination query params such as `?page=1&page_size=10`.
 
 ### Public contact-form submission
 
