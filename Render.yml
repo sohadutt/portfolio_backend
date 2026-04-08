@@ -8,10 +8,15 @@ services:
     # Install uv, then use uv sync to install dependencies from your uv.lock
     buildCommand: "pip install uv && uv sync --frozen"
     # Execute the custom bash script
-    startCommand: "./start.sh"
+    startCommand: "bash ./start.sh"
     autoDeploy: false
     envVars:
       - key: CELERY_BROKER_URL
+        fromService:
+          name: celery-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
         fromService:
           name: celery-redis
           type: redis
