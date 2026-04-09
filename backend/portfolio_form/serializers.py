@@ -31,18 +31,20 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
         email = validated_data.get("email")
         password = validated_data.pop("password")
         
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults=validated_data
-        )
-
-        if not created:
+        user = User.objects.filter(email=email).first()
+        
+        if user:
             for attr, value in validated_data.items():
                 setattr(user, attr, value)
-
-        user.set_password(password)
-        user.is_verified = True
-        user.save()
+            user.set_password(password)
+            user.is_verified = False 
+            user.save()
+        else:
+            user = User(**validated_data)
+            user.set_password(password)
+            user.is_verified = False # Users should start unverified until OTP is confirmed
+            user.save()
+            
         return user
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):

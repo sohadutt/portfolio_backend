@@ -45,6 +45,7 @@ urlpatterns = [
     # Portfolios
     path("dashboard/portfolios/<int:order_index>/toggle/", views.toggle_portfolio_status, name="dashboard_portfolio_toggle"),
     path("dashboard/portfolios/all/", views.preview_all_portfolios, name="dashboard_all_portfolios"),
+    path("dashboard/portfolios/get/<int:order_index>/", views.get_portfolio_authenticated, name="dashboard_portfolio_get"),
 
     # --- Admin & External Triggers ---
     # Secure webhook for external cron job (cron-job.org / UptimeRobot)

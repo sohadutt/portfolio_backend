@@ -473,3 +473,10 @@ def preview_all_portfolios(request):
         "message": "Portfolios retrieved successfully.",
         "portfolios": portfolio_list
     }, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_portfolio_authenticated(request, order_index=1):
+    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
+    return Response(serialize_portfolio_data(portfolio, request))
