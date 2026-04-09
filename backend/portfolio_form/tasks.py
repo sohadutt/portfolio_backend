@@ -14,7 +14,7 @@ def send_otp_email_task(email, secure_otp):
     try:
         send_mail(
             subject="Your OTP Code",
-            message=f"Your OTP code is: {secure_otp}",
+            message=f"Your OTP code is: {secure_otp} \nThis code is valid for 3 minutes. \n Thank you for checking out my app - if you have any feedback or suggestions, or you want to support please let me know! \n\nBest regards,\nSoham Dutta",
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
             fail_silently=False, 
