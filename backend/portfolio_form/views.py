@@ -399,6 +399,7 @@ def submit_mail_public_portfolio(request, share_token, order_index=1):
 def _handle_mail_submission(request, owner, portfolio):
     limit_check = _check_rate_limit(request)
     if limit_check: return limit_check
+    print(f"Received contact form submission for {owner.email} from IP {get_request_ip(request)}")
     
     serializer = SubmissionCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)

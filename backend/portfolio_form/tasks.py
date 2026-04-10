@@ -8,9 +8,6 @@ from .models import ContactFormSubmission
 
 @shared_task
 def send_otp_email_task(email, secure_otp):
-    """
-    Background task to send the OTP email.
-    """
     try:
         send_mail(
             subject="Your OTP Code",
