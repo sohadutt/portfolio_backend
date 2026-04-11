@@ -41,7 +41,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = False
 
 allowed_hosts = {
     host.strip()
@@ -51,7 +51,7 @@ allowed_hosts = {
 
 if DEBUG:
     # Keep local development working even if .env only lists one hostname.
-    allowed_hosts.update({'localhost', '127.0.0.1', '0.0.0.0'})
+    allowed_hosts.update({'localhost', '127.0.0.1', '0.0.0.0', '*'})
 
 ALLOWED_HOSTS = sorted(allowed_hosts)
 
@@ -153,7 +153,9 @@ CONTACT_FORM_BLOCK_SECONDS = int(
     os.getenv("CONTACT_FORM_BLOCK_SECONDS", str(24 * 60 * 60))
 )
 
-SECURE_HSTS_SECONDS = 0
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True

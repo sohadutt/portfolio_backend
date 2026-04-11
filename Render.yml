@@ -6,7 +6,7 @@ services:
     plan: free
     runtime: python
     # Install uv, then use uv sync to install dependencies from your uv.lock
-    buildCommand: "pip install uv && uv sync --frozen"
+    buildCommand: "pip install uv && uv sync"
     # Execute the custom bash script
     startCommand: "bash ./start.sh"
     autoDeploy: false
