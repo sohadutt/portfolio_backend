@@ -20,4 +20,5 @@ dependencies = [
     "psycopg[binary]>=3.2.6",
     "redis>=7.4.0",
     "vercel-blob>=0.4.2",
+    "whitenoise>=6.12.0",
 ]
