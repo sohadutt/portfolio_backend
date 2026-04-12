@@ -5,9 +5,10 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import User
 from .models import ContactFormSubmission
+import smtplib
 
-@shared_task
-def send_otp_email_task(email, secure_otp):
+@shared_task(bind=True, max_retries=3)
+def send_otp_email_task(self, email, secure_otp):
     try:
         send_mail(
             subject="Your OTP Code",
@@ -17,9 +18,12 @@ def send_otp_email_task(email, secure_otp):
             fail_silently=False, 
         )
         return f"OTP sent to {email}"
+        
+    except smtplib.SMTPException as exc:
+        raise self.retry(exc=exc, countdown=60)
+        
     except Exception as e:
-        # In a real app, you might want to log this error using Python's logging module
-        return f"Failed to send email to {email}: {str(e)}"
+        raise e
     
 @shared_task
 def cleanup_unverified_users():
@@ -39,10 +43,6 @@ def cleanup_unverified_users():
 
 @shared_task
 def process_daily_urgent_notifications():
-    """
-    Finds all un-dismissed, urgent submissions and sends a summary email to their owners.
-    """
-    # Priority 3 corresponds to Priority.URGENT based on your models.py
     urgent_subs = ContactFormSubmission.objects.filter(
         is_dismissed=False,
         priority=3 
