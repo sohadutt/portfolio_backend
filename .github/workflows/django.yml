@@ -28,4 +28,5 @@ jobs:
         uv pip install "django-anymail[brevo]"
     - name: Run Tests
       run: |
+        cd backend/
         uv run manage.py test
