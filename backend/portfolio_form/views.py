@@ -151,7 +151,7 @@ def login_user(request):
     
     if not user.is_verified:
         return Response({"message": "Verification required."}, status=403)
-
+    
     refresh = RefreshToken.for_user(user)
     return Response({
         "message": "Login successful",
