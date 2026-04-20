@@ -3,13 +3,11 @@ set -o errexit
 
 cd "$(dirname "$0")/backend"
 
-
-uv pip install "django-anymail[brevo]"
+# 1. Run build-related tasks
 uv run manage.py collectstatic --noinput
 
-# Use pool=solo to force Celery to run in the main thread without spawning sub-processes.
-# This severely limits throughput (it can only process 1 task at a time), 
-# but it drastically reduces memory consumption.
-celery -A config worker --loglevel=info --pool=solo
+# 2. Start Celery in the BACKGROUND (Notice the & at the very end!)
+uv run celery -A config worker --loglevel=info --pool=solo &
 
-exec gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-10000}"
+# 3. Start Gunicorn in the foreground
+exec uv run gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-10000}"
