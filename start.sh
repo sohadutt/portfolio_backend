@@ -3,9 +3,9 @@ set -o errexit
 
 cd "$(dirname "$0")/backend"
 
-python manage.py migrate
+
 uv pip install "django-anymail[brevo]"
-python manage.py collectstatic --noinput
+uv run manage.py collectstatic --noinput
 
 # Use pool=solo to force Celery to run in the main thread without spawning sub-processes.
 # This severely limits throughput (it can only process 1 task at a time), 

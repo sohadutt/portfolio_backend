@@ -27,7 +27,6 @@ except ImportError:
 else:
     HAS_CORSHEADERS = True
 
-# Load environment variables from .env file
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

@@ -13,7 +13,6 @@ def generate_share_token():
     return secrets.token_urlsafe(24)
 
 def generate_dashboard_token():
-    """Kept for migration compatibility."""
     return secrets.token_urlsafe(32)
 
 
@@ -71,14 +70,10 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150, blank=True)
     profile_picture_url = models.URLField(max_length=500, null=True, blank=True)
     theme_mode = models.IntegerField(choices=ThemeMode.choices, default=ThemeMode.OCEAN)
-    
-    # Verification State
     is_verified = models.BooleanField(
         default=False, 
         help_text="Designates whether the user has verified their email via OTP."
     )
-    
-    # Portfolio Sharing
     enable_share_token = models.BooleanField(
         default=False,
         help_text="Toggle to make the portfolio publicly accessible."

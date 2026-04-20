@@ -36,7 +36,7 @@ def require_target_users(*, user_ids):
 
 def set_share_token_enabled(*, user_ids, enabled):
     users = require_target_users(user_ids=user_ids)
-    status = "enabled" if enabled else "disabled"
+    status = True if enabled else False
 
     for user in users:
         user.enable_share_token = enabled
