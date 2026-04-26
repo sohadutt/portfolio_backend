@@ -481,3 +481,37 @@ def preview_all_portfolios(request):
 def get_portfolio_authenticated(request, order_index=1):
     portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
     return Response(serialize_portfolio_data(portfolio, request))
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def forgot_password(request):
+    email = str(request.data.get("email", "")).strip().lower()
+    user = User.objects.filter(email=email).first()
+
+    if user:
+        otp = ''.join(secrets.choice('0123456789') for _ in range(6))
+        cache.set(f"password_reset_otp:{email}", otp, timeout=300)
+        try:
+            send_otp_email_task.delay(email, otp, subject="Your Password Reset OTP")
+        except Exception: pass
+
+    return Response({"message": "If an account exists, a password reset OTP will be sent shortly."})
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def reset_password(request):
+    email = str(request.data.get("email", "")).strip().lower()
+    otp_provided = str(request.data.get("otp", "")).strip()
+    new_password = request.data.get("new_password", "")
+
+    if cache.get(f"password_reset_otp:{email}") != otp_provided:
+        return Response({"message": "Invalid or expired OTP."}, status=400)
+
+    user = User.objects.filter(email=email).first()
+    if user:
+        user.set_password(new_password)
+        user.save()
+        cache.delete(f"password_reset_otp:{email}")
+        return Response({"message": "Password reset successful."})
+    
+    return Response({"message": "If an account exists, the password has been reset."})
