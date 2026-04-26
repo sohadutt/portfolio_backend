@@ -8,10 +8,10 @@ from .models import ContactFormSubmission
 import smtplib
 
 @shared_task(bind=True, max_retries=3)
-def send_otp_email_task(self, email, secure_otp):
+def send_otp_email_task(self, email, secure_otp, subject="Your OTP Code"):
     try:
         send_mail(
-            subject="Your OTP Code",
+            subject=subject,
             message=f"Your OTP code is: {secure_otp} \nThis code is valid for 3 minutes. \n Thank you for checking out my app - if you have any feedback or suggestions, or you want to support please let me know! \n\nBest regards,\nSoham Dutta",
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],

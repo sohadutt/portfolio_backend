@@ -493,7 +493,11 @@ def forgot_password(request):
         cache.set(f"password_reset_otp:{email}", otp, timeout=300)
         try:
             send_otp_email_task.delay(email, otp, subject="Your Password Reset OTP")
-        except Exception: pass
+            print(f"DEBUG: Task queued for {email}")
+        except Exception as e:
+            print(f"CELERY ERROR: Failed to queue task for {email}. Reason: {e}")
+    else:
+        print(f"DEBUG: Email {email} not found in database. Skipping task.")
 
     return Response({"message": "If an account exists, a password reset OTP will be sent shortly."})
 
