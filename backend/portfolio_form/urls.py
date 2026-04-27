@@ -12,6 +12,7 @@ urlpatterns = [
     path("auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("auth/logout/", TokenBlacklistView.as_view(), name="token_logout"),
     path("auth/password-change/", views.forgot_password, name="password_change"),
+    path("auth/password-reset/", views.reset_password, name="password_reset"),
 
     # --- User Profile Management ---
     path("profile/", views.get_user_profile, name="profile_get"),
