@@ -1,14 +1,18 @@
-from celery import shared_task
-from django.core.mail import send_mail
-from django.conf import settings
-from django.utils import timezone
-from datetime import timedelta
-from .models import User
-from .models import ContactFormSubmission
+from __future__ import annotations
+
 import smtplib
+from collections import defaultdict
+from celery import Task, shared_task
+from datetime import timedelta
+
+from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
+
+from .models import ContactFormSubmission, User
 
 @shared_task(bind=True, max_retries=3)
-def send_otp_email_task(self, email, secure_otp, subject="Your OTP Code"):
+def send_otp_email_task(self: Task, email: str, secure_otp: str, subject: str = "Your OTP Code") -> str:
     try:
         send_mail(
             subject=subject,
@@ -22,12 +26,11 @@ def send_otp_email_task(self, email, secure_otp, subject="Your OTP Code"):
     except smtplib.SMTPException as exc:
         raise self.retry(exc=exc, countdown=60)
         
-    except Exception as e:
-        raise e
+    except Exception:
+        raise
     
 @shared_task
-def cleanup_unverified_users():
-    """Deletes users who haven't verified their email within 24 hours."""
+def cleanup_unverified_users() -> str:
     threshold = timezone.now() - timedelta(days=1)
     
     unverified_users = User.objects.filter(
@@ -42,7 +45,7 @@ def cleanup_unverified_users():
     return f"Deleted {count} unverified users."
 
 @shared_task
-def process_daily_urgent_notifications():
+def process_daily_urgent_notifications() -> str:
     urgent_subs = ContactFormSubmission.objects.filter(
         is_dismissed=False,
         priority=3 
@@ -51,18 +54,14 @@ def process_daily_urgent_notifications():
     if not urgent_subs.exists():
         return "No urgent submissions found today."
 
-    # Group submissions by the portfolio owner
-    user_submissions = {}
+    user_submissions: defaultdict[User, list[ContactFormSubmission]] = defaultdict(list)
     for sub in urgent_subs:
-        if sub.owner not in user_submissions:
-            user_submissions[sub.owner] = []
         user_submissions[sub.owner].append(sub)
 
     emails_sent = 0
     for owner, subs in user_submissions.items():
         subject = f"Action Required: {len(subs)} Urgent Portfolio Submissions"
-        
-        # Build the email body
+
         message = f"Hello {owner.first_name or owner.username},\n\n"
         message += f"You have {len(subs)} URGENT contact form submissions waiting for your response:\n\n"
         

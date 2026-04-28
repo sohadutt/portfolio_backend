@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import re
 import time
 import secrets
 import random
+from typing import Any
+
 import vercel_blob
 
 from django.conf import settings
@@ -13,6 +17,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.request import Request
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -32,21 +37,21 @@ from .serializers import (
 )
 
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 40
+    page_size: int = 10
+    page_size_query_param: str = 'page_size'
+    max_page_size: int = 40
 
 @ensure_csrf_cookie
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_csrf_token(request):
+def get_csrf_token(request: Request) -> Response:
     return Response({"detail": "CSRF cookie set"})
 
-def get_request_ip(request):
+def get_request_ip(request: Request) -> str | None:
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     return x_forwarded_for.split(",")[0].strip() if x_forwarded_for else request.META.get("REMOTE_ADDR")
 
-def _check_rate_limit(request):
+def _check_rate_limit(request: Request) -> Response | None:
     client_ip = get_request_ip(request) or "unknown"
     blocked_key = f"contact_form_blocked:{client_ip}"
     attempts_key = f"contact_form_attempts:{client_ip}"
@@ -66,7 +71,7 @@ def _check_rate_limit(request):
     cache.set(attempts_key, recent_attempts, timeout=window)
     return None
 
-def generate_username_from_email(email):
+def generate_username_from_email(email: str) -> str:
     base = re.sub(r"[^a-z0-9._+-]", "", email.split("@")[0].lower()) or "user"
     username, suffix = base, 1
     while User.objects.filter(username=username).exists():
@@ -76,7 +81,7 @@ def generate_username_from_email(email):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def create_user_profile(request):
+def create_user_profile(request: Request) -> Response:
     email = str(request.data.get("email", "")).strip().lower()
     password = request.data.get("password", "")
 
@@ -104,7 +109,7 @@ def create_user_profile(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def auth_otp(request):
+def auth_otp(request: Request) -> Response:
     email = str(request.data.get("email", "")).strip().lower()
     user = User.objects.filter(email=email).first()
 
@@ -121,7 +126,7 @@ def auth_otp(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def verify_otp(request):
+def verify_otp(request: Request) -> Response:
     email = str(request.data.get("email", "")).strip().lower()
     otp_provided = str(request.data.get("otp", "")).strip()
 
@@ -144,7 +149,7 @@ def verify_otp(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def login_user(request):
+def login_user(request: Request) -> Response:
     serializer = LoginSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     user = serializer.validated_data["user"]
@@ -164,7 +169,7 @@ def login_user(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_user_profile(request):
+def get_user_profile(request: Request) -> Response:
     u = request.user
     return Response({
         "user_id": u.id, "email": u.email, "username": u.username,
@@ -180,7 +185,7 @@ def get_user_profile(request):
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser, JSONParser])
-def update_user_profile(request):
+def update_user_profile(request: Request) -> Response:
     user = request.user
     
     user.first_name = request.data.get("first_name", user.first_name)
@@ -237,7 +242,7 @@ def update_user_profile(request):
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def status_share_token(request):
+def status_share_token(request: Request) -> Response:
     user = request.user
     if not user.is_verified:
         return Response({"message": "Verify email to enable sharing."}, status=403)
@@ -257,13 +262,13 @@ def status_share_token(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_profile_tokens(request):
+def get_profile_tokens(request: Request) -> Response:
     return Response({
         "enable_share_token": request.user.enable_share_token,
         "share_token": request.user.share_token,
     })
 
-def serialize_portfolio_data(portfolio, request=None):
+def serialize_portfolio_data(portfolio: PortfolioSettings, request: Request | None = None) -> dict[str, Any]:
     data = serialize_portfolio_payload(portfolio)
     data["tier"] = portfolio.tier
     data["themeMode"] = portfolio.owner.theme_mode
@@ -271,7 +276,7 @@ def serialize_portfolio_data(portfolio, request=None):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_default_public_portfolio(request, order_index=1):
+def get_default_public_portfolio(request: Request, order_index: int = 1) -> Response:
     owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
     if not owner: raise Http404()
     portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index, is_enabled=True)
@@ -279,14 +284,14 @@ def get_default_public_portfolio(request, order_index=1):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def get_shared_public_portfolio(request, share_token, order_index=1):
+def get_shared_public_portfolio(request: Request, share_token: str, order_index: int = 1) -> Response:
     owner = get_object_or_404(User, share_token=share_token, enable_share_token=True)
     portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index, is_enabled=True)
     return Response(serialize_portfolio_data(portfolio, request))
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def submit_portfolio(request, order_index=1):
+def submit_portfolio(request: Request, order_index: int = 1) -> Response:
     if not request.user.is_verified:
         return Response({"message": "Verify first."}, status=403)
         
@@ -300,7 +305,7 @@ def submit_portfolio(request, order_index=1):
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def update_portfolio(request, order_index=1):
+def update_portfolio(request: Request, order_index: int = 1) -> Response:
     if not request.user.is_verified:
         return Response({"message": "Verify first."}, status=403)
         
@@ -352,7 +357,7 @@ def update_portfolio(request, order_index=1):
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def toggle_portfolio_status(request, order_index):
+def toggle_portfolio_status(request: Request, order_index: int) -> Response:
     portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
     
     if not portfolio.is_enabled:
@@ -371,7 +376,7 @@ def toggle_portfolio_status(request, order_index):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def list_dashboard_submissions(request):
+def list_dashboard_submissions(request: Request) -> Response:
     subs = ContactFormSubmission.objects.filter(owner=request.user).order_by('-submitted_at')
     paginator = StandardResultsSetPagination()
     page = paginator.paginate_queryset(subs, request)
@@ -383,7 +388,7 @@ def list_dashboard_submissions(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def submit_mail_default_portfolio(request, order_index=1):
+def submit_mail_default_portfolio(request: Request, order_index: int = 1) -> Response:
     owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
     if not owner: raise Http404()
     portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index)
@@ -391,12 +396,12 @@ def submit_mail_default_portfolio(request, order_index=1):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def submit_mail_public_portfolio(request, share_token, order_index=1):
+def submit_mail_public_portfolio(request: Request, share_token: str, order_index: int = 1) -> Response:
     owner = get_object_or_404(User, share_token=share_token, enable_share_token=True)
     portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index)
     return _handle_mail_submission(request, owner, portfolio)
 
-def _handle_mail_submission(request, owner, portfolio):
+def _handle_mail_submission(request: Request, owner: User, portfolio: PortfolioSettings) -> Response:
     limit_check = _check_rate_limit(request)
     if limit_check: return limit_check
     print(f"Received contact form submission for {owner.email} from IP {get_request_ip(request)}")
@@ -408,7 +413,7 @@ def _handle_mail_submission(request, owner, portfolio):
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def update_dashboard_submission(request, form_id):
+def update_dashboard_submission(request: Request, form_id: int) -> Response:
     form = get_object_or_404(ContactFormSubmission, id=form_id, owner=request.user)
     serializer = SubmissionUpdateSerializer(form, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
@@ -419,7 +424,7 @@ def update_dashboard_submission(request, form_id):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def reorder_dashboard_submissions(request):
+def reorder_dashboard_submissions(request: Request) -> Response:
     serializer = SubmissionReorderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
@@ -430,7 +435,7 @@ def reorder_dashboard_submissions(request):
     
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
-def trigger_user_cleanup(request):
+def trigger_user_cleanup(request: Request) -> Response:
     expected_key = getattr(settings, 'CRON_SECRET_KEY', None)
     provided_key = request.headers.get("X-Cron-Secret") or request.GET.get("secret")
 
@@ -445,7 +450,7 @@ def trigger_user_cleanup(request):
 
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
-def trigger_urgent_notifications(request):
+def trigger_urgent_notifications(request: Request) -> Response:
     expected_key = getattr(settings, 'CRON_SECRET_KEY', None)
     provided_key = request.headers.get("X-Cron-Secret") or request.GET.get("secret")
 
@@ -460,12 +465,9 @@ def trigger_urgent_notifications(request):
     
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def preview_all_portfolios(request):
-    portfolios = PortfolioSettings.objects.filter(
-        owner=request.user
-    ).values(
-        'order_index', 'name', 'title', 'is_enabled'
-    ).order_by('order_index')
+def preview_all_portfolios(request: Request) -> Response:
+    portfolios = PortfolioSettings.objects.filter(owner=request.user).values(
+        'order_index', 'name', 'title', 'is_enabled').order_by('order_index')
     portfolio_list = [
         {**p, "theme_mode": request.user.theme_mode} 
         for p in portfolios
@@ -478,13 +480,13 @@ def preview_all_portfolios(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_portfolio_authenticated(request, order_index=1):
+def get_portfolio_authenticated(request: Request, order_index: int = 1) -> Response:
     portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
     return Response(serialize_portfolio_data(portfolio, request))
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def forgot_password(request):
+def forgot_password(request: Request) -> Response:
     email = str(request.data.get("email", "")).strip().lower()
     user = User.objects.filter(email=email).first()
 
@@ -503,7 +505,7 @@ def forgot_password(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def reset_password(request):
+def reset_password(request: Request) -> Response:
     email = str(request.data.get("email", "")).strip().lower()
     otp_provided = str(request.data.get("otp", "")).strip()
     new_password = request.data.get("new_password", "")

@@ -1,12 +1,17 @@
+from __future__ import annotations
+
+from typing import Any
+
 from django.contrib.auth import authenticate
 from django.db import transaction
 from rest_framework import serializers
+
 from .models import (
     ContactFormSubmission, Experience, FeaturedModule, HeroMetric,
     Link, PortfolioSettings, Project, ShowcaseCategory, SkillGroup, User,
 )
 
-# --- USER SERIALIZERS ---
+PortfolioPayload = dict[str, Any]
 
 class ProfileCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
@@ -20,14 +25,14 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "share_token", "created_at", "is_verified"]
 
-    def validate_email(self, value):
+    def validate_email(self, value: str) -> str:
         email = value.strip().lower()
         if User.objects.filter(email=email, is_verified=True).exists():
             raise serializers.ValidationError("A user with this email already exists.")
         return email
 
     @transaction.atomic
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> User:
         email = validated_data.get("email")
         password = validated_data.pop("password")
         
@@ -52,7 +57,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = ["first_name", "last_name", "profile_picture", "theme_mode"]
 
-    def validate_profile_picture(self, value):
+    def validate_profile_picture(self, value: Any) -> Any:
         if value.size > 2 * 1024 * 1024:
             raise serializers.ValidationError("Image size must be under 2MB.")
         return value
@@ -62,13 +67,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ["first_name", "last_name", "profile_picture_url"]
 
-# --- AUTH & UTILITY SERIALIZERS ---
-
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, trim_whitespace=False)
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         email = attrs["email"].strip().lower()
         user = User.objects.filter(email=email).first()
 
@@ -92,12 +95,12 @@ class IconAliasSerializer(serializers.Serializer):
     icon = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     iconName = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         attrs["icon"] = attrs.get("icon") or attrs.get("iconName")
         return attrs
 
 
-def deep_merge_portfolio_data(current, incoming):
+def deep_merge_portfolio_data(current: Any, incoming: Any) -> Any:
     if isinstance(current, dict) and isinstance(incoming, dict):
         merged = dict(current)
         for key, value in incoming.items():
@@ -106,7 +109,7 @@ def deep_merge_portfolio_data(current, incoming):
     return incoming
 
 
-def set_serializer_partial(field, is_partial):
+def set_serializer_partial(field: Any, is_partial: bool) -> None:
     if not isinstance(field, serializers.BaseSerializer):
         return
     field.partial = is_partial
@@ -119,7 +122,7 @@ def set_serializer_partial(field, is_partial):
             set_serializer_partial(nested, is_partial)
 
 
-def serialize_portfolio_payload(portfolio):
+def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayload:
     all_links = list(
         Link.objects.filter(portfolio=portfolio)
         .order_by("order", "id")
@@ -243,8 +246,6 @@ def serialize_portfolio_payload(portfolio):
         "pageCopy": portfolio.page_copy or {},
     }
 
-# --- SUBMISSION SERIALIZERS ---
-
 class SubmissionReadSerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(source="owner.username", read_only=True)
     owner_user_id = serializers.IntegerField(source="owner.id", read_only=True)
@@ -264,17 +265,19 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
         model = ContactFormSubmission
         fields = ["name", "email", "phone", "message", "for_work", "priority"]
 
-    def validate_name(self, value):
+    def validate_name(self, value: str) -> str:
         val = value.strip()
-        if not val: raise serializers.ValidationError("Name is required.")
+        if not val:
+            raise serializers.ValidationError("Name is required.")
         return val
 
-    def validate_message(self, value):
+    def validate_message(self, value: str) -> str:
         val = value.strip()
-        if not val: raise serializers.ValidationError("Message is required.")
+        if not val:
+            raise serializers.ValidationError("Message is required.")
         return val
 
-    def validate_phone(self, value):
+    def validate_phone(self, value: str | None) -> str | None:
         return value.strip() if value else None
 
 class SubmissionUpdateSerializer(serializers.ModelSerializer):
@@ -286,8 +289,6 @@ class SubmissionUpdateSerializer(serializers.ModelSerializer):
 
 class SubmissionReorderSerializer(serializers.Serializer):
     order = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
-
-# --- PORTFOLIO COMPONENTS ---
 
 class PortfolioPersonalInfoSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
@@ -406,8 +407,6 @@ class PortfolioPageCopySerializer(serializers.Serializer):
     loadingTitle = serializers.CharField(max_length=200)
     loadingDescription = serializers.CharField()
 
-# --- MAIN SUBMISSION SERIALIZER ---
-
 class PortfolioSubmissionSerializer(serializers.Serializer):
     new_order_index = serializers.IntegerField(min_value=1, required=False, write_only=True)
     is_enabled = serializers.BooleanField(required=False, write_only=True)
@@ -431,15 +430,14 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
     sectionCopy = PortfolioSectionCopySerializer(required=False)
     pageCopy = PortfolioPageCopySerializer(required=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             set_serializer_partial(field, self.partial)
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         owner = self.context.get("owner")
-        
-        # Enforce Free Tier Array Limits
+
         if owner and not owner.su_tier:
             restrict_to_3 = [
                 ("heroMetrics", "hero metrics"),
@@ -472,7 +470,7 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
         return attrs
 
     @transaction.atomic
-    def save(self, **kwargs):
+    def save(self, **kwargs: Any) -> PortfolioSettings:
         owner = kwargs.get("owner") or self.context.get("owner")
         order_index = self.context.get("order_index", 1)
         
@@ -532,7 +530,6 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
             owner.profile_picture_url = profile_picture
             owner.save(update_fields=["profile_picture_url"])
 
-        # Mapping for efficient updates - Attach to PORTFOLIO instead of owner
         mapping = [
             (HeroMetric, data.get("heroMetrics"), lambda x: x),
             (SkillGroup, data.get("skillGroups"), lambda x: x),
@@ -558,7 +555,6 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
             model.objects.filter(portfolio=portfolio).delete()
             model.objects.bulk_create([model(portfolio=portfolio, order=idx, **parser(item)) for idx, item in enumerate(items, 1)])
 
-        # Handle Links - Attach to PORTFOLIO
         link_types = [
             (Link.LinkType.NAV, data.get("navigationLinks")),
             (Link.LinkType.CONTACT, data.get("contactMethods")),

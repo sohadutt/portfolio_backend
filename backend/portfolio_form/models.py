@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 import secrets
+from typing import Any, TypeAlias, TypedDict
+
 import vercel_blob
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
@@ -7,23 +11,65 @@ from django.db.models import Max
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-# --- Utility Functions ---
+JSONPrimitive: TypeAlias = str | int | float | bool | None
+JSONValue: TypeAlias = JSONPrimitive | list["JSONValue"] | dict[str, "JSONValue"]
 
-def generate_share_token():
+
+class HeroActionConfig(TypedDict):
+    label: str
+    href: str
+
+
+class HeroActionsConfig(TypedDict):
+    primary: HeroActionConfig
+    secondary: HeroActionConfig
+
+
+class HeroFocusAreaConfig(TypedDict):
+    label: str
+    value: int
+
+
+class HeroFocusConfig(TypedDict):
+    eyebrow: str
+    title: str
+    areas: list[HeroFocusAreaConfig]
+
+
+class SectionCopyEntryConfig(TypedDict):
+    eyebrow: str
+    title: str
+    description: str
+
+
+class SectionCopyConfig(TypedDict):
+    projects: SectionCopyEntryConfig
+    experience: SectionCopyEntryConfig
+    components: SectionCopyEntryConfig
+    contact: SectionCopyEntryConfig
+
+
+class PageCopyConfig(TypedDict):
+    loadingTitle: str
+    loadingDescription: str
+
+
+def generate_share_token() -> str:
     return secrets.token_urlsafe(24)
 
-def generate_dashboard_token():
+
+def generate_dashboard_token() -> str:
     return secrets.token_urlsafe(32)
 
 
-def default_hero_actions():
+def default_hero_actions() -> HeroActionsConfig:
     return {
         "primary": {"label": "", "href": ""},
         "secondary": {"label": "", "href": ""},
     }
 
 
-def default_hero_focus():
+def default_hero_focus() -> HeroFocusConfig:
     return {
         "eyebrow": "",
         "title": "",
@@ -31,7 +77,7 @@ def default_hero_focus():
     }
 
 
-def default_section_copy():
+def default_section_copy() -> SectionCopyConfig:
     return {
         "projects": {"eyebrow": "", "title": "", "description": ""},
         "experience": {"eyebrow": "", "title": "", "description": ""},
@@ -40,13 +86,11 @@ def default_section_copy():
     }
 
 
-def default_page_copy():
+def default_page_copy() -> PageCopyConfig:
     return {
         "loadingTitle": "",
         "loadingDescription": "",
     }
-
-# --- Core User Model ---
 
 class User(AbstractUser):
     class Tier(models.IntegerChoices):
@@ -63,7 +107,6 @@ class User(AbstractUser):
 
     objects = UserManager()
 
-    # Identity & Profile
     email = models.EmailField(unique=True, help_text="Primary identifier for login and OTP.")
     tier = models.IntegerField(choices=Tier.choices, default=Tier.FREE)
     first_name = models.CharField(max_length=30, blank=True)
@@ -89,23 +132,21 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
-    def is_free_tier(self):
+    def is_free_tier(self) -> bool:
         return self.tier == self.Tier.FREE
 
     @property
-    def su_tier(self):
-        """Returns True if user is a Superuser OR a paying customer."""
+    def su_tier(self) -> bool:
         return self.is_superuser or self.tier != self.Tier.FREE
 
-    def clean(self):
+    def clean(self) -> None:
         super().clean()
         if self.enable_share_token and not self.is_verified:
             raise ValidationError({
                 'enable_share_token': "A user must be verified before they can enable portfolio sharing."
             })
 
-    def save(self, *args, **kwargs):
-        # Handle cleanup of old profile picture if the URL is being changed
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if self.pk:
             try:
                 old_obj = User.objects.get(pk=self.pk)
@@ -117,17 +158,17 @@ class User(AbstractUser):
         self.full_clean()
         super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        # Capture URL before deletion for the signal/manual cleanup
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
         url_to_delete = self.profile_picture_url
-        super().delete(*args, **kwargs)
+        result = super().delete(*args, **kwargs)
         if url_to_delete:
             try:
                 vercel_blob.delete(url_to_delete)
             except Exception:
                 pass
+        return result
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.username} ({self.email})"
 
     class Meta:
@@ -135,18 +176,13 @@ class User(AbstractUser):
         verbose_name_plural = "Users"
         ordering = ['-created_at']
 
-# --- Global Signals ---
-
 @receiver(post_delete, sender=User)
-def auto_delete_vercel_blob_on_delete(sender, instance, **kwargs):
-    """Safety net: ensures the blob is deleted when a user is removed."""
+def auto_delete_vercel_blob_on_delete(sender: type[User], instance: User, **kwargs: Any) -> None:
     if instance.profile_picture_url:
         try:
             vercel_blob.delete(instance.profile_picture_url)
         except Exception:
             pass
-
-# --- Base Abstract Models ---
 
 class OwnedPortfolioModel(models.Model):
     owner = models.ForeignKey(
@@ -154,11 +190,12 @@ class OwnedPortfolioModel(models.Model):
         on_delete=models.CASCADE,
         related_name="%(class)ss",
     )
+
     class Meta:
         abstract = True
 
 class OrderedPortfolioModel(models.Model):
-    MAX_FREE_TIER_ITEMS = 3 # Global default limit for free tier
+    MAX_FREE_TIER_ITEMS = 3
 
     portfolio = models.ForeignKey(
         'PortfolioSettings',
@@ -171,19 +208,16 @@ class OrderedPortfolioModel(models.Model):
         abstract = True
         ordering = ["order", "id"]
 
-    def clean(self):
+    def clean(self) -> None:
         super().clean()
-        # Enforce the limit for Free Tier users
         if self.portfolio_id and hasattr(self.portfolio, 'owner') and not self.portfolio.owner.su_tier:
             count = self.__class__.objects.filter(portfolio=self.portfolio).exclude(pk=self.pk).count()
             if count >= self.MAX_FREE_TIER_ITEMS:
                 raise ValidationError(f"Free tier limit is {self.MAX_FREE_TIER_ITEMS} items. Please upgrade to Premium.")
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         self.full_clean()
         super().save(*args, **kwargs)
-
-# --- Functional Portfolio Models ---
 
 class ContactFormSubmission(models.Model):
     class Priority(models.IntegerChoices):
@@ -219,14 +253,14 @@ class ContactFormSubmission(models.Model):
             )
         ]
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.display_index:
             max_idx = ContactFormSubmission.objects.filter(owner=self.owner).aggregate(Max("display_index"))["display_index__max"]
             self.display_index = (max_idx or 0) + 1
         super().save(*args, **kwargs)
 
     @transaction.atomic
-    def move_to_index(self, new_index):
+    def move_to_index(self, new_index: int) -> None:
         submissions = list(ContactFormSubmission.objects.select_for_update().filter(owner=self.owner).order_by("display_index", "id"))
         new_index = max(1, min(int(new_index), len(submissions)))
         
@@ -246,7 +280,7 @@ class ContactFormSubmission(models.Model):
 
     @classmethod
     @transaction.atomic
-    def reorder_for_owner(cls, owner, ordered_ids):
+    def reorder_for_owner(cls, owner: User, ordered_ids: list[int]) -> list["ContactFormSubmission"]:
         submissions = {s.id: s for s in cls.objects.select_for_update().filter(owner=owner)}
         if sorted(submissions.keys()) != sorted(ordered_ids):
             raise ValueError("Invalid ID list for reordering.")
@@ -261,7 +295,6 @@ class ContactFormSubmission(models.Model):
         return reordered
 
 class PortfolioSettings(OwnedPortfolioModel):
-    # NEW FIELDS FOR MULTI-PORTFOLIO SUPPORT
     order_index = models.PositiveIntegerField(default=1)
     is_enabled = models.BooleanField(default=True)
     tier = models.IntegerField(choices=User.Tier.choices, default=User.Tier.FREE)
@@ -288,52 +321,45 @@ class PortfolioSettings(OwnedPortfolioModel):
 
     class Meta:
         constraints = [
-            # Allow multiple portfolios per user, separated by their order_index
             models.UniqueConstraint(fields=["owner", "order_index"], name="unique_portfolio_settings_per_owner_index")
         ]
         verbose_name = "Portfolio"
         verbose_name_plural = "Portfolios"
 
-    def clean(self):
-        # Enforce free tier limitations
+    def clean(self) -> None:
         if self.owner_id and self.order_index > 1 and self.owner.tier == User.Tier.FREE:
             raise ValidationError("Free tier users can only have one portfolio.")
 
     @transaction.atomic
-    def move_to_index(self, new_index):
-        """Safely shifts portfolios to maintain a continuous 1-based index."""
+    def move_to_index(self, new_index: int) -> None:
         portfolios = list(
             PortfolioSettings.objects.select_for_update()
             .filter(owner=self.owner)
             .order_by("order_index")
         )
-        
-        # Ensure we don't move it out of bounds
+
         new_index = max(1, min(int(new_index), len(portfolios)))
-        
+
         if new_index == self.order_index:
             return
 
-        # Pop the moving portfolio and insert it at the new position
         moving = next(p for p in portfolios if p.pk == self.pk)
         rem = [p for p in portfolios if p.pk != self.pk]
         rem.insert(new_index - 1, moving)
 
-        # Step 1: Temporary shift (+10000) to avoid UniqueConstraint collisions during save
         for i, p in enumerate(rem, 1):
             p.order_index = i + 10000
             p.save(update_fields=["order_index"])
-            
-        # Step 2: Set the final correct sequential indices
+
         for i, p in enumerate(rem, 1):
             p.order_index = i
             p.save(update_fields=["order_index"])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.owner.username}'s Portfolio #{self.order_index}"
 
     @property
-    def share_token(self):
+    def share_token(self) -> str:
         return self.owner.share_token
 
 class HeroMetric(OrderedPortfolioModel):
@@ -378,7 +404,6 @@ class FeaturedModule(OrderedPortfolioModel):
     details = models.TextField()
 
 class Link(OrderedPortfolioModel):
-    # Override the default 3 limit so navbars and footers don't break for free users
     MAX_FREE_TIER_ITEMS = 3
     
     class LinkType(models.TextChoices):
