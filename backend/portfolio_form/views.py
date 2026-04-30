@@ -3,10 +3,13 @@ from __future__ import annotations
 import re
 import time
 import secrets
+import requests
 import random
 from typing import Any
 
 import vercel_blob
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 from django.conf import settings
 from django.core.cache import cache
@@ -166,6 +169,57 @@ def login_user(request: Request) -> Response:
             "tokens": {"refresh": str(refresh), "access": str(refresh.access_token)}
         }
     })
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def google_login(request: Request) -> Response:
+    token = request.data.get("credential") or request.data.get("token")
+    
+    if not token:
+        return Response({"message": "Google token required."}, status=400)
+        
+    try:
+        google_response = requests.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        
+        if not google_response.ok:
+            return Response({"message": "Invalid or expired Google token."}, status=403)
+            
+        id_info = google_response.json()
+        email = id_info.get("email")
+        
+        if not email:
+            return Response({"message": "Google token invalid: No email provided."}, status=400)
+        
+        user, created = User.objects.get_or_create(email=email, defaults={
+            "username": generate_username_from_email(email),
+            "first_name": id_info.get("given_name", ""),
+            "last_name": id_info.get("family_name", ""),
+            "is_verified": True
+        })
+        
+        if not created and not user.is_verified:
+            user.is_verified = True
+            user.save(update_fields=['is_verified'])
+        
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
+            "message": "Login successful",
+            "data": {
+                "user_id": user.id, 
+                "email": user.email, 
+                "username": user.username,
+                "enable_share_token": user.enable_share_token, 
+                "share_token": user.share_token,
+                "tokens": {"refresh": str(refresh), "access": str(refresh.access_token)}
+            }
+        })
+        
+    except Exception as e:
+        return Response({"message": f"Authentication failed: {str(e)}"}, status=500)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
