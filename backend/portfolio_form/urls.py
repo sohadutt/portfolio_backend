@@ -22,13 +22,9 @@ urlpatterns = [
     path("profile/get-token/", views.get_profile_tokens, name="profile_token"),
 
     # --- Public Portfolio Viewing ---
-    # Default User Routes
-    path("portfolio/default/", views.get_default_public_portfolio, {"order_index": 1}, name="portfolio_default_primary"),
-    path("portfolio/default/<int:order_index>/", views.get_default_public_portfolio, name="portfolio_default_indexed"),
-    
-    # Shared Token Routes
-    path("portfolio/shared/<str:share_token>/", views.get_shared_public_portfolio, {"order_index": 1}, name="portfolio_shared_primary"),
-    path("portfolio/shared/<str:share_token>/<int:order_index>/", views.get_shared_public_portfolio, name="portfolio_shared_indexed"),
+    # Portfolio view Routes
+    path("portfolio/default/", views.get_default_public_portfolio, name="portfolio_default_primary"),
+    path("portfolio/shared/<str:share_token>/", views.get_shared_public_portfolio, name="portfolio_shared_primary"),
 
     # --- Portfolio Content Management (Authenticated) ---
     path("portfolio/submit/<int:order_index>/", views.submit_portfolio, name="portfolio_submit_indexed"), 
