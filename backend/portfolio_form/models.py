@@ -377,6 +377,9 @@ class Project(OrderedPortfolioModel):
     description = models.TextField()
     stat = models.CharField(max_length=100)
     stack = models.JSONField(default=list)
+    href = models.CharField(max_length=255, blank=True, null=True, help_text="Target URL or anchor link")
+    cta_label = models.CharField(max_length=100, blank=True, null=True, help_text="Text to display on the action button")
+    icon_name = models.CharField(max_length=50, blank=True, null=True, help_text="Lucide icon name string")
 
 class Experience(OrderedPortfolioModel):
     period = models.CharField(max_length=100)
