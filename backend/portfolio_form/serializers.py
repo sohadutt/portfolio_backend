@@ -171,11 +171,21 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
             .order_by("order", "id")
             .values("title", "description", "items")
         ),
-        "projects": list(
-            Project.objects.filter(portfolio=portfolio)
+        "projects": [
+            {
+                "title": item["title"],
+                "eyebrow": item["eyebrow"],
+                "description": item["description"],
+                "stack": item["stack"],
+                "stat": item["stat"],
+                "href": item["href"],
+                "ctaLabel": item["cta_label"],
+                "icon": item["icon_name"],
+            }
+            for item in Project.objects.filter(portfolio=portfolio)
             .order_by("order", "id")
-            .values("title", "eyebrow", "description", "stack", "stat")
-        ),
+            .values("title", "eyebrow", "description", "stack", "stat", "href", "cta_label", "icon_name")
+        ],
         "experience": [
             {
                 "period": item["period"],
@@ -353,12 +363,14 @@ class PortfolioSkillGroupSerializer(serializers.Serializer):
     description = serializers.CharField()
     items = serializers.ListField(child=serializers.CharField(), default=list)
 
-class PortfolioProjectSerializer(serializers.Serializer):
+class PortfolioProjectSerializer(IconAliasSerializer):
     title = serializers.CharField(max_length=200)
     eyebrow = serializers.CharField(max_length=100)
     description = serializers.CharField()
     stack = serializers.ListField(child=serializers.CharField(), default=list)
     stat = serializers.CharField(max_length=100)
+    href = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    ctaLabel = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
 class PortfolioExperienceSerializer(serializers.Serializer):
     period = serializers.CharField(max_length=100)
@@ -533,7 +545,16 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
         mapping = [
             (HeroMetric, data.get("heroMetrics"), lambda x: x),
             (SkillGroup, data.get("skillGroups"), lambda x: x),
-            (Project, data.get("projects"), lambda x: x),
+            (Project, data.get("projects"), lambda x: {
+                "title": x["title"],
+                "eyebrow": x["eyebrow"],
+                "description": x["description"],
+                "stack": x["stack"],
+                "stat": x["stat"],
+                "href": x.get("href"),
+                "cta_label": x.get("ctaLabel"),
+                "icon_name": x.get("icon"),
+            }),
             (Experience, data.get("experience"), lambda x: {
                 "period": x["period"], "title": x["title"], "company": x["company"],
                 "relation": x["relation"], "summary": x["summary"], "highlights": x["highlights"],

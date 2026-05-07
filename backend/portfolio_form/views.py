@@ -331,21 +331,24 @@ def serialize_portfolio_data(portfolio: PortfolioSettings, request: Request | No
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_default_public_portfolio(request: Request) -> Response:
-    index_param = request.query_params.get("order_index", "1")
     try:
-        order_index = int(index_param)
+        order_index = int(request.query_params.get("order_index", 1))
     except ValueError:
         order_index = 1
+        
     owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
-    if not owner: raise Http404()
+    if not owner: 
+        raise Http404()
+        
     try:
-        portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index, is_enabled=True)
+        portfolio = PortfolioSettings.objects.get(owner=owner, order_index=order_index, is_enabled=True)
     except PortfolioSettings.DoesNotExist:
         print(f"DEBUG: Portfolio not found for index {order_index}. Falling back to 1.")
         try:
-            portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=1, is_enabled=True)
+            portfolio = PortfolioSettings.objects.get(owner=owner, order_index=1, is_enabled=True)
         except PortfolioSettings.DoesNotExist:
             raise Http404("No enabled portfolios found for this user.")
+            
     return Response(serialize_portfolio_data(portfolio, request))
 
 @api_view(["GET"])
@@ -355,7 +358,9 @@ def get_shared_public_portfolio(request: Request, share_token: str) -> Response:
         order_index = int(request.query_params.get("order_index", 1))
     except ValueError:
         order_index = 1        
+        
     owner = get_object_or_404(User, share_token=share_token, enable_share_token=True)    
+    
     try:
         portfolio = PortfolioSettings.objects.get(owner=owner, order_index=order_index, is_enabled=True)
     except PortfolioSettings.DoesNotExist:
@@ -364,6 +369,7 @@ def get_shared_public_portfolio(request: Request, share_token: str) -> Response:
             portfolio = PortfolioSettings.objects.get(owner=owner, order_index=1, is_enabled=True)
         except PortfolioSettings.DoesNotExist:
             raise Http404("No enabled portfolios found for this user.")         
+            
     return Response(serialize_portfolio_data(portfolio, request))
 
 @api_view(["POST"])
