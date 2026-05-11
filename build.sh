@@ -9,5 +9,4 @@ uv sync
 
 echo "Running database migrations..."
 uv run manage.py collectstatic --noinput
-uv run celery -A config worker --loglevel=info --pool=solo &
-exec uv run gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-10000}"
+uv run manage.py migrate
