@@ -142,6 +142,7 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
             "github": portfolio.github,
             "linkedin": portfolio.linkedin,
             "profilePicture": portfolio.owner.profile_picture_url,
+            "resumeUrl": portfolio.resume_url,
         },
         "navigationLinks": [
             {"label": link["label"], "href": link["href"]}
@@ -310,6 +311,7 @@ class PortfolioPersonalInfoSerializer(serializers.Serializer):
     github = serializers.URLField()
     linkedin = serializers.URLField()
     profilePicture = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    resumeUrl = serializers.URLField(required=False, allow_blank=True, allow_null=True)
 
 class PortfolioHeroContentSerializer(serializers.Serializer):
     eyebrow = serializers.CharField(max_length=100)

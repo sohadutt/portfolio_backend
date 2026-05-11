@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import vercel_blob
 import smtplib
 from collections import defaultdict
 from celery import Task, shared_task
@@ -9,7 +11,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 
-from .models import ContactFormSubmission, User
+from .models import ContactFormSubmission, User, PortfolioSettings
 
 @shared_task(bind=True, max_retries=3)
 def send_otp_email_task(self: Task, email: str, secure_otp: str, subject: str = "Your OTP Code") -> str:
@@ -84,3 +86,64 @@ def process_daily_urgent_notifications() -> str:
             print(f"Failed to send urgent digest to {owner.email}: {e}")
 
     return f"Sent urgent digests to {emails_sent} users."
+
+@shared_task
+def async_upload_profile_picture(user_id: int, temp_file_path: str, filename: str, old_url: str | None = None) -> None:
+    try:
+        with open(temp_file_path, 'rb') as f:
+            resp = vercel_blob.put(
+                path=f"profile_pics/{filename}", 
+                data=f.read(), 
+                options={
+                    "access": "public",
+                    "content_type": "image/webp"
+                }
+            )
+        
+        user = User.objects.get(id=user_id)
+        user.profile_picture_url = resp["url"]
+        user.save(update_fields=["profile_picture_url"])
+
+        if old_url and "vercel-storage.com" in old_url:
+            try:
+                vercel_blob.delete(old_url)
+            except Exception:
+                pass
+                
+    except Exception as e:
+        print(f"Failed to async upload profile picture: {e}")
+        
+    finally:
+        # 4. ALWAYS delete the local temporary file
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+
+@shared_task
+def async_upload_resume(portfolio_id: int, temp_file_path: str, filename: str, old_url: str | None = None) -> None:
+    try:
+        with open(temp_file_path, 'rb') as f:
+            resp = vercel_blob.put(
+                path=f"resumes/{filename}", 
+                data=f.read(), 
+                options={
+                    "access": "public",
+                    "content_type": "application/pdf"
+                }
+            )     
+        portfolio = PortfolioSettings.objects.get(id=portfolio_id)
+        portfolio.resume_url = resp["url"]
+        portfolio.save(update_fields=["resume_url"])
+
+        if old_url and "vercel-storage.com" in old_url:
+            try:
+                vercel_blob.delete(old_url)
+            except Exception:
+                pass
+        
+    except Exception as e:
+        print(f"Failed to async upload resume: {e}")
+        
+    finally:
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)

@@ -318,6 +318,7 @@ class PortfolioSettings(OwnedPortfolioModel):
     about_description = models.TextField()
     section_copy = models.JSONField(default=default_section_copy)
     page_copy = models.JSONField(default=default_page_copy)
+    resume_url = models.URLField(blank=True, null=True)
 
     class Meta:
         constraints = [

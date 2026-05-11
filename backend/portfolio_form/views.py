@@ -1,33 +1,42 @@
 from __future__ import annotations
 
+import os
 import re
 import time
 import secrets
+import tempfile
 import requests
 import random
 from typing import Any
 
-import vercel_blob
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes, throttle_classes
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.request import Request
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.throttling import AnonRateThrottle
 
 from .utils import compress_to_webp
-from .tasks import send_otp_email_task, cleanup_unverified_users, process_daily_urgent_notifications
+from .tasks import (
+    send_otp_email_task, 
+    cleanup_unverified_users, 
+    process_daily_urgent_notifications,
+    async_upload_profile_picture, 
+    async_upload_resume
+)
 from .models import (
     ContactFormSubmission, Experience, FeaturedModule, HeroMetric, 
     Link, PortfolioSettings, Project, ShowcaseCategory, SkillGroup, User
@@ -40,6 +49,7 @@ from .serializers import (
 )
 
 class StandardResultsSetPagination(PageNumberPagination):
+    """Standard pagination class for listing dashboard submissions."""
     page_size: int = 10
     page_size_query_param: str = 'page_size'
     max_page_size: int = 40
@@ -48,33 +58,16 @@ class StandardResultsSetPagination(PageNumberPagination):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_csrf_token(request: Request) -> Response:
+    """Sets the CSRF cookie for frontend clients."""
     return Response({"detail": "CSRF cookie set"})
 
 def get_request_ip(request: Request) -> str | None:
+    """Extracts the real client IP address from the request headers."""
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     return x_forwarded_for.split(",")[0].strip() if x_forwarded_for else request.META.get("REMOTE_ADDR")
 
-def _check_rate_limit(request: Request) -> Response | None:
-    client_ip = get_request_ip(request) or "unknown"
-    blocked_key = f"contact_form_blocked:{client_ip}"
-    attempts_key = f"contact_form_attempts:{client_ip}"
-
-    if cache.get(blocked_key):
-        return Response({"message": "Too many requests. Try again later."}, status=429)
-
-    now = int(time.time())
-    window = settings.CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS
-    recent_attempts = [t for t in cache.get(attempts_key, []) if t > now - window]
-
-    if len(recent_attempts) >= settings.CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS:
-        cache.set(blocked_key, True, timeout=settings.CONTACT_FORM_BLOCK_SECONDS)
-        return Response({"message": "Access temporarily blocked."}, status=429)
-
-    recent_attempts.append(now)
-    cache.set(attempts_key, recent_attempts, timeout=window)
-    return None
-
 def generate_username_from_email(email: str) -> str:
+    """Generates a unique username based on the user's email prefix."""
     base = re.sub(r"[^a-z0-9._+-]", "", email.split("@")[0].lower()) or "user"
     username, suffix = base, 1
     while User.objects.filter(username=username).exists():
@@ -85,6 +78,7 @@ def generate_username_from_email(email: str) -> str:
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def create_user_profile(request: Request) -> Response:
+    """Registers a new user, sets them as unverified, and triggers an OTP email."""
     email = str(request.data.get("email", "")).strip().lower()
     password = request.data.get("password", "")
 
@@ -113,6 +107,7 @@ def create_user_profile(request: Request) -> Response:
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def auth_otp(request: Request) -> Response:
+    """Requests a new OTP for an existing unverified user. Includes timing protection to prevent email enumeration."""
     email = str(request.data.get("email", "")).strip().lower()
     user = User.objects.filter(email=email).first()
 
@@ -130,6 +125,7 @@ def auth_otp(request: Request) -> Response:
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def verify_otp(request: Request) -> Response:
+    """Validates the OTP and marks the user account as verified."""
     email = str(request.data.get("email", "")).strip().lower()
     otp_provided = str(request.data.get("otp", "")).strip()
 
@@ -153,6 +149,7 @@ def verify_otp(request: Request) -> Response:
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login_user(request: Request) -> Response:
+    """Authenticates a user via email/password and returns JWT tokens."""
     serializer = LoginSerializer(data=request.data, context={"request": request})
     serializer.is_valid(raise_exception=True)
     user = serializer.validated_data["user"]
@@ -173,6 +170,7 @@ def login_user(request: Request) -> Response:
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def google_login(request: Request) -> Response:
+    """Handles Google OAuth login/registration. Automatically verifies accounts created this way."""
     token = request.data.get("credential") or request.data.get("token")
     
     if not token:
@@ -224,6 +222,7 @@ def google_login(request: Request) -> Response:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_profile(request: Request) -> Response:
+    """Fetches the authenticated user's profile metadata and tier settings."""
     u = request.user
     return Response({
         "user_id": u.id, "email": u.email, "username": u.username,
@@ -240,6 +239,10 @@ def get_user_profile(request: Request) -> Response:
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 def update_user_profile(request: Request) -> Response:
+    """
+    Updates user settings. If a profile picture is provided, it processes 
+    and dispatches the upload to a background Celery task.
+    """
     user = request.user
     
     user.first_name = request.data.get("first_name", user.first_name)
@@ -251,41 +254,42 @@ def update_user_profile(request: Request) -> Response:
         except (ValueError, TypeError):
             return Response({"error": "theme_mode must be an integer."}, status=400)
 
+    is_uploading_image = False
+
     if "profile_picture" in request.FILES:
         old_url = user.profile_picture_url
         original_file = request.FILES["profile_picture"]
         
         try:
+            # Compress the image locally
             webp_file = compress_to_webp(original_file)
             webp_file.seek(0)
             
             random_suffix = secrets.token_hex(3)
             filename = f"u{user.id}_{random_suffix}.webp"
             
-            resp = vercel_blob.put(
-                path=f"profile_pics/{filename}", 
-                data=webp_file.read(), 
-                options={
-                    "access": "public",
-                    "content_type": "image/webp"
-                }
-            )
+            # Write to a secure temporary file for the Celery worker to pick up
+            fd, temp_path = tempfile.mkstemp(suffix=".webp", prefix=f"u{user.id}_")
+            with os.fdopen(fd, 'wb') as f:
+                f.write(webp_file.read())
             
-            user.profile_picture_url = resp["url"]
-
-            if old_url and "vercel-storage.com" in old_url:
-                try:
-                    vercel_blob.delete(old_url)
-                except Exception:
-                    pass 
+            os.chmod(temp_path, 0o644) 
+            
+            # Dispatch to background task
+            async_upload_profile_picture.delay(user.id, temp_path, filename, old_url)
+            is_uploading_image = True
 
         except Exception as e:
-            return Response({"error": f"Upload failed: {str(e)}"}, status=500)
+            return Response({"error": f"Upload preparation failed: {str(e)}"}, status=500)
             
     user.save()
 
+    msg = "Profile updated successfully."
+    if is_uploading_image:
+        msg += " Your profile picture is uploading in the background."
+
     return Response({
-        "message": "Profile updated successfully.", 
+        "message": msg, 
         "data": {
             "first_name": user.first_name, 
             "last_name": user.last_name, 
@@ -297,6 +301,7 @@ def update_user_profile(request: Request) -> Response:
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def status_share_token(request: Request) -> Response:
+    """Toggles the public visibility (share token) of the user's portfolios."""
     user = request.user
     if not user.is_verified:
         return Response({"message": "Verify email to enable sharing."}, status=403)
@@ -317,12 +322,14 @@ def status_share_token(request: Request) -> Response:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_profile_tokens(request: Request) -> Response:
+    """Returns the user's current share token status and string."""
     return Response({
         "enable_share_token": request.user.enable_share_token,
         "share_token": request.user.share_token,
     })
 
 def serialize_portfolio_data(portfolio: PortfolioSettings, request: Request | None = None) -> dict[str, Any]:
+    """Helper to attach user tier and theme mode to the portfolio payload."""
     data = serialize_portfolio_payload(portfolio)
     data["tier"] = portfolio.tier
     data["themeMode"] = portfolio.owner.theme_mode
@@ -331,6 +338,7 @@ def serialize_portfolio_data(portfolio: PortfolioSettings, request: Request | No
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_default_public_portfolio(request: Request) -> Response:
+    """Fetches the platform's primary default portfolio (User ID 1) with optimized prefetching."""
     try:
         order_index = int(request.query_params.get("order_index", 1))
     except ValueError:
@@ -340,12 +348,21 @@ def get_default_public_portfolio(request: Request) -> Response:
     if not owner: 
         raise Http404()
         
+    # NOTE: Ensure serializers.py is updated to use .all() instead of .filter() to fully utilize prefetch
+    prefetch_relations = [
+        'herometrics', 'skillgroups', 'projects', 'experiences', 
+        'showcasecategorys', 'featuredmodules', 'links'
+    ]
+    
     try:
-        portfolio = PortfolioSettings.objects.get(owner=owner, order_index=order_index, is_enabled=True)
+        portfolio = PortfolioSettings.objects.prefetch_related(*prefetch_relations).get(
+            owner=owner, order_index=order_index, is_enabled=True
+        )
     except PortfolioSettings.DoesNotExist:
-        print(f"DEBUG: Portfolio not found for index {order_index}. Falling back to 1.")
         try:
-            portfolio = PortfolioSettings.objects.get(owner=owner, order_index=1, is_enabled=True)
+            portfolio = PortfolioSettings.objects.prefetch_related(*prefetch_relations).get(
+                owner=owner, order_index=1, is_enabled=True
+            )
         except PortfolioSettings.DoesNotExist:
             raise Http404("No enabled portfolios found for this user.")
             
@@ -354,6 +371,7 @@ def get_default_public_portfolio(request: Request) -> Response:
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_shared_public_portfolio(request: Request, share_token: str) -> Response:
+    """Fetches a specific user's public portfolio by share token with optimized prefetching."""
     try:
         order_index = int(request.query_params.get("order_index", 1))
     except ValueError:
@@ -361,34 +379,95 @@ def get_shared_public_portfolio(request: Request, share_token: str) -> Response:
         
     owner = get_object_or_404(User, share_token=share_token, enable_share_token=True)    
     
+    prefetch_relations = [
+        'herometrics', 'skillgroups', 'projects', 'experiences', 
+        'showcasecategorys', 'featuredmodules', 'links'
+    ]
+    
     try:
-        portfolio = PortfolioSettings.objects.get(owner=owner, order_index=order_index, is_enabled=True)
+        portfolio = PortfolioSettings.objects.prefetch_related(*prefetch_relations).get(
+            owner=owner, order_index=order_index, is_enabled=True
+        )
     except PortfolioSettings.DoesNotExist:
-        print(f"DEBUG: Portfolio not found for index {order_index}. Falling back to 1.")
         try:
-            portfolio = PortfolioSettings.objects.get(owner=owner, order_index=1, is_enabled=True)
+            portfolio = PortfolioSettings.objects.prefetch_related(*prefetch_relations).get(
+                owner=owner, order_index=1, is_enabled=True
+            )
         except PortfolioSettings.DoesNotExist:
             raise Http404("No enabled portfolios found for this user.")         
             
     return Response(serialize_portfolio_data(portfolio, request))
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_portfolio_authenticated(request: Request, order_index: int = 1) -> Response:
+    """Fetches the authenticated user's own portfolio data for dashboard editing."""
+    prefetch_relations = [
+        'herometrics', 'skillgroups', 'projects', 'experiences', 
+        'showcasecategorys', 'featuredmodules', 'links'
+    ]
+    portfolio = get_object_or_404(
+        PortfolioSettings.objects.prefetch_related(*prefetch_relations), 
+        owner=request.user, 
+        order_index=order_index
+    )
+    return Response(serialize_portfolio_data(portfolio, request))
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def submit_portfolio(request: Request, order_index: int = 1) -> Response:
+    """Creates a new portfolio. Dispatches resume uploads to a background Celery worker."""
     if not request.user.is_verified:
         return Response({"message": "Verify first."}, status=403)
         
     if int(order_index) > 1 and request.user.tier == User.Tier.FREE:
         return Response({"message": "Upgrade to Premium to create multiple portfolios."}, status=403)
+    
+    data = request.data.copy()
+    resume_temp_path = None
+    resume_filename = None
 
-    serializer = PortfolioSubmissionSerializer(data=request.data, context={"owner": request.user, "order_index": order_index})
+    if "resume" in request.FILES:
+        try:
+            resume_file = request.FILES["resume"]
+            random_suffix = secrets.token_hex(3)
+            resume_filename = f"resume_{random_suffix}.pdf"
+            
+            fd, resume_temp_path = tempfile.mkstemp(suffix=".pdf", prefix="resume_")
+            with os.fdopen(fd, 'wb') as f:
+                for chunk in resume_file.chunks():
+                    f.write(chunk)
+            
+            os.chmod(resume_temp_path, 0o644)
+            
+        except Exception as e:
+            return Response({"message": f"Resume preparation failed: {str(e)}"}, status=500)
+
+    serializer = PortfolioSubmissionSerializer(data=data, context={"owner": request.user, "order_index": order_index})
     serializer.is_valid(raise_exception=True)
     portfolio = serializer.save(owner=request.user)
-    return Response({"message": "Portfolio saved.", "data": serialize_portfolio_data(portfolio)})
+
+    is_uploading_resume = False
+    if resume_temp_path and resume_filename:
+        # Dispatch to background task
+        async_upload_resume.delay(portfolio.id, resume_temp_path, resume_filename, portfolio.resume_url)
+        is_uploading_resume = True
+
+    msg = "Portfolio saved."
+    if is_uploading_resume:
+        msg += " Your resume is uploading in the background."
+
+    return Response({
+        "message": msg, 
+        "data": serialize_portfolio_data(portfolio)
+    })
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
+@transaction.atomic
 def update_portfolio(request: Request, order_index: int = 1) -> Response:
+    """Updates portfolio data. Uses transaction.atomic to ensure index shifts don't corrupt data."""
     if not request.user.is_verified:
         return Response({"message": "Verify first."}, status=403)
         
@@ -441,6 +520,7 @@ def update_portfolio(request: Request, order_index: int = 1) -> Response:
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def toggle_portfolio_status(request: Request, order_index: int) -> Response:
+    """Quick toggle to enable or disable a specific portfolio."""
     portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
     
     if not portfolio.is_enabled:
@@ -460,6 +540,7 @@ def toggle_portfolio_status(request: Request, order_index: int) -> Response:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_dashboard_submissions(request: Request) -> Response:
+    """Lists all contact form submissions sent to the authenticated user, paginated."""
     subs = ContactFormSubmission.objects.filter(owner=request.user).order_by('-submitted_at')
     paginator = StandardResultsSetPagination()
     page = paginator.paginate_queryset(subs, request)
@@ -471,7 +552,9 @@ def list_dashboard_submissions(request: Request) -> Response:
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle])
 def submit_mail_default_portfolio(request: Request, order_index: int = 1) -> Response:
+    """Handles contact form submissions for the default platform portfolio."""
     owner = User.objects.filter(id=1).first() or User.objects.order_by('id').first()
     if not owner: raise Http404()
     portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index)
@@ -479,14 +562,15 @@ def submit_mail_default_portfolio(request: Request, order_index: int = 1) -> Res
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle])
 def submit_mail_public_portfolio(request: Request, share_token: str, order_index: int = 1) -> Response:
+    """Handles contact form submissions for a specific user's public portfolio."""
     owner = get_object_or_404(User, share_token=share_token, enable_share_token=True)
     portfolio = get_object_or_404(PortfolioSettings, owner=owner, order_index=order_index)
     return _handle_mail_submission(request, owner, portfolio)
 
 def _handle_mail_submission(request: Request, owner: User, portfolio: PortfolioSettings) -> Response:
-    limit_check = _check_rate_limit(request)
-    if limit_check: return limit_check
+    """Internal helper to process and save validated contact form payloads."""
     print(f"Received contact form submission for {owner.email} from IP {get_request_ip(request)}")
     
     serializer = SubmissionCreateSerializer(data=request.data)
@@ -497,6 +581,7 @@ def _handle_mail_submission(request: Request, owner: User, portfolio: PortfolioS
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_dashboard_submission(request: Request, form_id: int) -> Response:
+    """Updates a contact form submission (e.g., dismissing it or changing its priority)."""
     form = get_object_or_404(ContactFormSubmission, id=form_id, owner=request.user)
     serializer = SubmissionUpdateSerializer(form, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
@@ -508,6 +593,7 @@ def update_dashboard_submission(request: Request, form_id: int) -> Response:
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def reorder_dashboard_submissions(request: Request) -> Response:
+    """Batch reorders contact form submissions for the user's dashboard view."""
     serializer = SubmissionReorderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
@@ -519,6 +605,7 @@ def reorder_dashboard_submissions(request: Request) -> Response:
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def trigger_user_cleanup(request: Request) -> Response:
+    """Cron-triggered endpoint to securely execute the unverified user cleanup task."""
     expected_key = getattr(settings, 'CRON_SECRET_KEY', None)
     provided_key = request.headers.get("X-Cron-Secret") or request.GET.get("secret")
 
@@ -534,6 +621,7 @@ def trigger_user_cleanup(request: Request) -> Response:
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def trigger_urgent_notifications(request: Request) -> Response:
+    """Cron-triggered endpoint to securely execute the daily urgent email digests."""
     expected_key = getattr(settings, 'CRON_SECRET_KEY', None)
     provided_key = request.headers.get("X-Cron-Secret") or request.GET.get("secret")
 
@@ -549,6 +637,7 @@ def trigger_urgent_notifications(request: Request) -> Response:
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def preview_all_portfolios(request: Request) -> Response:
+    """Provides a lightweight list of all portfolios owned by the user for the dashboard sidebar."""
     portfolios = PortfolioSettings.objects.filter(owner=request.user).values(
         'order_index', 'name', 'title', 'is_enabled').order_by('order_index')
     portfolio_list = [
@@ -560,16 +649,10 @@ def preview_all_portfolios(request: Request) -> Response:
         "portfolios": portfolio_list
     }, status=status.HTTP_200_OK)
 
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_portfolio_authenticated(request: Request, order_index: int = 1) -> Response:
-    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
-    return Response(serialize_portfolio_data(portfolio, request))
-
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def forgot_password(request: Request) -> Response:
+    """Triggers a password reset OTP email for a user."""
     email = str(request.data.get("email", "")).strip().lower()
     user = User.objects.filter(email=email).first()
 
@@ -589,6 +672,7 @@ def forgot_password(request: Request) -> Response:
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def reset_password(request: Request) -> Response:
+    """Validates the password reset OTP and applies the new password."""
     email = str(request.data.get("email", "")).strip().lower()
     otp_provided = str(request.data.get("otp", "")).strip()
     new_password = request.data.get("new_password", "")
