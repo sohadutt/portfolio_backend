@@ -114,7 +114,6 @@ def async_upload_profile_picture(user_id: int, temp_file_path: str, filename: st
         print(f"Failed to async upload profile picture: {e}")
         
     finally:
-        # 4. ALWAYS delete the local temporary file
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
