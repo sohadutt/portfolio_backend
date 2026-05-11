@@ -29,6 +29,7 @@ urlpatterns = [
     # --- Portfolio Content Management (Authenticated) ---
     path("portfolio/submit/<int:order_index>/", views.submit_portfolio, name="portfolio_submit_indexed"), 
     path("portfolio/update/<int:order_index>/", views.update_portfolio, name="portfolio_update_indexed"),
+    path("portfolio/<int:order_index>/upload-resume/", views.upload_portfolio_resume, name="upload_resume"),
 
     # --- Contact Form & Submissions ---
     # Public endpoints for visitors

@@ -415,9 +415,8 @@ def get_portfolio_authenticated(request: Request, order_index: int = 1) -> Respo
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-@parser_classes([MultiPartParser, FormParser, JSONParser])
 def submit_portfolio(request: Request, order_index: int = 1) -> Response:
-    """Creates a new portfolio. Dispatches resume uploads to a background Celery worker."""
+    """Creates or updates a portfolio using strictly JSON data."""
     if not request.user.is_verified:
         return Response({"message": "Verify first."}, status=403)
         
@@ -425,43 +424,46 @@ def submit_portfolio(request: Request, order_index: int = 1) -> Response:
         return Response({"message": "Upgrade to Premium to create multiple portfolios."}, status=403)
     
     data = request.data.copy()
-    resume_temp_path = None
-    resume_filename = None
-
-    if "resume" in request.FILES:
-        try:
-            resume_file = request.FILES["resume"]
-            random_suffix = secrets.token_hex(3)
-            resume_filename = f"resume_{random_suffix}.pdf"
-            
-            fd, resume_temp_path = tempfile.mkstemp(suffix=".pdf", prefix="resume_")
-            with os.fdopen(fd, 'wb') as f:
-                for chunk in resume_file.chunks():
-                    f.write(chunk)
-            
-            os.chmod(resume_temp_path, 0o644)
-            
-        except Exception as e:
-            return Response({"message": f"Resume preparation failed: {str(e)}"}, status=500)
 
     serializer = PortfolioSubmissionSerializer(data=data, context={"owner": request.user, "order_index": order_index})
     serializer.is_valid(raise_exception=True)
     portfolio = serializer.save(owner=request.user)
 
-    is_uploading_resume = False
-    if resume_temp_path and resume_filename:
-        # Dispatch to background task
-        async_upload_resume.delay(portfolio.id, resume_temp_path, resume_filename, portfolio.resume_url)
-        is_uploading_resume = True
-
-    msg = "Portfolio saved."
-    if is_uploading_resume:
-        msg += " Your resume is uploading in the background."
-
     return Response({
-        "message": msg, 
+        "message": "Portfolio saved.", 
         "data": serialize_portfolio_data(portfolio)
     })
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_portfolio_resume(request: Request, order_index: int = 1) -> Response:
+    """Dedicated endpoint to handle multipart file uploads separately from JSON data."""
+    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
+    
+    if "resume" not in request.FILES:
+        return Response({"message": "No resume file provided."}, status=400)
+        
+    try:
+        resume_file = request.FILES["resume"]
+        random_suffix = secrets.token_hex(3)
+        resume_filename = f"resume_{portfolio.owner.username}_{random_suffix}.pdf"
+        
+        # Write to a secure temporary file
+        fd, resume_temp_path = tempfile.mkstemp(suffix=".pdf", prefix="resume_")
+        with os.fdopen(fd, 'wb') as f:
+            for chunk in resume_file.chunks():
+                f.write(chunk)
+        
+        os.chmod(resume_temp_path, 0o644)
+        
+        # Dispatch to the Celery task
+        async_upload_resume.delay(portfolio.id, resume_temp_path, resume_filename, portfolio.resume_url)
+        
+        return Response({"message": "Resume uploading in background."})
+        
+    except Exception as e:
+        return Response({"message": f"Resume upload failed: {str(e)}"}, status=500)
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
