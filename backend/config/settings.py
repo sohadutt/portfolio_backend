@@ -203,10 +203,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
+    "https://sohadutt-portfolio.vercel.app",
 ]
-frontend_prod_url = os.getenv("FRONTEND_URL")
-if frontend_prod_url:
-    CORS_ALLOWED_ORIGINS.append(frontend_prod_url)
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "https://sohadutt-portfolio.vercel.app",
+]
 
 # ONLY allow all origins if debugging. Wildcards + Credentials = CORS failure in modern browsers.
 CORS_ALLOW_ALL_ORIGINS = DEBUG 
