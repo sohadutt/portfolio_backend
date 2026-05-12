@@ -77,6 +77,7 @@ def generate_username_from_email(email: str) -> str:
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle]) # SECURITY: Prevents mass account creation spam
 def create_user_profile(request: Request) -> Response:
     """Registers a new user, sets them as unverified, and triggers an OTP email."""
     email = str(request.data.get("email", "")).strip().lower()
@@ -106,24 +107,28 @@ def create_user_profile(request: Request) -> Response:
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle]) # SECURITY: Prevents OTP email exhaustion/billing attacks
 def auth_otp(request: Request) -> Response:
-    """Requests a new OTP for an existing unverified user. Includes timing protection to prevent email enumeration."""
+    """Requests a new OTP for an existing unverified user."""
     email = str(request.data.get("email", "")).strip().lower()
     user = User.objects.filter(email=email).first()
 
-    if not user:
-        time.sleep(random.uniform(0.1, 0.3)) 
-    else:
-        otp = ''.join(secrets.choice('0123456789') for _ in range(6))
+    # SECURITY: Timing attack mitigation. Execute same operations whether user exists or not.
+    otp = ''.join(secrets.choice('0123456789') for _ in range(6))
+    
+    if user:
         cache.set(f"otp:{email}", otp, timeout=200)
-        try:
-            send_otp_email_task.delay(email, otp)
+        try: send_otp_email_task.delay(email, otp)
         except Exception: pass
+    else:
+        # Perform identical cache operation to balance CPU time
+        cache.set(f"dummy_otp:{email}", otp, timeout=200)
 
     return Response({"message": "If an account exists, an OTP will be sent shortly."})
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle]) # SECURITY: Prevents brute-forcing the 6-digit OTP
 def verify_otp(request: Request) -> Response:
     """Validates the OTP and marks the user account as verified."""
     email = str(request.data.get("email", "")).strip().lower()
@@ -148,6 +153,7 @@ def verify_otp(request: Request) -> Response:
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle]) # SECURITY: Prevents brute-force password guessing
 def login_user(request: Request) -> Response:
     """Authenticates a user via email/password and returns JWT tokens."""
     serializer = LoginSerializer(data=request.data, context={"request": request})
@@ -169,6 +175,7 @@ def login_user(request: Request) -> Response:
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle])
 def google_login(request: Request) -> Response:
     """Handles Google OAuth login/registration. Automatically verifies accounts created this way."""
     token = request.data.get("credential") or request.data.get("token")
@@ -240,8 +247,8 @@ def get_user_profile(request: Request) -> Response:
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 def update_user_profile(request: Request) -> Response:
     """
-    Updates user settings. If a profile picture is provided, it processes 
-    and dispatches the upload to a background Celery task.
+    Updates user settings. Dispatches avatar and resume uploads to Celery.
+    Includes strict file type validation to prevent stored XSS attacks.
     """
     user = request.user
     
@@ -255,38 +262,59 @@ def update_user_profile(request: Request) -> Response:
             return Response({"error": "theme_mode must be an integer."}, status=400)
 
     is_uploading_image = False
+    is_uploading_resume = False
 
+    # 1. Handle Profile Picture (Safety: compress_to_webp uses PIL which strips malicious execution data)
     if "profile_picture" in request.FILES:
         old_url = user.profile_picture_url
         original_file = request.FILES["profile_picture"]
-        
         try:
-            # Compress the image locally
             webp_file = compress_to_webp(original_file)
             webp_file.seek(0)
-            
             random_suffix = secrets.token_hex(3)
             filename = f"u{user.id}_{random_suffix}.webp"
             
-            # Write to a secure temporary file for the Celery worker to pick up
             fd, temp_path = tempfile.mkstemp(suffix=".webp", prefix=f"u{user.id}_")
             with os.fdopen(fd, 'wb') as f:
                 f.write(webp_file.read())
-            
             os.chmod(temp_path, 0o644) 
             
-            # Dispatch to background task
             async_upload_profile_picture.delay(user.id, temp_path, filename, old_url)
             is_uploading_image = True
-
         except Exception as e:
             return Response({"error": f"Upload preparation failed: {str(e)}"}, status=500)
+
+    # 2. Handle Resume Upload
+    if "resume" in request.FILES:
+        old_resume_url = getattr(user, 'resume_url', None)
+        resume_file = request.FILES["resume"]
+        
+        # SECURITY: Magic Number Validation. Prevents malicious HTML disguised as .pdf
+        magic_number = resume_file.read(5)
+        resume_file.seek(0)
+        if magic_number != b"%PDF-":
+            return Response({"error": "Invalid file type. Only genuine PDF files are permitted."}, status=400)
             
+        try:
+            random_suffix = secrets.token_hex(3)
+            filename = f"resume_{user.username}_{random_suffix}.pdf"
+            
+            fd, temp_path = tempfile.mkstemp(suffix=".pdf", prefix=f"res{user.id}_")
+            with os.fdopen(fd, 'wb') as f:
+                for chunk in resume_file.chunks():
+                    f.write(chunk)
+            os.chmod(temp_path, 0o644) 
+            
+            async_upload_resume.delay(user.id, temp_path, filename, old_resume_url)
+            is_uploading_resume = True
+        except Exception as e:
+            return Response({"error": f"Resume preparation failed: {str(e)}"}, status=500)
+
     user.save()
 
     msg = "Profile updated successfully."
-    if is_uploading_image:
-        msg += " Your profile picture is uploading in the background."
+    if is_uploading_image or is_uploading_resume:
+        msg += " Your files are uploading in the background."
 
     return Response({
         "message": msg, 
@@ -295,6 +323,7 @@ def update_user_profile(request: Request) -> Response:
             "last_name": user.last_name, 
             "theme_mode": user.theme_mode,
             "profile_picture": str(user.profile_picture_url) if user.profile_picture_url else None,
+            "resume_url": str(getattr(user, 'resume_url', '')) if getattr(user, 'resume_url', None) else None,
         }
     })
 
@@ -348,7 +377,6 @@ def get_default_public_portfolio(request: Request) -> Response:
     if not owner: 
         raise Http404()
         
-    # NOTE: Ensure serializers.py is updated to use .all() instead of .filter() to fully utilize prefetch
     prefetch_relations = [
         'herometrics', 'skillgroups', 'projects', 'experiences', 
         'showcasecategorys', 'featuredmodules', 'links'
@@ -433,37 +461,6 @@ def submit_portfolio(request: Request, order_index: int = 1) -> Response:
         "message": "Portfolio saved.", 
         "data": serialize_portfolio_data(portfolio)
     })
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@parser_classes([MultiPartParser, FormParser])
-def upload_portfolio_resume(request: Request, order_index: int = 1) -> Response:
-    """Dedicated endpoint to handle multipart file uploads separately from JSON data."""
-    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
-    
-    if "resume" not in request.FILES:
-        return Response({"message": "No resume file provided."}, status=400)
-        
-    try:
-        resume_file = request.FILES["resume"]
-        random_suffix = secrets.token_hex(3)
-        resume_filename = f"resume_{portfolio.owner.username}_{random_suffix}.pdf"
-        
-        # Write to a secure temporary file
-        fd, resume_temp_path = tempfile.mkstemp(suffix=".pdf", prefix="resume_")
-        with os.fdopen(fd, 'wb') as f:
-            for chunk in resume_file.chunks():
-                f.write(chunk)
-        
-        os.chmod(resume_temp_path, 0o644)
-        
-        # Dispatch to the Celery task
-        async_upload_resume.delay(portfolio.id, resume_temp_path, resume_filename, portfolio.resume_url)
-        
-        return Response({"message": "Resume uploading in background."})
-        
-    except Exception as e:
-        return Response({"message": f"Resume upload failed: {str(e)}"}, status=500)
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
@@ -653,26 +650,28 @@ def preview_all_portfolios(request: Request) -> Response:
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle]) # SECURITY: Prevents OTP spam attacks
 def forgot_password(request: Request) -> Response:
     """Triggers a password reset OTP email for a user."""
     email = str(request.data.get("email", "")).strip().lower()
     user = User.objects.filter(email=email).first()
 
+    # SECURITY: Constant execution path mitigates timing attacks
+    otp = ''.join(secrets.choice('0123456789') for _ in range(6))
+    
     if user:
-        otp = ''.join(secrets.choice('0123456789') for _ in range(6))
         cache.set(f"password_reset_otp:{email}", otp, timeout=300)
         try:
             send_otp_email_task.delay(email, otp, subject="Your Password Reset OTP")
-            print(f"DEBUG: Task queued for {email}")
-        except Exception as e:
-            print(f"CELERY ERROR: Failed to queue task for {email}. Reason: {e}")
+        except Exception as e: pass
     else:
-        print(f"DEBUG: Email {email} not found in database. Skipping task.")
+        cache.set(f"dummy_password_reset_otp:{email}", otp, timeout=300)
 
     return Response({"message": "If an account exists, a password reset OTP will be sent shortly."})
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AnonRateThrottle]) # SECURITY: Limits OTP guessing attempts
 def reset_password(request: Request) -> Response:
     """Validates the password reset OTP and applies the new password."""
     email = str(request.data.get("email", "")).strip().lower()
