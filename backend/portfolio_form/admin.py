@@ -31,10 +31,14 @@ def get_compressed_webp_buffer(uploaded_file, quality=80):
     return buffer
 
 class UserAdminForm(forms.ModelForm):
-    """Custom form to handle image uploads cleanly in the Admin UI."""
+    """Custom form to handle image and PDF uploads cleanly in the Admin UI."""
     upload_profile_picture = forms.ImageField(
         required=False, 
         help_text="Upload a new photo. Old photos will be automatically deleted from Vercel."
+    )
+    upload_resume = forms.FileField(
+        required=False,
+        help_text="Upload a new resume (PDF). The old resume will be automatically deleted from Vercel."
     )
 
     class Meta:
@@ -45,8 +49,6 @@ class UserAdminForm(forms.ModelForm):
 # ==========================================
 # 2. INLINES FOR PORTFOLIO EDITING
 # ==========================================
-# These classes allow you to edit a user's projects, skills, etc., 
-# directly on the PortfolioSettings admin page without switching tabs.
 
 class HeroMetricInline(admin.TabularInline):
     model = HeroMetric
@@ -85,24 +87,24 @@ class LinkInline(admin.TabularInline):
 class UserAdmin(DjangoUserAdmin):
     """
     Manages custom User attributes, tiers, and handles Vercel Blob 
-    profile picture uploads directly from the Django Admin interface.
+    uploads for both profile pictures and resumes.
     """
     form = UserAdminForm
     list_display = ("id", "username", "email", "tier", "is_verified", "profile_preview", "is_staff")
-    readonly_fields = ("share_token", "created_at", "profile_preview")
+    readonly_fields = ("share_token", "created_at", "profile_preview", "resume_link")
     
     fieldsets = DjangoUserAdmin.fieldsets + (
         ("Portfolio & Identity", {
             "fields": (
-                "tier", "theme_mode", "is_verified", "upload_profile_picture",
-                "profile_picture_url", "profile_preview", "enable_share_token", 
-                "share_token", "created_at"
+                "tier", "theme_mode", "is_verified", 
+                "upload_profile_picture", "profile_picture_url", "profile_preview", 
+                "upload_resume", "resume_url", "resume_link",
+                "enable_share_token", "share_token", "created_at"
             )
         }),
     )
 
     def profile_preview(self, obj):
-        """Renders a circular HTML preview of the user's avatar in the admin panel."""
         if obj.profile_picture_url:
             return format_html(
                 '<img src="{}" style="width: 50px; height: 50px; border-radius: 50%; '
@@ -112,18 +114,25 @@ class UserAdmin(DjangoUserAdmin):
         return "No Image"
     profile_preview.short_description = "Avatar Preview"
 
+    def resume_link(self, obj):
+        if obj.resume_url:
+            return format_html('<a href="{}" target="_blank">View Resume</a>', obj.resume_url)
+        return "No Resume"
+    resume_link.short_description = "Current Resume"
+
     def save_model(self, request, obj, form, change):
-        """Intercepts the save to handle file compression and Vercel upload."""
-        upload_file = form.cleaned_data.get("upload_profile_picture")
-        if upload_file:
-            old_url = None
+        """Intercepts the save to handle file uploads to Vercel."""
+        
+        # 1. Handle Profile Picture
+        upload_pic = form.cleaned_data.get("upload_profile_picture")
+        if upload_pic:
+            old_pic_url = None
             if change:
-                try:
-                    old_url = User.objects.get(pk=obj.pk).profile_picture_url
+                try: old_pic_url = User.objects.get(pk=obj.pk).profile_picture_url
                 except User.DoesNotExist: pass
 
             try:
-                webp_buffer = get_compressed_webp_buffer(upload_file)
+                webp_buffer = get_compressed_webp_buffer(upload_pic)
                 random_suffix = secrets.token_hex(3)
                 filename = f"u{obj.username}_{random_suffix}.webp"
                 
@@ -134,12 +143,37 @@ class UserAdmin(DjangoUserAdmin):
                 )
                 obj.profile_picture_url = blob_resp["url"]
                 
-                if old_url:
-                    try: vercel_blob.delete(old_url)
-                    except Exception:
-                        self.message_user(request, "New photo saved, but old cleanup failed.", level="WARNING")
+                if old_pic_url and "vercel-storage.com" in old_pic_url:
+                    try: vercel_blob.delete(old_pic_url)
+                    except Exception: pass
             except Exception as e:
                 self.message_user(request, f"Image Upload Failed: {str(e)}", level="ERROR")
+
+        # 2. Handle Resume Upload
+        upload_res = form.cleaned_data.get("upload_resume")
+        if upload_res:
+            old_res_url = None
+            if change:
+                try: old_res_url = User.objects.get(pk=obj.pk).resume_url
+                except User.DoesNotExist: pass
+
+            try:
+                random_suffix = secrets.token_hex(3)
+                filename = f"resume_{obj.username}_{random_suffix}.pdf"
+                content_type = getattr(upload_res, 'content_type', 'application/pdf')
+                
+                blob_resp = vercel_blob.put(
+                    path=f"resumes/{filename}",
+                    data=upload_res.read(),
+                    options={"access": "public", "content_type": content_type}
+                )
+                obj.resume_url = blob_resp["url"]
+                
+                if old_res_url and "vercel-storage.com" in old_res_url:
+                    try: vercel_blob.delete(old_res_url)
+                    except Exception: pass
+            except Exception as e:
+                self.message_user(request, f"Resume Upload Failed: {str(e)}", level="ERROR")
         
         super().save_model(request, obj, form, change)
 
@@ -176,8 +210,6 @@ class ContactFormSubmissionAdmin(admin.ModelAdmin):
     search_fields = ("owner__username", "name", "email")
     readonly_fields = ("submitted_at", "ip_address")
     ordering = ("owner", "display_index")
-    
-    # Prevents N+1 database queries for owner and portfolio lookups
     list_select_related = ("owner", "portfolio")
 
 
@@ -194,8 +226,6 @@ class OrderedPortfolioModelAdmin(admin.ModelAdmin):
     list_filter = ("portfolio__owner",)
     search_fields = ("portfolio__name", "portfolio__owner__username")
     ordering = ("portfolio", "order")
-    
-    # Critical optimization: Fetches the portfolio and its owner in a single SQL query
     list_select_related = ("portfolio", "portfolio__owner")
 
     def get_owner(self, obj):
