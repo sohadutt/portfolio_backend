@@ -145,7 +145,7 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
             "resumeUrl": portfolio.resume_url,
         },
         "navigationLinks": [
-            {"label": link["label"], "href": link["href"]}
+            {"label": link["label"], "href": link["href"], "icon": link["icon_name"]}
             for link in all_links
             if link["type"] == Link.LinkType.NAV
         ],
@@ -155,11 +155,16 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
             "description": portfolio.hero_description,
         },
         "heroActions": portfolio.hero_actions or {},
-        "heroMetrics": list(
-            HeroMetric.objects.filter(portfolio=portfolio)
+        "heroMetrics": [
+            {
+                "value": item["value"], 
+                "label": item["label"], 
+                "icon": item["icon_name"]
+            }
+            for item in HeroMetric.objects.filter(portfolio=portfolio)
             .order_by("order", "id")
-            .values("value", "label")
-        ),
+            .values("value", "label", "icon_name")
+        ],
         "heroFocus": portfolio.hero_focus or {},
         "heroBadges": portfolio.hero_badges or [],
         "heroHighlights": portfolio.hero_highlights or [],
@@ -167,11 +172,17 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
             "title": portfolio.about_title,
             "description": portfolio.about_description,
         },
-        "skillGroups": list(
-            SkillGroup.objects.filter(portfolio=portfolio)
+        "skillGroups": [
+            {
+                "title": item["title"], 
+                "description": item["description"], 
+                "items": item["items"], 
+                "icon": item["icon_name"]
+            }
+            for item in SkillGroup.objects.filter(portfolio=portfolio)
             .order_by("order", "id")
-            .values("title", "description", "items")
-        ),
+            .values("title", "description", "items", "icon_name")
+        ],
         "projects": [
             {
                 "title": item["title"],
@@ -196,6 +207,7 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
                 "summary": item["summary"],
                 "highlights": item["highlights"],
                 "relatedComponents": item["related_components"],
+                "icon": item["icon_name"],
             }
             for item in Experience.objects.filter(portfolio=portfolio)
             .order_by("order", "id")
@@ -207,6 +219,7 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
                 "summary",
                 "highlights",
                 "related_components",
+                "icon_name"
             )
         ],
         "showcaseCategories": [
@@ -244,7 +257,7 @@ def serialize_portfolio_payload(portfolio: PortfolioSettings) -> PortfolioPayloa
             if link["type"] == Link.LinkType.CONTACT
         ],
         "footerLinks": [
-            {"label": link["label"], "href": link["href"]}
+            {"label": link["label"], "href": link["href"], "icon": link["icon_name"]}
             for link in all_links
             if link["type"] == Link.LinkType.FOOTER
         ],
@@ -322,7 +335,7 @@ class PortfolioAboutContentSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=200)
     description = serializers.CharField()
 
-class PortfolioLinkSerializer(serializers.Serializer):
+class PortfolioLinkSerializer(IconAliasSerializer):
     label = serializers.CharField(max_length=100)
     href = serializers.CharField(max_length=200, required=False, allow_blank=True, allow_null=True)
 
@@ -336,12 +349,12 @@ class PortfolioHeroActionsSerializer(serializers.Serializer):
     primary = PortfolioHeroActionItemSerializer(required=False)
     secondary = PortfolioHeroActionItemSerializer(required=False)
 
-class PortfolioHeroMetricSerializer(serializers.Serializer):
+class PortfolioHeroMetricSerializer(IconAliasSerializer):
     value = serializers.CharField(max_length=50)
     label = serializers.CharField(max_length=200)
 
 
-class PortfolioHeroFocusAreaSerializer(serializers.Serializer):
+class PortfolioHeroFocusAreaSerializer(IconAliasSerializer):
     label = serializers.CharField(max_length=100)
     value = serializers.IntegerField(min_value=0, max_value=100)
 
@@ -356,11 +369,11 @@ class PortfolioHeroBadgeSerializer(serializers.Serializer):
     label = serializers.CharField(max_length=100)
 
 
-class PortfolioHeroHighlightSerializer(serializers.Serializer):
+class PortfolioHeroHighlightSerializer(IconAliasSerializer):
     title = serializers.CharField(max_length=200)
     description = serializers.CharField()
 
-class PortfolioSkillGroupSerializer(serializers.Serializer):
+class PortfolioSkillGroupSerializer(IconAliasSerializer):
     title = serializers.CharField(max_length=100)
     description = serializers.CharField()
     items = serializers.ListField(child=serializers.CharField(), default=list)
@@ -374,7 +387,7 @@ class PortfolioProjectSerializer(IconAliasSerializer):
     href = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
     ctaLabel = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
 
-class PortfolioExperienceSerializer(serializers.Serializer):
+class PortfolioExperienceSerializer(IconAliasSerializer):
     period = serializers.CharField(max_length=100)
     title = serializers.CharField(max_length=200)
     company = serializers.CharField(max_length=200)
@@ -510,7 +523,20 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
         portfolio, created = PortfolioSettings.objects.get_or_create(
             owner=owner,
             order_index=order_index,
-            defaults={"short_name": pi["shortName"], "title": pi["title"], "subtitle": pi["subtitle"], "location": pi["location"], "email": pi["email"], "github": pi["github"], "linkedin": pi["linkedin"], "hero_eyebrow": hc["eyebrow"], "hero_title": hc["title"], "hero_description": hc["description"], "about_title": ac["title"], "about_description": ac["description"]},
+            defaults={
+                "short_name": pi["shortName"], 
+                "title": pi["title"], 
+                "subtitle": pi["subtitle"], 
+                "location": pi["location"], 
+                "email": pi["email"], 
+                "github": pi["github"], 
+                "linkedin": pi["linkedin"], 
+                "hero_eyebrow": hc["eyebrow"], 
+                "hero_title": hc["title"], 
+                "hero_description": hc["description"], 
+                "about_title": ac["title"], 
+                "about_description": ac["description"]
+            },
         )
         if created:
             portfolio.name = pi["name"]
@@ -523,6 +549,10 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
         portfolio.email = pi["email"]
         portfolio.github = pi["github"]
         portfolio.linkedin = pi["linkedin"]
+        
+        # Ensure resume URL isn't accidentally wiped, but can be cleared if requested
+        portfolio.resume_url = pi.get("resumeUrl", portfolio.resume_url)
+        
         portfolio.hero_eyebrow = hc["eyebrow"]
         portfolio.hero_title = hc["title"]
         portfolio.hero_description = hc["description"]
@@ -545,8 +575,13 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
             owner.save(update_fields=["profile_picture_url"])
 
         mapping = [
-            (HeroMetric, data.get("heroMetrics"), lambda x: x),
-            (SkillGroup, data.get("skillGroups"), lambda x: x),
+            (HeroMetric, data.get("heroMetrics"), lambda x: {
+                "value": x["value"], "label": x["label"], "icon_name": x.get("icon")
+            }),
+            (SkillGroup, data.get("skillGroups"), lambda x: {
+                "title": x["title"], "description": x["description"], 
+                "items": x["items"], "icon_name": x.get("icon")
+            }),
             (Project, data.get("projects"), lambda x: {
                 "title": x["title"],
                 "eyebrow": x["eyebrow"],
@@ -560,14 +595,14 @@ class PortfolioSubmissionSerializer(serializers.Serializer):
             (Experience, data.get("experience"), lambda x: {
                 "period": x["period"], "title": x["title"], "company": x["company"],
                 "relation": x["relation"], "summary": x["summary"], "highlights": x["highlights"],
-                "related_components": x["relatedComponents"]
+                "related_components": x["relatedComponents"], "icon_name": x.get("icon")
             }),
             (ShowcaseCategory, data.get("showcaseCategories"), lambda x: {
-                "title": x["title"], "icon_name": x["icon"], "relation": x["relation"],
+                "title": x["title"], "icon_name": x.get("icon"), "relation": x["relation"],
                 "preview": x["preview"], "items": x["items"]
             }),
             (FeaturedModule, data.get("featuredModules"), lambda x: {
-                "title": x["title"], "icon_name": x["icon"], "relation": x["relation"],
+                "title": x["title"], "icon_name": x.get("icon"), "relation": x["relation"],
                 "body": x["body"], "details": x["details"]
             }),
         ]

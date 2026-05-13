@@ -247,7 +247,7 @@ def get_user_profile(request: Request) -> Response:
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 def update_user_profile(request: Request) -> Response:
     """
-    Updates user settings. Dispatches avatar and resume uploads to Celery.
+    Updates user settings. Dispatches avatar upload to Celery.
     Includes strict file type validation to prevent stored XSS attacks.
     """
     user = request.user
@@ -262,7 +262,6 @@ def update_user_profile(request: Request) -> Response:
             return Response({"error": "theme_mode must be an integer."}, status=400)
 
     is_uploading_image = False
-    is_uploading_resume = False
 
     # 1. Handle Profile Picture (Safety: compress_to_webp uses PIL which strips malicious execution data)
     if "profile_picture" in request.FILES:
@@ -284,37 +283,11 @@ def update_user_profile(request: Request) -> Response:
         except Exception as e:
             return Response({"error": f"Upload preparation failed: {str(e)}"}, status=500)
 
-    # 2. Handle Resume Upload
-    if "resume" in request.FILES:
-        old_resume_url = getattr(user, 'resume_url', None)
-        resume_file = request.FILES["resume"]
-        
-        # SECURITY: Magic Number Validation. Prevents malicious HTML disguised as .pdf
-        magic_number = resume_file.read(5)
-        resume_file.seek(0)
-        if magic_number != b"%PDF-":
-            return Response({"error": "Invalid file type. Only genuine PDF files are permitted."}, status=400)
-            
-        try:
-            random_suffix = secrets.token_hex(3)
-            filename = f"resume_{user.username}_{random_suffix}.pdf"
-            
-            fd, temp_path = tempfile.mkstemp(suffix=".pdf", prefix=f"res{user.id}_")
-            with os.fdopen(fd, 'wb') as f:
-                for chunk in resume_file.chunks():
-                    f.write(chunk)
-            os.chmod(temp_path, 0o644) 
-            
-            async_upload_resume.delay(user.id, temp_path, filename, old_resume_url)
-            is_uploading_resume = True
-        except Exception as e:
-            return Response({"error": f"Resume preparation failed: {str(e)}"}, status=500)
-
     user.save()
 
     msg = "Profile updated successfully."
-    if is_uploading_image or is_uploading_resume:
-        msg += " Your files are uploading in the background."
+    if is_uploading_image:
+        msg += " Your profile picture is uploading in the background."
 
     return Response({
         "message": msg, 
@@ -323,7 +296,6 @@ def update_user_profile(request: Request) -> Response:
             "last_name": user.last_name, 
             "theme_mode": user.theme_mode,
             "profile_picture": str(user.profile_picture_url) if user.profile_picture_url else None,
-            "resume_url": str(getattr(user, 'resume_url', '')) if getattr(user, 'resume_url', None) else None,
         }
     })
 
@@ -461,6 +433,43 @@ def submit_portfolio(request: Request, order_index: int = 1) -> Response:
         "message": "Portfolio saved.", 
         "data": serialize_portfolio_data(portfolio)
     })
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_portfolio_resume(request: Request, order_index: int = 1) -> Response:
+    """Dedicated endpoint for uploading a resume strictly for a specific portfolio."""
+    portfolio = get_object_or_404(PortfolioSettings, owner=request.user, order_index=order_index)
+    
+    if "resume" not in request.FILES:
+        return Response({"message": "No resume file provided."}, status=400)
+        
+    resume_file = request.FILES["resume"]
+    
+    # SECURITY: Magic Number Validation. Prevents malicious HTML disguised as .pdf
+    magic_number = resume_file.read(5)
+    resume_file.seek(0)
+    if magic_number != b"%PDF-":
+        return Response({"error": "Invalid file type. Only genuine PDF files are permitted."}, status=400)
+        
+    try:
+        random_suffix = secrets.token_hex(3)
+        filename = f"resume_{portfolio.owner.username}_{order_index}_{random_suffix}.pdf"
+        
+        fd, temp_path = tempfile.mkstemp(suffix=".pdf", prefix="resume_")
+        with os.fdopen(fd, 'wb') as f:
+            for chunk in resume_file.chunks():
+                f.write(chunk)
+        
+        os.chmod(temp_path, 0o644)
+        
+        # Dispatch to the Celery task
+        async_upload_resume.delay(portfolio.id, temp_path, filename, portfolio.resume_url)
+        
+        return Response({"message": "Resume uploading in background."})
+        
+    except Exception as e:
+        return Response({"message": f"Resume upload failed: {str(e)}"}, status=500)
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])

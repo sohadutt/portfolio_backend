@@ -13,9 +13,7 @@ from .models import (
     ShowcaseCategory, FeaturedModule, Link
 )
 
-# ==========================================
 # 1. UTILITIES & FORMS
-# ==========================================
 
 def get_compressed_webp_buffer(uploaded_file, quality=80):
     """
@@ -31,24 +29,29 @@ def get_compressed_webp_buffer(uploaded_file, quality=80):
     return buffer
 
 class UserAdminForm(forms.ModelForm):
-    """Custom form to handle image and PDF uploads cleanly in the Admin UI."""
+    """Custom form to handle image uploads cleanly in the Admin UI."""
     upload_profile_picture = forms.ImageField(
         required=False, 
         help_text="Upload a new photo. Old photos will be automatically deleted from Vercel."
-    )
-    upload_resume = forms.FileField(
-        required=False,
-        help_text="Upload a new resume (PDF). The old resume will be automatically deleted from Vercel."
     )
 
     class Meta:
         model = User
         fields = '__all__'
 
+class PortfolioSettingsAdminForm(forms.ModelForm):
+    """Custom form to handle resume (PDF) uploads for a specific portfolio."""
+    upload_resume = forms.FileField(
+        required=False,
+        help_text="Upload a specific resume (PDF) for this portfolio. The old resume will be deleted."
+    )
 
-# ==========================================
+    class Meta:
+        model = PortfolioSettings
+        fields = '__all__'
+
+
 # 2. INLINES FOR PORTFOLIO EDITING
-# ==========================================
 
 class HeroMetricInline(admin.TabularInline):
     model = HeroMetric
@@ -79,26 +82,23 @@ class LinkInline(admin.TabularInline):
     extra = 0
 
 
-# ==========================================
 # 3. MAIN ADMIN REGISTRATIONS
-# ==========================================
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     """
     Manages custom User attributes, tiers, and handles Vercel Blob 
-    uploads for both profile pictures and resumes.
+    uploads for profile pictures.
     """
     form = UserAdminForm
     list_display = ("id", "username", "email", "tier", "is_verified", "profile_preview", "is_staff")
-    readonly_fields = ("share_token", "created_at", "profile_preview", "resume_link")
+    readonly_fields = ("share_token", "created_at", "profile_preview")
     
     fieldsets = DjangoUserAdmin.fieldsets + (
         ("Portfolio & Identity", {
             "fields": (
                 "tier", "theme_mode", "is_verified", 
                 "upload_profile_picture", "profile_picture_url", "profile_preview", 
-                "upload_resume", "resume_url", "resume_link",
                 "enable_share_token", "share_token", "created_at"
             )
         }),
@@ -114,16 +114,8 @@ class UserAdmin(DjangoUserAdmin):
         return "No Image"
     profile_preview.short_description = "Avatar Preview"
 
-    def resume_link(self, obj):
-        if obj.resume_url:
-            return format_html('<a href="{}" target="_blank">View Resume</a>', obj.resume_url)
-        return "No Resume"
-    resume_link.short_description = "Current Resume"
-
     def save_model(self, request, obj, form, change):
-        """Intercepts the save to handle file uploads to Vercel."""
-        
-        # 1. Handle Profile Picture
+        """Intercepts the save to handle profile picture uploads to Vercel."""
         upload_pic = form.cleaned_data.get("upload_profile_picture")
         if upload_pic:
             old_pic_url = None
@@ -148,18 +140,52 @@ class UserAdmin(DjangoUserAdmin):
                     except Exception: pass
             except Exception as e:
                 self.message_user(request, f"Image Upload Failed: {str(e)}", level="ERROR")
+        
+        super().save_model(request, obj, form, change)
 
-        # 2. Handle Resume Upload
+
+@admin.register(PortfolioSettings)
+class PortfolioSettingsAdmin(admin.ModelAdmin):
+    """
+    Central hub for managing a specific portfolio. Handles resume uploads per-portfolio.
+    """
+    form = PortfolioSettingsAdminForm
+    list_display = ("owner", "order_index", "is_enabled", "tier", "name", "title")
+    list_filter = ("is_enabled", "tier")
+    search_fields = ("owner__username", "name", "title")
+    ordering = ("owner", "order_index")
+    readonly_fields = ("resume_link",)
+    
+    list_select_related = ("owner",)
+    
+    inlines = [
+        HeroMetricInline,
+        SkillGroupInline,
+        ProjectInline,
+        ExperienceInline,
+        ShowcaseCategoryInline,
+        FeaturedModuleInline,
+        LinkInline
+    ]
+
+    def resume_link(self, obj):
+        if getattr(obj, 'resume_url', None):
+            return format_html('<a href="{}" target="_blank">View Resume</a>', obj.resume_url)
+        return "No Resume Uploaded"
+    resume_link.short_description = "Current Resume"
+
+    def save_model(self, request, obj, form, change):
+        """Intercepts the save to handle resume file uploads to Vercel for this specific portfolio."""
         upload_res = form.cleaned_data.get("upload_resume")
         if upload_res:
             old_res_url = None
             if change:
-                try: old_res_url = User.objects.get(pk=obj.pk).resume_url
-                except User.DoesNotExist: pass
+                try: old_res_url = PortfolioSettings.objects.get(pk=obj.pk).resume_url
+                except PortfolioSettings.DoesNotExist: pass
 
             try:
                 random_suffix = secrets.token_hex(3)
-                filename = f"resume_{obj.username}_{random_suffix}.pdf"
+                filename = f"resume_{obj.owner.username}_{obj.order_index}_{random_suffix}.pdf"
                 content_type = getattr(upload_res, 'content_type', 'application/pdf')
                 
                 blob_resp = vercel_blob.put(
@@ -178,30 +204,6 @@ class UserAdmin(DjangoUserAdmin):
         super().save_model(request, obj, form, change)
 
 
-@admin.register(PortfolioSettings)
-class PortfolioSettingsAdmin(admin.ModelAdmin):
-    """
-    Central hub for managing a specific portfolio. Uses inlines to allow
-    editing of all related projects and experiences on the same page.
-    """
-    list_display = ("owner", "order_index", "is_enabled", "tier", "name", "title")
-    list_filter = ("is_enabled", "tier")
-    search_fields = ("owner__username", "name", "title")
-    ordering = ("owner", "order_index")
-    
-    list_select_related = ("owner",)
-    
-    inlines = [
-        HeroMetricInline,
-        SkillGroupInline,
-        ProjectInline,
-        ExperienceInline,
-        ShowcaseCategoryInline,
-        FeaturedModuleInline,
-        LinkInline
-    ]
-
-
 @admin.register(ContactFormSubmission)
 class ContactFormSubmissionAdmin(admin.ModelAdmin):
     """Manages messages sent via the public portfolio contact form."""
@@ -213,9 +215,7 @@ class ContactFormSubmissionAdmin(admin.ModelAdmin):
     list_select_related = ("owner", "portfolio")
 
 
-# ==========================================
 # 4. BASE ADMIN FOR PORTFOLIO COMPONENTS
-# ==========================================
 
 class OrderedPortfolioModelAdmin(admin.ModelAdmin):
     """

@@ -15,41 +15,42 @@ JSONPrimitive: TypeAlias = str | int | float | bool | None
 JSONValue: TypeAlias = JSONPrimitive | list["JSONValue"] | dict[str, "JSONValue"]
 
 
-class HeroActionConfig(TypedDict):
+class HeroActionConfig(TypedDict, total=False):
     label: str
     href: str
 
 
-class HeroActionsConfig(TypedDict):
+class HeroActionsConfig(TypedDict, total=False):
     primary: HeroActionConfig
     secondary: HeroActionConfig
 
 
-class HeroFocusAreaConfig(TypedDict):
+class HeroFocusAreaConfig(TypedDict, total=False):
     label: str
     value: int
+    icon: str
 
 
-class HeroFocusConfig(TypedDict):
+class HeroFocusConfig(TypedDict, total=False):
     eyebrow: str
     title: str
     areas: list[HeroFocusAreaConfig]
 
 
-class SectionCopyEntryConfig(TypedDict):
+class SectionCopyEntryConfig(TypedDict, total=False):
     eyebrow: str
     title: str
     description: str
 
 
-class SectionCopyConfig(TypedDict):
+class SectionCopyConfig(TypedDict, total=False):
     projects: SectionCopyEntryConfig
     experience: SectionCopyEntryConfig
     components: SectionCopyEntryConfig
     contact: SectionCopyEntryConfig
 
 
-class PageCopyConfig(TypedDict):
+class PageCopyConfig(TypedDict, total=False):
     loadingTitle: str
     loadingDescription: str
 
@@ -91,6 +92,7 @@ def default_page_copy() -> PageCopyConfig:
         "loadingTitle": "",
         "loadingDescription": "",
     }
+
 
 class User(AbstractUser):
     class Tier(models.IntegerChoices):
@@ -151,22 +153,13 @@ class User(AbstractUser):
             try:
                 old_obj = User.objects.get(pk=self.pk)
                 if old_obj.profile_picture_url and old_obj.profile_picture_url != self.profile_picture_url:
-                    vercel_blob.delete(old_obj.profile_picture_url)
+                    if "vercel-storage.com" in old_obj.profile_picture_url:
+                        vercel_blob.delete(old_obj.profile_picture_url)
             except (User.DoesNotExist, Exception):
                 pass
 
         self.full_clean()
         super().save(*args, **kwargs)
-
-    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
-        url_to_delete = self.profile_picture_url
-        result = super().delete(*args, **kwargs)
-        if url_to_delete:
-            try:
-                vercel_blob.delete(url_to_delete)
-            except Exception:
-                pass
-        return result
 
     def __str__(self) -> str:
         return f"{self.username} ({self.email})"
@@ -176,13 +169,16 @@ class User(AbstractUser):
         verbose_name_plural = "Users"
         ordering = ['-created_at']
 
+
 @receiver(post_delete, sender=User)
-def auto_delete_vercel_blob_on_delete(sender: type[User], instance: User, **kwargs: Any) -> None:
-    if instance.profile_picture_url:
+def auto_delete_user_blob_on_delete(sender: type[User], instance: User, **kwargs: Any) -> None:
+    """Automatically cleans up Vercel Blob storage if a user profile is deleted."""
+    if instance.profile_picture_url and "vercel-storage.com" in instance.profile_picture_url:
         try:
             vercel_blob.delete(instance.profile_picture_url)
         except Exception:
             pass
+
 
 class OwnedPortfolioModel(models.Model):
     owner = models.ForeignKey(
@@ -193,6 +189,7 @@ class OwnedPortfolioModel(models.Model):
 
     class Meta:
         abstract = True
+
 
 class OrderedPortfolioModel(models.Model):
     MAX_FREE_TIER_ITEMS = 3
@@ -218,6 +215,7 @@ class OrderedPortfolioModel(models.Model):
     def save(self, *args: Any, **kwargs: Any) -> None:
         self.full_clean()
         super().save(*args, **kwargs)
+
 
 class ContactFormSubmission(models.Model):
     class Priority(models.IntegerChoices):
@@ -294,6 +292,7 @@ class ContactFormSubmission(models.Model):
             s.save(update_fields=["display_index"])
         return reordered
 
+
 class PortfolioSettings(OwnedPortfolioModel):
     order_index = models.PositiveIntegerField(default=1)
     is_enabled = models.BooleanField(default=True)
@@ -305,19 +304,21 @@ class PortfolioSettings(OwnedPortfolioModel):
     subtitle = models.CharField(max_length=200)
     location = models.CharField(max_length=100)
     email = models.EmailField()
-    github = models.URLField()
-    linkedin = models.URLField()
-    hero_eyebrow = models.CharField(max_length=100)
-    hero_title = models.TextField()
-    hero_description = models.TextField()
+    github = models.URLField(blank=True, null=True)
+    linkedin = models.URLField(blank=True, null=True)
+    hero_eyebrow = models.CharField(max_length=100, blank=True, null=True)
+    hero_title = models.TextField(blank=True, null=True)
+    hero_description = models.TextField(blank=True, null=True)
     hero_actions = models.JSONField(default=default_hero_actions)
     hero_focus = models.JSONField(default=default_hero_focus)
     hero_badges = models.JSONField(default=list)
     hero_highlights = models.JSONField(default=list)
-    about_title = models.CharField(max_length=200)
-    about_description = models.TextField()
+    about_title = models.CharField(max_length=200, blank=True, null=True)
+    about_description = models.TextField(blank=True, null=True)
     section_copy = models.JSONField(default=default_section_copy)
     page_copy = models.JSONField(default=default_page_copy)
+    
+    # Portfolio-specific resume
     resume_url = models.URLField(blank=True, null=True)
 
     class Meta:
@@ -363,14 +364,27 @@ class PortfolioSettings(OwnedPortfolioModel):
     def share_token(self) -> str:
         return self.owner.share_token
 
+
+@receiver(post_delete, sender=PortfolioSettings)
+def auto_delete_portfolio_resume_on_delete(sender: type[PortfolioSettings], instance: PortfolioSettings, **kwargs: Any) -> None:
+    """Automatically cleans up Vercel Blob storage if a portfolio containing a resume is deleted."""
+    if instance.resume_url and "vercel-storage.com" in instance.resume_url:
+        try:
+            vercel_blob.delete(instance.resume_url)
+        except Exception:
+            pass
+
+
 class HeroMetric(OrderedPortfolioModel):
     value = models.CharField(max_length=50)
     label = models.CharField(max_length=200)
+    icon_name = models.CharField(max_length=50, blank=True, null=True, help_text="Lucide icon name")
 
 class SkillGroup(OrderedPortfolioModel):
     title = models.CharField(max_length=100)
     description = models.TextField()
     items = models.JSONField(default=list)
+    icon_name = models.CharField(max_length=50, blank=True, null=True, help_text="Lucide icon name")
 
 class Project(OrderedPortfolioModel):
     title = models.CharField(max_length=200)
@@ -390,10 +404,11 @@ class Experience(OrderedPortfolioModel):
     summary = models.TextField()
     highlights = models.JSONField(default=list)
     related_components = models.JSONField(default=list)
+    icon_name = models.CharField(max_length=50, blank=True, null=True, help_text="Lucide icon name")
 
 class ShowcaseCategory(OrderedPortfolioModel):
     title = models.CharField(max_length=200)
-    icon_name = models.CharField(max_length=50, help_text="Lucide icon name")
+    icon_name = models.CharField(max_length=50, blank=True, null=True, help_text="Lucide icon name")
     relation = models.CharField(max_length=100)
     preview = models.TextField()
     items = models.JSONField(default=list)
@@ -402,7 +417,7 @@ class ShowcaseCategory(OrderedPortfolioModel):
 
 class FeaturedModule(OrderedPortfolioModel):
     title = models.CharField(max_length=200)
-    icon_name = models.CharField(max_length=50)
+    icon_name = models.CharField(max_length=50, blank=True, null=True, help_text="Lucide icon name")
     relation = models.CharField(max_length=100)
     body = models.TextField()
     details = models.TextField()
@@ -420,4 +435,4 @@ class Link(OrderedPortfolioModel):
     label = models.CharField(max_length=100)
     value = models.CharField(max_length=200, blank=True, null=True)
     href = models.CharField(max_length=200, blank=True, null=True)
-    icon_name = models.CharField(max_length=50, blank=True, null=True)
+    icon_name = models.CharField(max_length=50, blank=True, null=True, help_text="Lucide icon name")
