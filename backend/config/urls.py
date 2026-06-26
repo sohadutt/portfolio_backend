@@ -22,4 +22,5 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/admin/', permanent=False), name='index'),
     path('admin/', admin.site.urls),
     path('api/', include('portfolio_form.urls')),
+    path('api/jobs/', include('jobby.urls')),
 ]
