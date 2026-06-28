@@ -6,7 +6,6 @@ urlpatterns = [
     path('jobs/<int:pk>/', views.JobDetailView.as_view(), name='job-detail'),
 
     # Signal endpoints
-
-    path('signals/start/{?user_id=<int:user_id>}/', views.SignalListView.as_view(), name='signal-list'),
+    path('signals/start/<str:site_name>/', views.SignalStart.as_view(), name='start-job-signal'),
     
 ]

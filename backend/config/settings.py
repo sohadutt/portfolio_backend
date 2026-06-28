@@ -117,10 +117,6 @@ DATABASES = {
     }
 }
 
-# --- AI Stuff ---
-
-GEMINI_API_KEY= os.environ.get("GEMINI_API_KEY", None)
-
 # --- Rate Limiting Variables ---
 ANON_MAX_REQUESTS = 5
 ANON_SECONDS = 300
