@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'anymail',
     'portfolio_form',
+    # 'jobby',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -115,6 +116,10 @@ DATABASES = {
         "pool": True,
     }
 }
+
+# --- AI Stuff ---
+
+GEMINI_API_KEY= os.environ.get("GEMINI_API_KEY", None)
 
 # --- Rate Limiting Variables ---
 ANON_MAX_REQUESTS = 5

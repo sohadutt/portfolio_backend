@@ -24,4 +24,5 @@ dependencies = [
     "google-auth>=2.49.2",
     "scrapy>=2.16.0",
     "w3lib>=2.4.1",
+    "langchain-google-genai>=4.2.6",
 ]
