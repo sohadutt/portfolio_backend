@@ -1,4 +1,4 @@
-ITE_CONFIG = {
+SITE_CONFIG = {
     "deloitte": {
         "url": "https://usijobs.deloitte.com/en_US/careersUSI/SearchJobs/",
         "output_file": "deloitte_jobs_output.json"

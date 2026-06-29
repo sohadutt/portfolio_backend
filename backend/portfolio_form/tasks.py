@@ -12,8 +12,8 @@ from django.core.mail import send_mail
 from django.utils import timezone
 
 from .models import ContactFormSubmission, User, PortfolioSettings
-from ..jobby.spiders.scraper_manager import ScraperManager
-from ..jobby.jobby import JobStore, AIJobAnalyzer, JsonUpdater, AddJobdata, JobManager, DatabaseUpdater
+from jobby.spiders.scraper_manager import ScraperManager
+from jobby.jobby import JobStore, AIJobAnalyzer, JsonUpdater, AddJobdata, JobManager, DatabaseUpdater
 
 @shared_task(bind=True, max_retries=3)
 def send_otp_email_task(self: Task, email: str, secure_otp: str, subject: str = "Your OTP Code") -> str:

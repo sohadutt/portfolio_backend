@@ -8,8 +8,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.throttling import AnonRateThrottle
 from django.http import Http404
 
-from ..portfolio_form.tasks import run_job_pipeline
-from ..portfolio_form.models import PortfolioSettings
+from portfolio_form.tasks import run_job_pipeline
+from portfolio_form.models import PortfolioSettings
 
 from .models import Job, PortfolioJobMatch
 from .serializers import JobSerializer, PortfolioJobMatchSerializer

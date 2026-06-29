@@ -2,7 +2,7 @@ import subprocess
 import json
 import os
 import time
-from res import SITE_CONFIG
+from .res import SITE_CONFIG
 
 def timer(func):
     def wrapper(*args, **kwargs):
