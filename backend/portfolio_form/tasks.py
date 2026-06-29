@@ -12,6 +12,8 @@ from django.core.mail import send_mail
 from django.utils import timezone
 
 from .models import ContactFormSubmission, User, PortfolioSettings
+from ..jobby.spiders.scraper_manager import ScraperManager
+from ..jobby.jobby import JobStore, AIJobAnalyzer, JsonUpdater, AddJobdata, JobManager, DatabaseUpdater
 
 @shared_task(bind=True, max_retries=3)
 def send_otp_email_task(self: Task, email: str, secure_otp: str, subject: str = "Your OTP Code") -> str:
@@ -146,3 +148,41 @@ def async_upload_resume(portfolio_id: int, temp_file_path: str, filename: str, o
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
+
+@shared_task(bind=True)
+def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: bool, portfolio_id: int):
+    if run_scraper:
+        scraper = ScraperManager(site_name=site_name)
+        scraper.run_scraper()
+        
+    if run_processor:
+        try:
+            portfolio_obj = PortfolioSettings.objects.get(id=portfolio_id)
+        except PortfolioSettings.DoesNotExist:
+            return {"status": "error", "message": f"Portfolio {portfolio_id} not found."}
+
+        portfolio_dict = {
+            "title": getattr(portfolio_obj, 'title', ''),
+            "skills": [skill.name for skill in portfolio_obj.skillgroups.all()],
+            "experience": [exp.description for exp in portfolio_obj.experiences.all()],
+            "projects": [proj.description for proj in portfolio_obj.projects.all()]
+        }
+
+        job_store = JobStore()
+        analyzer = AIJobAnalyzer()
+        json_updater = JsonUpdater()
+        db_updater = DatabaseUpdater()
+        add_jobdata = AddJobdata(job_store)
+        
+        manager = JobManager(job_store, analyzer, json_updater, add_jobdata, db_updater)
+        output_file = f"{site_name}_matches_output.json"
+        
+        manager.process_jobs(
+            portfolio=portfolio_dict, 
+            portfolio_id=portfolio_id,
+            output_file=output_file, 
+            batch_size=10, 
+            site_name=site_name
+        )
+        
+    return {"status": "success", "site_name": site_name}

@@ -3,6 +3,8 @@ from typing import List, Dict
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
+from .models import Job, PortfolioJobMatch
+from portfolio_form.models import PortfolioSettings 
 
 load_dotenv()
 
@@ -34,7 +36,6 @@ class JobStore:
 
     def clear_jobs(self):
         self.jobs.clear()
-
 
 class AIJobAnalyzer:
     def __init__(self):
@@ -71,7 +72,6 @@ class JsonUpdater:
             json.dump(list(merged_dict.values()), f, indent=4)
             print(f"Successfully updated {file_path} with new job data.")
 
-
 class AddJobdata:
     def __init__(self, job_store: JobStore):
         self.job_store = job_store
@@ -88,45 +88,86 @@ class AddJobdata:
         except FileNotFoundError:
             print(f"File {filename} not found.")
 
-
 class JobManager:
-    def __init__(self, job_store: JobStore, analyzer: AIJobAnalyzer, json_updater: JsonUpdater, add_jobdata: AddJobdata):
+    def __init__(self, job_store: JobStore, analyzer: AIJobAnalyzer, json_updater: JsonUpdater, add_jobdata: AddJobdata, db_updater: DatabaseUpdater):
         self.job_store = job_store
         self.analyzer = analyzer
         self.json_updater = json_updater
         self.add_jobdata = add_jobdata
+        self.db_updater = db_updater
 
-    def process_jobs(self, portfolio: Dict, output_file: str, batch_size: int = 10, site_name: str = "deloitte"):
-        """
-        Process jobs for a specific site.
-        """
+    def process_jobs(self, portfolio: Dict, portfolio_id: int, output_file: str, batch_size: int = 10, site_name: str = "deloitte"):
         self.add_jobdata._add_job(site_name)
         jobs = self.job_store.get_jobs()
         
         if not jobs:
             print("No jobs to process.")
-            return
-            
+            return            
         total_jobs = len(jobs)
-        print(f"Total jobs to process: {total_jobs}. Batch size: {batch_size}.")
-
         for i in range(0, total_jobs, batch_size):
             batch = jobs[i : i + batch_size]
             current_batch_num = (i // batch_size) + 1
             
-            print(f"\nProcessing batch {current_batch_num} (Jobs {i + 1} to {min(i + batch_size, total_jobs)})...")
-            
             job_data = {
                 "portfolio": portfolio,
                 "jobs": batch
-            }  
-            
-            analysis_result = self.analyzer.analyze_job(job_data)
-            
+            }           
+            analysis_result = self.analyzer.analyze_job(job_data)          
             try:
                 cleaned_result = analysis_result.replace('```json', '').replace('```', '').strip()
-                analysis_json = json.loads(cleaned_result)
+                analysis_json = json.loads(cleaned_result) # These are the AI MATCHES               
                 self.json_updater.update_json_file(output_file, analysis_json)
-                return analysis_json
+                self.db_updater.save_batch_to_db(
+                    raw_jobs=batch, 
+                    ai_matches=analysis_json, 
+                    portfolio_id=portfolio_id, 
+                    site_name=site_name
+                )
+                print(f"Batch {current_batch_num} saved to JSON and DB.")
+                
             except json.JSONDecodeError:
-                print(f"Failed to decode JSON for batch {current_batch_num}. Skipping to next batch.")
+                print(f"Failed to decode JSON for batch {current_batch_num}. Skipping.")
+
+
+class DatabaseUpdater:
+    @staticmethod
+    def save_batch_to_db(raw_jobs: List[Dict], ai_matches: List[Dict], portfolio_id: int, site_name: str):
+        """
+        Saves the raw jobs to the Job model, and the AI matches to the PortfolioJobMatch model.
+        """
+        try:
+            portfolio_instance = PortfolioSettings.objects.get(id=portfolio_id)
+        except PortfolioSettings.DoesNotExist:
+            print(f"Portfolio ID {portfolio_id} not found. Skipping DB update.")
+            return
+
+        match_lookup = {match.get('job_id'): match for match in ai_matches if match.get('job_id')}
+
+        for raw_job in raw_jobs:
+            job_id = raw_job.get('job_id')
+            if not job_id:
+                continue
+
+            job_obj, _ = Job.objects.update_or_create(
+                platform_name=site_name,
+                platform_job_id=job_id,
+                defaults={
+                    'title': raw_job.get('title') or 'Unknown Title',
+                    'company': raw_job.get('hiring_organization') or 'Unknown Company',
+                    'location': raw_job.get('location') or '',
+                    'url': raw_job.get('url') or '',
+                    'date_posted': str(raw_job.get('date_posted') or '')
+                }
+            )
+
+            if job_id in match_lookup:
+                match_data = match_lookup[job_id]
+                
+                PortfolioJobMatch.objects.update_or_create(
+                    portfolio=portfolio_instance,
+                    job=job_obj,
+                    defaults={
+                        'match_score': match_data.get('match_score', 0.0),
+                        'tags': match_data.get('tags', [])
+                    }
+                )
