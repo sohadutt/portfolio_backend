@@ -167,7 +167,7 @@ class DatabaseUpdater:
                     portfolio=portfolio_instance,
                     job=job_obj,
                     defaults={
-                        'match_score': match_data.get('match_score', 0.0),
+                        'match_score': match_data.get('match_score', 0),
                         'tags': match_data.get('tags', [])
                     }
                 )

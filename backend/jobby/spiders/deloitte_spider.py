@@ -4,7 +4,7 @@ from w3lib.html import remove_tags
 from tqdm import tqdm
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
-from res import URLS, OUTPUT_FILES
+from res import SITE_CONFIG 
 
 
 class DeloitteJobsSpider(scrapy.Spider):
@@ -14,11 +14,13 @@ class DeloitteJobsSpider(scrapy.Spider):
     """
     name = "deloitte_jobs"
     allowed_domains = ["usijobs.deloitte.com"]
-    start_urls = [URLS.Deloitte]
+    # FIX 1: Wrapped in a list
+    start_urls = [SITE_CONFIG["deloitte"]["url"]] 
 
     custom_settings = {
         'FEED_FORMAT': 'json',
-        'FEED_URI': OUTPUT_FILES.Deloitte,
+        # FIX 2: Using the config dictionary
+        'FEED_URI': SITE_CONFIG["deloitte"]["output_file"], 
         'FEED_EXPORT_INDENT': 4,
         'LOG_LEVEL': 'DEBUG',
     }
@@ -77,7 +79,7 @@ class DeloitteJobsSpider(scrapy.Spider):
                     'description': self._clean_text(job_data.get('description')),
                     'qualifications': self._clean_text(job_data.get('qualifications')),
                     'experience_requirements': self._clean_text(job_data.get('experienceRequirements')),
-                    'hiring_organization': job_data.get('hiringOrganization', {}).get('name')
+                    'hiring_organization': job_data.get('hiringOrganization', {}).get('name', 'Deloitte')
                 }
             except json.JSONDecodeError:
                 self.logger.error(f"Failed to decode JSON-LD on {response.url}")
@@ -123,12 +125,11 @@ class DeloitteJobsSpider(scrapy.Spider):
         return None
     
 
-
 if __name__ == "__main__":
     process = CrawlerProcess(settings={
         'FEED_FORMAT': 'json',
         'FEED_EXPORT_INDENT': 4,
-        'FEED_URI': OUTPUT_FILES.Deloitte,
+        'FEED_URI': SITE_CONFIG["deloitte"]["output_file"],
         'LOG_LEVEL': 'INFO',
     })
     process.crawl(DeloitteJobsSpider)

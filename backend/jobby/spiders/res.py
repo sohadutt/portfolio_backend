@@ -15,9 +15,9 @@ SITE_CONFIG = {
         "url": "https://www.pwc.in/careers/experienced-jobs.html",
         "output_file": "pwc_jobs_output.json"
     },
-    "oracle": {
+    "kpmg": {
         "url": "https://ejgk.fa.em2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_3001/jobs",
-        "output_file": "oracle_jobs_output.json"
+        "output_file": "kpmg_jobs_output.json"
     },
     "capgemini": {
         "url": "https://www.capgemini.com/careers/join-capgemini/job-search/",
