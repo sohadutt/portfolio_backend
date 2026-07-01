@@ -56,18 +56,17 @@ class SignalStart(APIView):
             run_processor_param = True
 
         user = request.user
-        
         try:
             portfolio = PortfolioSettings.objects.get(
-                owner=user, order_index=order_index, is_enabled=True
+                owner=user, order_index=order_index, is_enabled=True, owner__tier=2
             )
         except PortfolioSettings.DoesNotExist:
             try:
                 portfolio = PortfolioSettings.objects.get(
-                    owner=user, order_index=1, is_enabled=True
+                    owner=user, order_index=1, is_enabled=True, owner__tier=2
                 )
             except PortfolioSettings.DoesNotExist:
-                raise Http404("No enabled portfolios found for this user.")
+                raise Http404("No enabled portfolios found for this user. or the user is not a premium user.")
 
         should_consume_credit = run_processor_param or match_only_param
         remaining_credits = user.job_analysis_limit
@@ -112,6 +111,12 @@ class JobviewAll(APIView):
     throttle_classes = [AnonRateThrottle]
 
     def get(self, request: Request):
+        user = User.objects.get(pk=request.user.pk)
+        if user.tier < 2:
+            return Response(
+                {"error": "User does not have access to this endpoint."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         site_name = request.query_params.get('site_name', None)
         enriched_only = _query_bool(request.query_params.get('enriched_only'), False)
         
