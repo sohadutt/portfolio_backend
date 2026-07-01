@@ -183,6 +183,8 @@ class JobManager:
             print(f"Processing batch {(i // batch_size) + 1}...")
 
             analysis_result = self.analyzer.analyze_job({"portfolio": portfolio, "jobs": self.prepare_jobs_for_ai(batch)})
+            if isinstance(analysis_result, list):
+                analysis_result = json.dumps(analysis_result)
             
             try:
                 cleaned = analysis_result.replace("```json", "").replace("```", "").strip()
