@@ -266,10 +266,14 @@ class LinkAdmin(OrderedPortfolioModelAdmin):
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ("platform_name", "company", "title", "location", "created_at")
+    list_display = ("platform_name", "company", "title", "location", "tag_count", "ai_processed_at", "created_at")
     list_filter = ("platform_name", "company")
     search_fields = ("title", "company", "platform_job_id")
     ordering = ("-created_at",)
+
+    def tag_count(self, obj):
+        return len(obj.tags or [])
+    tag_count.short_description = "Tags"
 
 @admin.register(PortfolioJobMatch)
 class PortfolioJobMatchAdmin(admin.ModelAdmin):

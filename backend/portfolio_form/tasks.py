@@ -149,24 +149,28 @@ def async_upload_resume(portfolio_id: int, temp_file_path: str, filename: str, o
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
+def _portfolio_analysis_payload(portfolio_obj: PortfolioSettings) -> dict:
+    return {
+        "title": getattr(portfolio_obj, 'title', ''),
+        "skills": [skill.title for skill in portfolio_obj.skillgroups.all()],
+        "experience": [exp.summary for exp in portfolio_obj.experiences.all()],
+        "projects": [proj.description for proj in portfolio_obj.projects.all()]
+    }
+
+
 @shared_task(bind=True)
-def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: bool, portfolio_id: int):
-    if run_scraper:
+def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: bool, portfolio_id: int, match_only: bool = False):
+    if run_scraper and not match_only:
         scraper = ScraperManager(site_name=site_name)
         scraper.run_scraper()
         
-    if run_processor:
+    if run_processor or match_only:
         try:
             portfolio_obj = PortfolioSettings.objects.get(id=portfolio_id)
         except PortfolioSettings.DoesNotExist:
             return {"status": "error", "message": f"Portfolio {portfolio_id} not found."}
 
-        portfolio_dict = {
-            "title": getattr(portfolio_obj, 'title', ''),
-            "skills": [skill.title for skill in portfolio_obj.skillgroups.all()],
-            "experience": [exp.summary for exp in portfolio_obj.experiences.all()],
-            "projects": [proj.description for proj in portfolio_obj.projects.all()]
-            }
+        portfolio_dict = _portfolio_analysis_payload(portfolio_obj)
 
         job_store = JobStore()
         analyzer = AIJobAnalyzer()
@@ -175,14 +179,25 @@ def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: boo
         add_jobdata = AddJobdata(job_store)
         
         manager = JobManager(job_store, analyzer, json_updater, add_jobdata, db_updater)
-        output_file = f"{site_name}_matches_output.json"
+
+        if match_only:
+            return manager.process_match_only(
+                portfolio=portfolio_dict,
+                portfolio_id=portfolio_id,
+                site_name=site_name,
+                batch_size=75,
+            )
+
+        output_file = f"{site_name}_job_analysis_output.json"
         
-        manager.process_jobs(
+        return manager.process_jobs(
             portfolio=portfolio_dict, 
             portfolio_id=portfolio_id,
             output_file=output_file, 
             batch_size=10, 
-            site_name=site_name
+            site_name=site_name,
+            run_match_after=True,
+            match_batch_size=75,
         )
         
     return {"status": "success", "site_name": site_name}

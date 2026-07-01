@@ -8,7 +8,7 @@ SITE_CONFIG = {
         "output_file": "accenture_jobs_output.json"
     },
     "ey": {
-        "url": "https://careers.ey.com/ey/search/?createNewAlert=false&q=&locationsearch&local=en_US",
+        "url": "https://careers.ey.com/ey/search/?createNewAlert=false&q=&locationsearch&local=en_US&location=IN",
         "output_file": "ey_jobs_output.json"
     },
     "pwc": {

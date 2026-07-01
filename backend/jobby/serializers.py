@@ -12,11 +12,14 @@ class JobSerializer(serializers.ModelSerializer):
             'company', 
             'location', 
             'url', 
-            'date_posted'
+            'date_posted',
+            'tags',
+            'ai_processed_at'
         ]
 
 class PortfolioJobMatchSerializer(serializers.ModelSerializer):
     job = JobSerializer(read_only=True)
+    tags = serializers.JSONField(source='job.tags', read_only=True)
     
     class Meta:
         model = PortfolioJobMatch

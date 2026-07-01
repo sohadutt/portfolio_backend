@@ -13,6 +13,9 @@ class Job(models.Model):
     location = models.CharField(max_length=255, blank=True, null=True)
     url = models.URLField(max_length=1000)
     date_posted = models.CharField(max_length=50, blank=True, null=True)
+    tags = models.JSONField(default=list, help_text="Stable AI-generated job tags")
+    ai_metadata = models.JSONField(default=dict, blank=True, help_text="Stable AI-generated job metadata")
+    ai_processed_at = models.DateTimeField(blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -41,7 +44,6 @@ class PortfolioJobMatch(models.Model):
     )
     
     match_score = models.FloatField(help_text="Match percentage from 0 to 100")
-    tags = models.JSONField(default=list, help_text="List of matching string tags")
     
     created_at = models.DateTimeField(auto_now_add=True)
 
