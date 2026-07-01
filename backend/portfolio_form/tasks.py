@@ -163,10 +163,10 @@ def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: boo
 
         portfolio_dict = {
             "title": getattr(portfolio_obj, 'title', ''),
-            "skills": [skill.name for skill in portfolio_obj.skillgroups.all()],
-            "experience": [exp.description for exp in portfolio_obj.experiences.all()],
+            "skills": [skill.title for skill in portfolio_obj.skillgroups.all()],
+            "experience": [exp.summary for exp in portfolio_obj.experiences.all()],
             "projects": [proj.description for proj in portfolio_obj.projects.all()]
-        }
+            }
 
         job_store = JobStore()
         analyzer = AIJobAnalyzer()

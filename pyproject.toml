@@ -25,4 +25,5 @@ dependencies = [
     "scrapy>=2.16.0",
     "w3lib>=2.4.1",
     "langchain-google-genai>=4.2.6",
+    "scrapy-playwright>=0.0.47",
 ]

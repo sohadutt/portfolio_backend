@@ -12,9 +12,13 @@ class EYJobsSpider(scrapy.Spider):
     start_urls = [SITE_CONFIG["ey"]["url"]]
 
     custom_settings = {
-        'FEED_FORMAT': 'json',
-        'FEED_URI': SITE_CONFIG["ey"]["output_file"],
-        'FEED_EXPORT_INDENT': 4,
+        'FEEDS': {
+            SITE_CONFIG["ey"]["output_file"]: {
+                'format': 'json',
+                'indent': 4,
+                'overwrite': True,
+            }
+        },
         'LOG_LEVEL': 'INFO',
         'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     }
@@ -96,10 +100,13 @@ class EYJobsSpider(scrapy.Spider):
             date_posted = response.css('span[data-careersite-propertyid="date"]::text').get()
         job['date_posted'] = date_posted.strip() if date_posted else None
 
-        quals = desc_container.xpath('.//*[self::p or self::h2 or self::h3 or self::h4 or self::div][contains(translate(., "QUALIFICATION", "qualification"), "qualification")]/following-sibling::ul[1]//li//text()').getall()
+        # Limiting string length to < 45 chars ensures we only match actual Headers, ignoring full paragraphs
+        quals_xpath = './/*[self::p or self::h2 or self::h3 or self::h4 or self::div or self::strong or self::b][(contains(translate(., "QUALIFICATION", "qualification"), "qualification") or contains(translate(., "QUALIFY", "qualify"), "qualify")) and string-length(normalize-space(.)) < 45]/following::ul[1]//li//text()'
+        quals = desc_container.xpath(quals_xpath).getall()
         job['qualifications'] = " | ".join([q.strip() for q in quals if q.strip()]) if quals else None
 
-        exp = desc_container.xpath('.//*[self::p or self::h2 or self::h3 or self::h4 or self::div][contains(translate(., "EXPERIENCE", "experience"), "experience")]/following-sibling::ul[1]//li//text()').getall()
+        exp_xpath = './/*[self::p or self::h2 or self::h3 or self::h4 or self::div or self::strong or self::b][contains(translate(., "EXPERIENCE", "experience"), "experience") and string-length(normalize-space(.)) < 45]/following::ul[1]//li//text()'
+        exp = desc_container.xpath(exp_xpath).getall()
         job['experience_requirements'] = " | ".join([e.strip() for e in exp if e.strip()]) if exp else None
 
     def _clean_text(self, raw_html):
@@ -110,9 +117,13 @@ class EYJobsSpider(scrapy.Spider):
 
 if __name__ == "__main__":
     process = CrawlerProcess(settings={
-        'FEED_FORMAT': 'json',
-        'FEED_EXPORT_INDENT': 4,
-        'FEED_URI': SITE_CONFIG["ey"]["output_file"],
+        'FEEDS': {
+            SITE_CONFIG["ey"]["output_file"]: {
+                'format': 'json',
+                'indent': 4,
+                'overwrite': True,
+            }
+        },
         'LOG_LEVEL': 'INFO',
     })
     process.crawl(EYJobsSpider)

@@ -2,6 +2,7 @@ import subprocess
 import json
 import os
 import time
+from config import settings
 from .res import SITE_CONFIG
 
 def timer(func):
@@ -15,19 +16,20 @@ def timer(func):
 
 class ScraperManager:
     def __init__(self, site_name="deloitte"):
-        site_key = site_name.lower()  
-        self.spider_script = f"{site_key}_spider.py"
-        self.output_file = SITE_CONFIG[site_key]["output_file"]
-        
+        self.site_name = site_name.lower()
+        self.spider_path = os.path.join(settings.BASE_DIR, 'jobby', 'spiders', f'{self.site_name}_spider.py')
+        self.output_file = SITE_CONFIG[self.site_name]["output_file"]
+
     @timer
     def run_scraper(self):
-        print(f"Starting scraper: {self.spider_script}...")
-        
+        print(f"DEBUG: Looking for spider at: {self.spider_path}")
+        if not os.path.exists(self.spider_path):
+            raise FileNotFoundError(f"Spider file not found at: {self.spider_path}")
+        print(f"Starting scraper: {self.spider_path}...")
         if os.path.exists(self.output_file):
             os.remove(self.output_file)
-
         try:
-            subprocess.run(["python", self.spider_script], check=True)
+            subprocess.run(["python", self.spider_path], check=True, capture_output=True, text=True)
             print("Scraping completed successfully.")
             return self.load_data()
         except subprocess.CalledProcessError as e:

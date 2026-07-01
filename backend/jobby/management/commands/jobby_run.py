@@ -1,5 +1,7 @@
 import json
+import os
 from django.core.management.base import BaseCommand
+from rest_framework import settings
 from portfolio_form.models import PortfolioSettings
 from portfolio_form.tasks import run_job_pipeline
 
