@@ -1,0 +1,2361 @@
+[
+    {
+        "job_id": 358273,
+        "match_score": 5.0,
+        "tags": [
+            "Audit Support",
+            "Financial Documentation",
+            "Administrative",
+            "MS Office"
+        ]
+    },
+    {
+        "job_id": 358335,
+        "match_score": 65.0,
+        "tags": [
+            "Backend Development",
+            "API Integration",
+            "Data Migration",
+            "Technical Documentation",
+            "SQL",
+            "System Customization",
+            "ERP",
+            "Supply Chain Management",
+            "Python"
+        ]
+    },
+    {
+        "job_id": 358263,
+        "match_score": 80.0,
+        "tags": [
+            "Engineering Management",
+            "Product Development",
+            "Data Engineering",
+            "Backend Development",
+            "Python",
+            "APIs",
+            "DevOps",
+            "Agile",
+            "Software Architecture",
+            "Cloud",
+            "SQL",
+            "ETL",
+            "Leadership",
+            "Frontend Development"
+        ]
+    },
+    {
+        "job_id": 358312,
+        "match_score": 30.0,
+        "tags": [
+            "Oracle FCCS",
+            "EPM",
+            "Financial Consolidation",
+            "Business Rules",
+            "Python Scripting"
+        ]
+    },
+    {
+        "job_id": 358201,
+        "match_score": 60.0,
+        "tags": [
+            "API Integration",
+            "Backend Development",
+            "Python",
+            "REST APIs",
+            "Automation",
+            "Data Workflows",
+            "Technical Documentation",
+            "CRM Integration",
+            "Agile"
+        ]
+    },
+    {
+        "job_id": 358211,
+        "match_score": 20.0,
+        "tags": [
+            "CyberArk",
+            "IAM",
+            "PAM",
+            "Security",
+            "Identity Management",
+            "Access Management"
+        ]
+    },
+    {
+        "job_id": 358357,
+        "match_score": 40.0,
+        "tags": [
+            "SAP BTP",
+            "Frontend Development",
+            "Fiori",
+            "SAPUI5",
+            "Backend Development",
+            "API Integration",
+            "Technical Documentation"
+        ]
+    },
+    {
+        "job_id": 358208,
+        "match_score": 20.0,
+        "tags": [
+            "CyberArk",
+            "IAM",
+            "PAM",
+            "Security",
+            "Identity Management",
+            "Access Management",
+            "SQL",
+            "Linux"
+        ]
+    },
+    {
+        "job_id": 358336,
+        "match_score": 5.0,
+        "tags": [
+            "Marketing",
+            "Campaign Management",
+            "Digital Marketing",
+            "Content Strategy"
+        ]
+    },
+    {
+        "job_id": 358209,
+        "match_score": 35.0,
+        "tags": [
+            "Project Management",
+            "Program Management",
+            "IT Initiatives",
+            "SDLC",
+            "Agile",
+            "PMO",
+            "Leadership"
+        ]
+    },
+    {
+        "job_id": 358200,
+        "match_score": 50.0,
+        "tags": [
+            "Python",
+            "REST APIs",
+            "JSON",
+            "DevOps",
+            "CI/CD",
+            "Production Pipelines",
+            "SQL",
+            "Technical Design",
+            "Cloud Operations"
+        ]
+    },
+    {
+        "job_id": 358358,
+        "match_score": 15.0,
+        "tags": [
+            "APIs",
+            "Frontend Development",
+            "Database"
+        ]
+    },
+    {
+        "job_id": 358254,
+        "match_score": 55.0,
+        "tags": [
+            "Security",
+            "Automation",
+            "APIs",
+            "Python",
+            "Enterprise Infrastructure",
+            "DevOps",
+            "CI/CD",
+            "Configuration Management",
+            "Cloud Security"
+        ]
+    },
+    {
+        "job_id": 358212,
+        "match_score": 25.0,
+        "tags": [
+            "SDLC",
+            "Technical Delivery",
+            "Collaboration"
+        ]
+    },
+    {
+        "job_id": 358205,
+        "match_score": 35.0,
+        "tags": [
+            "Security",
+            "REST APIs",
+            "Database",
+            "Enterprise Integration"
+        ]
+    },
+    {
+        "job_id": 358339,
+        "match_score": 25.0,
+        "tags": [
+            "SDLC",
+            "Technical Delivery",
+            "Collaboration"
+        ]
+    },
+    {
+        "job_id": 358355,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 358261,
+        "match_score": 85.0,
+        "tags": [
+            "Software Engineering",
+            "Product Development",
+            "Python",
+            "APIs",
+            "Data Engineering",
+            "SQL",
+            "JSON",
+            "Data Security",
+            "Automation",
+            "DevOps",
+            "CI/CD",
+            "Production Pipelines",
+            "Cloud",
+            "Scalability",
+            "Technical Design",
+            "Cross-functional Collaboration"
+        ]
+    },
+    {
+        "job_id": 358206,
+        "match_score": 35.0,
+        "tags": [
+            "Security",
+            "REST APIs",
+            "Database",
+            "Enterprise Integration"
+        ]
+    },
+    {
+        "job_id": 358351,
+        "match_score": 50.0,
+        "tags": [
+            "Automation",
+            "Scalability",
+            "Technical Architecture",
+            "Security",
+            "Process Improvement",
+            "Collaboration",
+            "Technology Integration"
+        ]
+    },
+    {
+        "job_id": 358177,
+        "match_score": 35.0,
+        "tags": [
+            "Python",
+            "Backend",
+            "APIs",
+            "Product Development",
+            "Software Engineering",
+            "Automation"
+        ]
+    },
+    {
+        "job_id": 358179,
+        "match_score": 10.0,
+        "tags": [
+            "Backend",
+            "Data",
+            "APIs"
+        ]
+    },
+    {
+        "job_id": 358178,
+        "match_score": 30.0,
+        "tags": [
+            "Python",
+            "Backend",
+            "APIs",
+            "Product Development",
+            "Software Engineering",
+            "Automation"
+        ]
+    },
+    {
+        "job_id": 358195,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 358066,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 358095,
+        "match_score": 85.0,
+        "tags": [
+            "Full-stack",
+            "Backend",
+            "Frontend",
+            "Product Development",
+            "APIs",
+            "Python",
+            "React",
+            "Tailwind CSS",
+            "Production Pipelines",
+            "Scalability",
+            "DevOps",
+            "Architecture",
+            "Distributed Systems",
+            "Cloud-Native",
+            "Leadership",
+            "Software Engineering",
+            "Microservices"
+        ]
+    },
+    {
+        "job_id": 357878,
+        "match_score": 20.0,
+        "tags": [
+            "APIs",
+            "Backend",
+            "Security"
+        ]
+    },
+    {
+        "job_id": 357886,
+        "match_score": 10.0,
+        "tags": [
+            "Security"
+        ]
+    },
+    {
+        "job_id": 357879,
+        "match_score": 15.0,
+        "tags": [
+            "Data",
+            "Project Coordination"
+        ]
+    },
+    {
+        "job_id": 358093,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 357874,
+        "match_score": 25.0,
+        "tags": [
+            "Communications",
+            "Project Coordination",
+            "Reporting",
+            "Data Analysis",
+            "Process Improvement"
+        ]
+    },
+    {
+        "job_id": 357902,
+        "match_score": 10.0,
+        "tags": [
+            "Legal",
+            "Document Review",
+            "Data Management (Legal)",
+            "E-discovery"
+        ]
+    },
+    {
+        "job_id": 357877,
+        "match_score": 88.0,
+        "tags": [
+            "ServiceNow",
+            "Security Operations",
+            "Vulnerability Management",
+            "Automation",
+            "APIs",
+            "Configuration Management",
+            "Workflow",
+            "Backend",
+            "Scripting"
+        ]
+    },
+    {
+        "job_id": 358199,
+        "match_score": 92.0,
+        "tags": [
+            "Amazon Connect",
+            "AWS",
+            "Python",
+            "Lambda",
+            "JSON",
+            "APIs",
+            "DevOps",
+            "CI/CD",
+            "Cloud Operations",
+            "Data & Infrastructure",
+            "Automation",
+            "SQL"
+        ]
+    },
+    {
+        "job_id": 358063,
+        "match_score": 55.0,
+        "tags": [
+            "RPA",
+            "Business Analysis",
+            "Automation",
+            "Process Improvement",
+            "Requirements Gathering",
+            "Agile",
+            "Data Analysis"
+        ]
+    },
+    {
+        "job_id": 357889,
+        "match_score": 28.0,
+        "tags": [
+            "Tax Compliance",
+            "Project Management",
+            "Engagement Management",
+            "Reporting",
+            "Data Analysis",
+            "Workflow"
+        ]
+    },
+    {
+        "job_id": 357954,
+        "match_score": 60.0,
+        "tags": [
+            "Anaplan",
+            "Data Modeling",
+            "Business Intelligence",
+            "Databases",
+            "DevOps",
+            "Agile",
+            "Reports & Dashboards",
+            "Data Analysis"
+        ]
+    },
+    {
+        "job_id": 357894,
+        "match_score": 20.0,
+        "tags": [
+            "Tax Compliance",
+            "Project Management",
+            "Engagement Management",
+            "Leadership",
+            "Reporting",
+            "Data Analysis",
+            "Workflow"
+        ]
+    },
+    {
+        "job_id": 357805,
+        "match_score": 90.0,
+        "tags": [
+            "ServiceNow",
+            "Integrated Risk Management",
+            "Cyber Security",
+            "Automation",
+            "APIs",
+            "Workflow",
+            "UI/UX",
+            "Configuration Management",
+            "Backend",
+            "Frontend",
+            "Scripting"
+        ]
+    },
+    {
+        "job_id": 357752,
+        "match_score": 5.0,
+        "tags": [
+            "HR",
+            "Talent Management",
+            "Business Analysis",
+            "Consulting",
+            "Data Analysis (non-technical)"
+        ]
+    },
+    {
+        "job_id": 357624,
+        "match_score": 10.0,
+        "tags": [
+            "Graphic Design",
+            "Visual Communication",
+            "Marketing",
+            "Adobe Creative Suite",
+            "Frontend (design focus)"
+        ]
+    },
+    {
+        "job_id": 357754,
+        "match_score": 65.0,
+        "tags": [
+            "Backend",
+            "Data & Infra",
+            "Automation",
+            "Scripting",
+            "Security",
+            "Identity & Access Management",
+            "Active Directory",
+            "PowerShell",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 357753,
+        "match_score": 60.0,
+        "tags": [
+            "Backend",
+            "Data & Infra",
+            "Automation",
+            "Scripting",
+            "Security",
+            "Identity & Access Management",
+            "Active Directory",
+            "PowerShell",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 357868,
+        "match_score": 5.0,
+        "tags": [
+            "SAP",
+            "Finance",
+            "Treasury",
+            "Consulting",
+            "ERP"
+        ]
+    },
+    {
+        "job_id": 357749,
+        "match_score": 5.0,
+        "tags": [
+            "SAP",
+            "Finance",
+            "Performance Management",
+            "Consulting",
+            "Data Modeling"
+        ]
+    },
+    {
+        "job_id": 358098,
+        "match_score": 75.0,
+        "tags": [
+            "Full-stack",
+            "Product Development",
+            "Engineering Leadership",
+            "AI",
+            "Data Science",
+            "Backend",
+            "Frontend",
+            "DevOps",
+            "Technical Architecture",
+            "Hyperscalers"
+        ]
+    },
+    {
+        "job_id": 357762,
+        "match_score": 5.0,
+        "tags": [
+            "Sales",
+            "Strategy",
+            "Proposal Management",
+            "Consulting",
+            "Tax",
+            "GenAI (non-technical)"
+        ]
+    },
+    {
+        "job_id": 357421,
+        "match_score": 25.0,
+        "tags": [
+            "Market Research",
+            "Thought Leadership",
+            "TMT",
+            "AI",
+            "Data Analysis",
+            "Consulting",
+            "Technology"
+        ]
+    },
+    {
+        "job_id": 357760,
+        "match_score": 35.0,
+        "tags": [
+            "Python",
+            "REST API",
+            "Automation",
+            "Configuration Management",
+            "Backend",
+            "Infrastructure",
+            "Security"
+        ]
+    },
+    {
+        "job_id": 357415,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 357588,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 357443,
+        "match_score": 85.0,
+        "tags": [
+            "Python",
+            "DevOps",
+            "CI/CD",
+            "Automation",
+            "Cloud",
+            "Infrastructure",
+            "Configuration Management",
+            "Deployment",
+            "Backend",
+            "APIs",
+            "Linux",
+            "SQL",
+            "Docker",
+            "Kubernetes",
+            "Production Support"
+        ]
+    },
+    {
+        "job_id": 357452,
+        "match_score": 95.0,
+        "tags": [
+            "SRE",
+            "DevOps",
+            "Python",
+            "Backend",
+            "APIs",
+            "Data",
+            "Infrastructure",
+            "Cloud",
+            "CI/CD",
+            "Automation",
+            "Production Pipelines",
+            "Configuration Management",
+            "Scalability",
+            "High Availability",
+            "Monitoring",
+            "Observability",
+            "Troubleshooting",
+            "Software Engineering",
+            "Product Development"
+        ]
+    },
+    {
+        "job_id": 357288,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 357275,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 357297,
+        "match_score": 25.0,
+        "tags": [
+            "Workflow Design",
+            "Process Improvement",
+            "Data",
+            "Operations",
+            "Analytics"
+        ]
+    },
+    {
+        "job_id": 357293,
+        "match_score": 10.0,
+        "tags": []
+    },
+    {
+        "job_id": 357283,
+        "match_score": 5.0,
+        "tags": [
+            "Tax",
+            "Finance",
+            "Accounting",
+            "Compliance",
+            "Legal"
+        ]
+    },
+    {
+        "job_id": 357747,
+        "match_score": 45.0,
+        "tags": [
+            "SAP",
+            "PaPM",
+            "EPM",
+            "Data Modeling",
+            "Data Integration",
+            "Process Automation",
+            "SQL",
+            "Data Warehousing",
+            "UI",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 357281,
+        "match_score": 5.0,
+        "tags": [
+            "Tax",
+            "Transfer Pricing",
+            "Finance",
+            "Compliance",
+            "Legal",
+            "Accounting"
+        ]
+    },
+    {
+        "job_id": 357604,
+        "match_score": 30.0,
+        "tags": [
+            "Financial Planning",
+            "Analysis",
+            "Automation",
+            "AI",
+            "Data Pipelines",
+            "Data Governance",
+            "Leadership",
+            "Python",
+            "APIs"
+        ]
+    },
+    {
+        "job_id": 357428,
+        "match_score": 25.0,
+        "tags": [
+            "Frontend",
+            "UI",
+            "HTML",
+            "CSS",
+            "JavaScript",
+            "Troubleshooting",
+            "Technical Support",
+            "Learning Tools",
+            "Content Development"
+        ]
+    },
+    {
+        "job_id": 357248,
+        "match_score": 55.0,
+        "tags": [
+            "MES",
+            "Manufacturing",
+            "Technical Transformation",
+            "APIs",
+            "Integrations",
+            "SQL",
+            "JavaScript",
+            "Automation",
+            "Data",
+            "Backend",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 357284,
+        "match_score": 70.0,
+        "tags": [
+            "Cybersecurity",
+            "SOAR",
+            "Automation",
+            "AI",
+            "LLM",
+            "Python",
+            "APIs",
+            "Backend",
+            "Data & Infra",
+            "Security Operations",
+            "Manager"
+        ]
+    },
+    {
+        "job_id": 357313,
+        "match_score": 40.0,
+        "tags": [
+            "Analytics",
+            "Data",
+            "SQL",
+            "Data Modeling",
+            "Reporting",
+            "Data Visualization",
+            "Leadership",
+            "Project Management"
+        ]
+    },
+    {
+        "job_id": 357258,
+        "match_score": 60.0,
+        "tags": [
+            "Functional Transformation",
+            "EPM",
+            "Data Integration",
+            "APIs",
+            "ETL",
+            "Python",
+            "SQL",
+            "Cloud",
+            "Automation",
+            "Backend",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 357262,
+        "match_score": 50.0,
+        "tags": [
+            "PLM",
+            "Windchill",
+            "Technical Transformation",
+            "Data Migration",
+            "Integrations",
+            "JavaScript",
+            "XML",
+            "Automation",
+            "Backend",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 357331,
+        "match_score": 85.0,
+        "tags": [
+            "Full-stack",
+            "Python",
+            "Django",
+            "React",
+            "APIs",
+            "Automation",
+            "Infrastructure",
+            "Data Management",
+            "UI Development",
+            "Cloud"
+        ]
+    },
+    {
+        "job_id": 357466,
+        "match_score": 60.0,
+        "tags": [
+            "Data Engineering",
+            "Python",
+            "Data Analysis",
+            "SQL",
+            "Data & Infra"
+        ]
+    },
+    {
+        "job_id": 357269,
+        "match_score": 40.0,
+        "tags": [
+            "Full-stack",
+            "Frontend",
+            "React",
+            "APIs",
+            "SQL",
+            "Software Engineering"
+        ]
+    },
+    {
+        "job_id": 356947,
+        "match_score": 5.0,
+        "tags": [
+            "Administrative Support",
+            "Operations"
+        ]
+    },
+    {
+        "job_id": 357151,
+        "match_score": 10.0,
+        "tags": [
+            "Finance",
+            "Accounting"
+        ]
+    },
+    {
+        "job_id": 356949,
+        "match_score": 15.0,
+        "tags": [
+            "Finance Transformation",
+            "Oracle EPM",
+            "Data Integration"
+        ]
+    },
+    {
+        "job_id": 357137,
+        "match_score": 65.0,
+        "tags": [
+            "Full-stack",
+            "Frontend",
+            "UI Development",
+            "APIs",
+            "Software Engineering",
+            "SAP"
+        ]
+    },
+    {
+        "job_id": 357457,
+        "match_score": 20.0,
+        "tags": [
+            "Financial Planning",
+            "Data Analysis",
+            "Python"
+        ]
+    },
+    {
+        "job_id": 356942,
+        "match_score": 5.0,
+        "tags": [
+            "Marketing",
+            "Campaign Management"
+        ]
+    },
+    {
+        "job_id": 357250,
+        "match_score": 25.0,
+        "tags": [
+            "MES",
+            "Manufacturing",
+            "Technical Consulting",
+            "APIs"
+        ]
+    },
+    {
+        "job_id": 356954,
+        "match_score": 30.0,
+        "tags": [
+            "Python",
+            "Backend",
+            "Security",
+            "Cloud",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 356994,
+        "match_score": 5.0,
+        "tags": [
+            "Data Management",
+            "Compliance",
+            "Operations"
+        ]
+    },
+    {
+        "job_id": 357119,
+        "match_score": 5.0,
+        "tags": [
+            "SAP",
+            "ERP",
+            "Tax",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 357106,
+        "match_score": 45.0,
+        "tags": [
+            "Cloud",
+            "Infrastructure",
+            "Administration",
+            "Python",
+            "Automation",
+            "Data & Infra",
+            "AWS",
+            "Azure"
+        ]
+    },
+    {
+        "job_id": 357263,
+        "match_score": 20.0,
+        "tags": [
+            "PLM",
+            "Consulting",
+            "JavaScript",
+            "Technical Transformation"
+        ]
+    },
+    {
+        "job_id": 356995,
+        "match_score": 10.0,
+        "tags": [
+            "Cybersecurity",
+            "Pre-Sales",
+            "Management",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 356999,
+        "match_score": 5.0,
+        "tags": [
+            "Data Management",
+            "Compliance",
+            "Operations",
+            "Reporting"
+        ]
+    },
+    {
+        "job_id": 357012,
+        "match_score": 90.0,
+        "tags": [
+            "Full-stack",
+            "Python",
+            "Django",
+            "React",
+            "REST APIs",
+            "Backend",
+            "Frontend",
+            "Product Development",
+            "Data & Infra",
+            "Cloud",
+            "CI/CD",
+            "Cybersecurity",
+            "APIs",
+            "Databases"
+        ]
+    },
+    {
+        "job_id": 357154,
+        "match_score": 70.0,
+        "tags": [
+            "Full-stack",
+            "Frontend",
+            "React",
+            "JavaScript",
+            "Engineering Manager",
+            "Product Development",
+            "Leadership",
+            "Agile",
+            "Azure"
+        ]
+    },
+    {
+        "job_id": 356920,
+        "match_score": 10.0,
+        "tags": [
+            "SAP",
+            "EWM",
+            "Consulting",
+            "Supply Chain",
+            "ERP"
+        ]
+    },
+    {
+        "job_id": 356922,
+        "match_score": 20.0,
+        "tags": [
+            "SAP",
+            "EWM",
+            "Consulting",
+            "Supply Chain",
+            "ERP",
+            "Software Solutions",
+            "Pipelines",
+            "Deployment",
+            "Leadership"
+        ]
+    },
+    {
+        "job_id": 356923,
+        "match_score": 5.0,
+        "tags": [
+            "Tax",
+            "Finance",
+            "Accounting",
+            "UK Tax",
+            "Compliance",
+            "Manager"
+        ]
+    },
+    {
+        "job_id": 356802,
+        "match_score": 5.0,
+        "tags": [
+            "Tax",
+            "Payroll",
+            "Presales",
+            "Consulting",
+            "Project Management",
+            "HRIS"
+        ]
+    },
+    {
+        "job_id": 356930,
+        "match_score": 85.0,
+        "tags": [
+            "Data Science",
+            "Data Analytics",
+            "Cybersecurity",
+            "Python",
+            "SQL",
+            "Automation",
+            "APIs",
+            "Data Pipelines",
+            "Reporting",
+            "Data Quality",
+            "Security",
+            "Backend",
+            "Application Development"
+        ]
+    },
+    {
+        "job_id": 356459,
+        "match_score": 45.0,
+        "tags": [
+            "Cyber Security",
+            "Digital Identity",
+            "IAM",
+            "SailPoint",
+            "APIs",
+            "SQL",
+            "Integrations",
+            "Automation",
+            "Security",
+            "Backend",
+            "Databases"
+        ]
+    },
+    {
+        "job_id": 356555,
+        "match_score": 50.0,
+        "tags": [
+            "Technical Transformation",
+            "Manager",
+            "Project Management",
+            "APIs",
+            "Integrations",
+            "Architecture",
+            "Data",
+            "SaaS",
+            "ERP",
+            "Billing",
+            "Subscription Management",
+            "Leadership"
+        ]
+    },
+    {
+        "job_id": 356875,
+        "match_score": 30.0,
+        "tags": [
+            "Contracts Management",
+            "Data Analytics",
+            "AI",
+            "Generative AI",
+            "Automation",
+            "Data Analysis",
+            "Reporting",
+            "Technology Support",
+            "UAT"
+        ]
+    },
+    {
+        "job_id": 356541,
+        "match_score": 95.0,
+        "tags": [
+            "Product Developer",
+            "Python",
+            "Generative AI",
+            "AI",
+            "Machine Learning",
+            "APIs",
+            "Backend",
+            "Data & Infra",
+            "Automation",
+            "Product Development",
+            "Scalability",
+            "Databases",
+            "Software Engineering",
+            "LLMs",
+            "Agent Frameworks"
+        ]
+    },
+    {
+        "job_id": 356473,
+        "match_score": 40.0,
+        "tags": [
+            "SAP",
+            "ABAP",
+            "S/4HANA",
+            "Gen AI",
+            "AI",
+            "Python",
+            "APIs",
+            "Systems Architecture",
+            "Integrations",
+            "Tax Technology",
+            "ERP",
+            "OData",
+            "CDS"
+        ]
+    },
+    {
+        "job_id": 356928,
+        "match_score": 15.0,
+        "tags": [
+            "Oracle Fusion",
+            "Tax Technology",
+            "ERP Implementation",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 356547,
+        "match_score": 5.0,
+        "tags": [
+            "Expense Compliance",
+            "Finance",
+            "Support Analyst"
+        ]
+    },
+    {
+        "job_id": 356482,
+        "match_score": 25.0,
+        "tags": [
+            "SAP",
+            "ABAP",
+            "Data Integration",
+            "APIs",
+            "Tax Technology",
+            "ETL"
+        ]
+    },
+    {
+        "job_id": 356926,
+        "match_score": 45.0,
+        "tags": [
+            "Software Engineer",
+            "Web Development",
+            "APIs",
+            "Frontend",
+            "Backend",
+            ".NET",
+            "Angular",
+            "SQL Server",
+            "Web Security"
+        ]
+    },
+    {
+        "job_id": 356556,
+        "match_score": 95.0,
+        "tags": [
+            "Full-stack Development",
+            "Python",
+            "React.js",
+            "APIs",
+            "Web Applications",
+            "Frontend",
+            "Backend",
+            "CI/CD",
+            "Docker",
+            "Product Development",
+            "Scalable Systems"
+        ]
+    },
+    {
+        "job_id": 356525,
+        "match_score": 5.0,
+        "tags": [
+            "Client Experience",
+            "Event Management",
+            "Logistics",
+            "Project Coordination"
+        ]
+    },
+    {
+        "job_id": 356737,
+        "match_score": 20.0,
+        "tags": [
+            "Pricefx",
+            "Pricing Strategy",
+            "Consulting",
+            "ERP Integration",
+            "Data Analysis"
+        ]
+    },
+    {
+        "job_id": 356936,
+        "match_score": 15.0,
+        "tags": [
+            "Oracle Fusion",
+            "Tax Technology",
+            "ERP Implementation",
+            "Consulting",
+            "Manager"
+        ]
+    },
+    {
+        "job_id": 356191,
+        "match_score": 5.0,
+        "tags": [
+            "Cybersecurity",
+            "Pre-Sales",
+            "Solution Design",
+            "Consulting",
+            "Managed Security"
+        ]
+    },
+    {
+        "job_id": 356185,
+        "match_score": 5.0,
+        "tags": [
+            "Strategy",
+            "Consulting",
+            "Market Research",
+            "Business Transformation",
+            "Project Management"
+        ]
+    },
+    {
+        "job_id": 356178,
+        "match_score": 5.0,
+        "tags": [
+            "SAP",
+            "Tax",
+            "Finance",
+            "ERP"
+        ]
+    },
+    {
+        "job_id": 356174,
+        "match_score": 5.0,
+        "tags": [
+            "SAP",
+            "Tax",
+            "Finance",
+            "ERP"
+        ]
+    },
+    {
+        "job_id": 356214,
+        "match_score": 35.0,
+        "tags": [
+            "Data Engineering",
+            "Python",
+            "Automation",
+            "Data Analytics",
+            "SQL",
+            "CI/CD"
+        ]
+    },
+    {
+        "job_id": 356924,
+        "match_score": 0.0,
+        "tags": [
+            "Tax",
+            "Finance",
+            "Accounting",
+            "Compliance"
+        ]
+    },
+    {
+        "job_id": 356447,
+        "match_score": 60.0,
+        "tags": [
+            "Cyber Security",
+            "Digital Identity",
+            "PAM",
+            "IAM",
+            "APIs",
+            "Automation",
+            "Python",
+            "Security",
+            "Configuration Management"
+        ]
+    },
+    {
+        "job_id": 356117,
+        "match_score": 90.0,
+        "tags": [
+            "Data Analytics",
+            "Data Engineering",
+            "Python",
+            "SQL",
+            "PostgreSQL",
+            "Data Modeling",
+            "Automation",
+            "Prototyping",
+            "Pipelines",
+            "Product Development",
+            "Git"
+        ]
+    },
+    {
+        "job_id": 356044,
+        "match_score": 0.0,
+        "tags": [
+            "Audit",
+            "Compliance",
+            "Finance",
+            "Risk"
+        ]
+    },
+    {
+        "job_id": 356023,
+        "match_score": 0.0,
+        "tags": [
+            "Tax",
+            "Payroll",
+            "Finance",
+            "Compliance"
+        ]
+    },
+    {
+        "job_id": 356043,
+        "match_score": 0.0,
+        "tags": [
+            "Tax",
+            "Finance",
+            "Accounting",
+            "Compliance"
+        ]
+    },
+    {
+        "job_id": 356176,
+        "match_score": 5.0,
+        "tags": [
+            "Finance",
+            "Accounting",
+            "Project Management",
+            "Financial Analysis"
+        ]
+    },
+    {
+        "job_id": 356123,
+        "match_score": 75.0,
+        "tags": [
+            "Data Engineering",
+            "Analytics Engineering",
+            "Python",
+            "Data Pipelines",
+            "Scalable Architectures",
+            "Product Development",
+            "Technical Leadership",
+            "Prototyping",
+            "API Integration"
+        ]
+    },
+    {
+        "job_id": 356167,
+        "match_score": 5.0,
+        "tags": [
+            "Global Mobility",
+            "HR Operations",
+            "Tax Compliance",
+            "Reporting"
+        ]
+    },
+    {
+        "job_id": 356177,
+        "match_score": 40.0,
+        "tags": [
+            "Backend Development",
+            "API Integration",
+            "REST APIs",
+            "JSON",
+            "Middleware"
+        ]
+    },
+    {
+        "job_id": 356168,
+        "match_score": 5.0,
+        "tags": [
+            "Global Mobility",
+            "HR Operations",
+            "Tax Compliance",
+            "Reporting"
+        ]
+    },
+    {
+        "job_id": 356210,
+        "match_score": 85.0,
+        "tags": [
+            "Data Engineering",
+            "Data Analytics",
+            "Product Engineering",
+            "Software Engineering",
+            "Python",
+            "ETL/ELT",
+            "Data Warehousing",
+            "Cloud-Native Engineering",
+            "Microservices",
+            "DevSecOps",
+            "Agile",
+            "Scalable Solutions",
+            "Technical Leadership",
+            "Cross-functional Collaboration",
+            "Production Pipelines",
+            "JSON"
+        ]
+    },
+    {
+        "job_id": 356451,
+        "match_score": 10.0,
+        "tags": [
+            "Project Management Office (PMO)",
+            "Program Management",
+            "ERP Implementation",
+            "Tax Technology"
+        ]
+    },
+    {
+        "job_id": 356170,
+        "match_score": 5.0,
+        "tags": [
+            "Tax Compliance",
+            "Employment Tax",
+            "Financial Reporting",
+            "Excel Data Analysis"
+        ]
+    },
+    {
+        "job_id": 356211,
+        "match_score": 88.0,
+        "tags": [
+            "Data Engineering",
+            "Data Analytics",
+            "Product Engineering",
+            "Software Engineering",
+            "Python",
+            "ETL/ELT",
+            "Data Warehousing",
+            "Cloud-Native Engineering",
+            "Microservices",
+            "DevSecOps",
+            "Agile",
+            "Scalable Solutions",
+            "Production Pipelines",
+            "JSON",
+            "Reporting"
+        ]
+    },
+    {
+        "job_id": 356139,
+        "match_score": 5.0,
+        "tags": [
+            "Payroll Accounting",
+            "Finance",
+            "Reconciliation",
+            "Tax Compliance"
+        ]
+    },
+    {
+        "job_id": 355951,
+        "match_score": 15.0,
+        "tags": [
+            "Risk Management",
+            "Regulatory Compliance",
+            "Data Analysis",
+            "Business Intelligence"
+        ]
+    },
+    {
+        "job_id": 355945,
+        "match_score": 5.0,
+        "tags": [
+            "Tax Compliance",
+            "Financial Services",
+            "Accounting"
+        ]
+    },
+    {
+        "job_id": 355927,
+        "match_score": 90.0,
+        "tags": [
+            "Cloud Native",
+            "Microservices",
+            "API Design",
+            "Backend Development",
+            "Frontend Development",
+            "CI/CD",
+            "AWS",
+            "Architecture",
+            "Security",
+            "Scalability",
+            "Product Development"
+        ]
+    },
+    {
+        "job_id": 355989,
+        "match_score": 5.0,
+        "tags": [
+            "Tax Compliance",
+            "Financial Services",
+            "Accounting"
+        ]
+    },
+    {
+        "job_id": 355965,
+        "match_score": 20.0,
+        "tags": [
+            "Strategic Planning",
+            "Risk Management",
+            "Business Operations",
+            "Transformation Leadership"
+        ]
+    },
+    {
+        "job_id": 355928,
+        "match_score": 5.0,
+        "tags": [
+            "Statutory Accounting",
+            "Tax Compliance",
+            "Financial Reporting"
+        ]
+    },
+    {
+        "job_id": 356007,
+        "match_score": 5.0,
+        "tags": [
+            "Tax Compliance",
+            "Financial Services",
+            "Accounting"
+        ]
+    },
+    {
+        "job_id": 355693,
+        "match_score": 65.0,
+        "tags": [
+            "Cybersecurity",
+            "Data Protection",
+            "Encryption",
+            "PKI",
+            "Security Architecture",
+            "Automation",
+            "Backend Development"
+        ]
+    },
+    {
+        "job_id": 355707,
+        "match_score": 80.0,
+        "tags": [
+            "RPA",
+            "Automation",
+            "Python",
+            "API Integration",
+            "Data Wrangling",
+            "Process Optimization",
+            "DevOps",
+            "Tax Technology",
+            "System Integration"
+        ]
+    },
+    {
+        "job_id": 355691,
+        "match_score": 70.0,
+        "tags": [
+            "Cybersecurity",
+            "Data Protection",
+            "Encryption",
+            "PKI",
+            "Security Architecture",
+            "Automation",
+            "Backend Development"
+        ]
+    },
+    {
+        "job_id": 356012,
+        "match_score": 55.0,
+        "tags": [
+            "Python",
+            "APIs",
+            "Database Management",
+            "Data Processing",
+            "System Integration",
+            "Automation"
+        ]
+    },
+    {
+        "job_id": 355938,
+        "match_score": 80.0,
+        "tags": [
+            "Python",
+            "Data Engineering",
+            "Data & Infra",
+            "Backend Development",
+            "API Development",
+            "Product Development",
+            "Automation",
+            "Agile",
+            "DevOps",
+            "SQL",
+            "Cloud Concepts"
+        ]
+    },
+    {
+        "job_id": 355734,
+        "match_score": 85.0,
+        "tags": [
+            "Python",
+            "Data Engineering",
+            "Data & Infra",
+            "Backend Development",
+            "API Development",
+            "Product Development",
+            "Automation",
+            "Agile",
+            "DevOps",
+            "SQL",
+            "CI/CD",
+            "Cloud Concepts"
+        ]
+    },
+    {
+        "job_id": 355759,
+        "match_score": 15.0,
+        "tags": [
+            "Security Awareness",
+            "Risk Management"
+        ]
+    },
+    {
+        "job_id": 355936,
+        "match_score": 5.0,
+        "tags": [
+            "Automation",
+            "Data Management"
+        ]
+    },
+    {
+        "job_id": 355739,
+        "match_score": 80.0,
+        "tags": [
+            "Python",
+            "Data Engineering",
+            "Data & Infra",
+            "Backend Development",
+            "API Development",
+            "Product Development",
+            "Automation",
+            "Agile",
+            "DevOps",
+            "SQL",
+            "Cloud Concepts"
+        ]
+    },
+    {
+        "job_id": 355557,
+        "match_score": 5.0,
+        "tags": [
+            "Security Awareness"
+        ]
+    },
+    {
+        "job_id": 355756,
+        "match_score": 10.0,
+        "tags": [
+            "Security Awareness",
+            "Risk Management"
+        ]
+    },
+    {
+        "job_id": 355631,
+        "match_score": 10.0,
+        "tags": [
+            "Project Management",
+            "Agile Methodologies",
+            "Delivery Acceleration"
+        ]
+    },
+    {
+        "job_id": 355750,
+        "match_score": 15.0,
+        "tags": [
+            "Security Awareness",
+            "Infrastructure Concepts",
+            "Cloud Concepts"
+        ]
+    },
+    {
+        "job_id": 355633,
+        "match_score": 20.0,
+        "tags": [
+            "AI",
+            "Generative AI",
+            "Architect",
+            "Senior Manager",
+            "Enterprise Architecture",
+            "Python",
+            "APIs",
+            "UI",
+            "Leadership",
+            "Mismatch (Experience Level)",
+            "Mismatch (AI Specialization)"
+        ]
+    },
+    {
+        "job_id": 355126,
+        "match_score": 5.0,
+        "tags": [
+            "Data Protection",
+            "Privacy",
+            "Risk Assessment",
+            "Compliance",
+            "Assistant Manager",
+            "Mismatch (Domain)"
+        ]
+    },
+    {
+        "job_id": 355681,
+        "match_score": 25.0,
+        "tags": [
+            "Cyber Security",
+            "Encryption",
+            "Secrets Management",
+            "HashiCorp Vault",
+            "PKI",
+            "Data Protection",
+            "Automation",
+            "Scripting",
+            "APIs",
+            "Mismatch (Specialization)"
+        ]
+    },
+    {
+        "job_id": 355628,
+        "match_score": 0.0,
+        "tags": [
+            "SAP",
+            "Production Planning",
+            "Supply Chain",
+            "Consultant",
+            "Mismatch (Technology Stack)",
+            "Mismatch (Domain)"
+        ]
+    },
+    {
+        "job_id": 355632,
+        "match_score": 30.0,
+        "tags": [
+            "Mainframe Modernization",
+            "Senior Manager",
+            "Python",
+            "APIs",
+            "Microservices",
+            "CI/CD",
+            "Cloud",
+            "Leadership",
+            "Mismatch (Experience Level)",
+            "Mismatch (Core Technology)"
+        ]
+    },
+    {
+        "job_id": 355925,
+        "match_score": 0.0,
+        "tags": [
+            "Accounting",
+            "Tax",
+            "Financial Reporting",
+            "Manager",
+            "Mismatch (Domain)"
+        ]
+    },
+    {
+        "job_id": 355552,
+        "match_score": 5.0,
+        "tags": [
+            "Cyber Security",
+            "SAP Security",
+            "GRC",
+            "Senior Consultant",
+            "Mismatch (Technology Stack)",
+            "Mismatch (Domain)"
+        ]
+    },
+    {
+        "job_id": 355452,
+        "match_score": 75.0,
+        "tags": [
+            "AI Infrastructure",
+            "HPC",
+            "Infrastructure Engineer",
+            "Automation",
+            "Infrastructure as Code",
+            "Python",
+            "APIs",
+            "Security",
+            "Data & Infra",
+            "Production Pipelines",
+            "Scalability",
+            "GitOps",
+            "Terraform",
+            "Ansible",
+            "Kubernetes"
+        ]
+    },
+    {
+        "job_id": 355072,
+        "match_score": 30.0,
+        "tags": [
+            "Automation",
+            "Data Analysis",
+            "Process Improvement",
+            "Consulting"
+        ]
+    },
+    {
+        "job_id": 355687,
+        "match_score": 75.0,
+        "tags": [
+            "Security",
+            "Secrets Management",
+            "Data Protection",
+            "Automation",
+            "Scripting",
+            "Backend",
+            "APIs",
+            "Infrastructure",
+            "Configuration Management"
+        ]
+    },
+    {
+        "job_id": 355636,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 355244,
+        "match_score": 10.0,
+        "tags": []
+    },
+    {
+        "job_id": 355235,
+        "match_score": 70.0,
+        "tags": [
+            "Security",
+            "IAM",
+            "Privileged Access Management",
+            "Backend",
+            "APIs",
+            "Integration",
+            "Automation",
+            "Configuration Management"
+        ]
+    },
+    {
+        "job_id": 355078,
+        "match_score": 45.0,
+        "tags": [
+            "Data & Infra",
+            "SQL (general)",
+            "JSON",
+            "ETL (conceptual)",
+            "Agile"
+        ]
+    },
+    {
+        "job_id": 355248,
+        "match_score": 85.0,
+        "tags": [
+            "Full-stack Development",
+            "Product Development",
+            "Software Engineering",
+            "Backend",
+            "Frontend",
+            "APIs",
+            "Python",
+            "React",
+            "Data & Infra",
+            "Automation",
+            "Scalability",
+            "Agile",
+            "DevSecOps",
+            "Cloud",
+            "AI/ML (potential)"
+        ]
+    },
+    {
+        "job_id": 355423,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 355218,
+        "match_score": 80.0,
+        "tags": [
+            "Full-stack Development",
+            "Frontend",
+            "Backend",
+            "React",
+            "APIs",
+            "Microservices",
+            "Databases",
+            "Git",
+            "Unit Testing",
+            "Web Security",
+            "Product Development",
+            "UI/UX"
+        ]
+    },
+    {
+        "job_id": 355074,
+        "match_score": 30.0,
+        "tags": [
+            "Automation",
+            "Data Analysis",
+            "Process Improvement",
+            "Consulting",
+            "Business Requirements"
+        ]
+    },
+    {
+        "job_id": 355097,
+        "match_score": 5.0,
+        "tags": [
+            "Legal Management",
+            "Contract Management",
+            "Process Improvement"
+        ]
+    },
+    {
+        "job_id": 355094,
+        "match_score": 5.0,
+        "tags": [
+            "Legal Management",
+            "Contract Management",
+            "Process Improvement"
+        ]
+    },
+    {
+        "job_id": 355822,
+        "match_score": 30.0,
+        "tags": [
+            "Data & Infra",
+            "Backend",
+            "Automation",
+            "Database Administration",
+            "NoSQL",
+            "AI Solutions"
+        ]
+    },
+    {
+        "job_id": 355098,
+        "match_score": 5.0,
+        "tags": [
+            "Legal Entity Management",
+            "Corporate Compliance",
+            "Process Improvement"
+        ]
+    },
+    {
+        "job_id": 355099,
+        "match_score": 5.0,
+        "tags": [
+            "Legal Entity Management",
+            "Corporate Compliance",
+            "Process Improvement"
+        ]
+    },
+    {
+        "job_id": 355059,
+        "match_score": 40.0,
+        "tags": [
+            "ERP",
+            "Tax Technology",
+            "Implementation",
+            "Configuration",
+            "Process Design",
+            "Automation",
+            "Backend",
+            "APIs",
+            "Project Management"
+        ]
+    },
+    {
+        "job_id": 355065,
+        "match_score": 55.0,
+        "tags": [
+            "Oracle GTM",
+            "Global Trade Management",
+            "Integration",
+            "APIs",
+            "Data Mapping",
+            "Backend",
+            "Data & Infra",
+            "Workflow Automation",
+            "Python",
+            "Solution Design"
+        ]
+    },
+    {
+        "job_id": 355057,
+        "match_score": 40.0,
+        "tags": [
+            "SAP",
+            "ERP",
+            "Tax Technology",
+            "FICO",
+            "SD",
+            "MM",
+            "Integration",
+            "Configuration",
+            "Project Management",
+            "Backend",
+            "Automation"
+        ]
+    },
+    {
+        "job_id": 355058,
+        "match_score": 40.0,
+        "tags": [
+            "Oracle EBS",
+            "Oracle Financials Cloud",
+            "Tax Technology",
+            "ERP",
+            "Process Improvement",
+            "Automation",
+            "Project Management",
+            "Backend",
+            "APIs"
+        ]
+    },
+    {
+        "job_id": 355219,
+        "match_score": 85.0,
+        "tags": [
+            "Full-stack",
+            "Frontend",
+            "React",
+            "Backend",
+            "APIs",
+            "Databases",
+            "DevOps",
+            "CI/CD",
+            "Cloud",
+            "Product Development",
+            "UI/UX",
+            "Automation",
+            "Security",
+            "Microservices"
+        ]
+    },
+    {
+        "job_id": 355100,
+        "match_score": 5.0,
+        "tags": []
+    },
+    {
+        "job_id": 355069,
+        "match_score": 90.0,
+        "tags": [
+            "Data Engineering",
+            "Data Pipelines",
+            "Python",
+            "SQL",
+            "Databases",
+            "Automation",
+            "Data Security",
+            "Cloud",
+            "Big Data",
+            "AI"
+        ]
+    },
+    {
+        "job_id": 355062,
+        "match_score": 88.0,
+        "tags": [
+            "Data Engineering",
+            "Data Pipelines",
+            "Python",
+            "SQL",
+            "ETL",
+            "Automation",
+            "APIs",
+            "Cloud",
+            "CI/CD",
+            "Data Quality",
+            "Data Security",
+            "Product Development",
+            "Martech"
+        ]
+    },
+    {
+        "job_id": 355068,
+        "match_score": 80.0,
+        "tags": [
+            "Data Engineering",
+            "Data Pipelines",
+            "Python",
+            "SQL",
+            "Databases",
+            "Automation",
+            "Data Security",
+            "Cloud",
+            "Big Data",
+            "AI"
+        ]
+    },
+    {
+        "job_id": 354838,
+        "match_score": 87.0,
+        "tags": [
+            "Full-stack",
+            "Frontend",
+            "React",
+            "Backend",
+            "APIs",
+            "Microservices",
+            "Databases",
+            "Cloud",
+            "DevOps",
+            "CI/CD",
+            "Docker",
+            "Kubernetes",
+            "Agile",
+            "Product Development",
+            "UI/UX",
+            "Automation",
+            "Security"
+        ]
+    },
+    {
+        "job_id": 355067,
+        "match_score": 20.0,
+        "tags": [
+            "Data Governance",
+            "APIs",
+            "Integration"
+        ]
+    },
+    {
+        "job_id": 354841,
+        "match_score": 0.0,
+        "tags": []
+    },
+    {
+        "job_id": 355071,
+        "match_score": 92.0,
+        "tags": [
+            "AI Engineering",
+            "LLM",
+            "Python",
+            "APIs",
+            "Cloud",
+            "MLOps",
+            "CI/CD",
+            "Docker",
+            "Kubernetes",
+            "Databases",
+            "Automation",
+            "Scalability",
+            "Product Development",
+            "Software Engineering",
+            "NLP"
+        ]
+    },
+    {
+        "job_id": 354830,
+        "match_score": 15.0,
+        "tags": [
+            "Data Integration",
+            "Databases"
+        ]
+    },
+    {
+        "job_id": 354911,
+        "match_score": 90.5,
+        "tags": [
+            "Full-stack Development",
+            "Python",
+            "Django",
+            "React",
+            "APIs",
+            "Databases",
+            "CI/CD",
+            "Software Engineering",
+            "Product Engineering",
+            "Technical Leadership"
+        ]
+    },
+    {
+        "job_id": 354863,
+        "match_score": 30.0,
+        "tags": [
+            "Project Management",
+            "Data Analysis",
+            "Pricing",
+            "Business Operations",
+            "Excel"
+        ]
+    },
+    {
+        "job_id": 355444,
+        "match_score": 15.0,
+        "tags": [
+            "AI Infrastructure",
+            "Cloud Strategy",
+            "HPC",
+            "MLOps",
+            "Consulting",
+            "AI/ML"
+        ]
+    },
+    {
+        "job_id": 354982,
+        "match_score": 10.0,
+        "tags": [
+            "Strategic Design",
+            "Visual Communications",
+            "Executive Presentations",
+            "Graphic Design",
+            "Microsoft Office"
+        ]
+    },
+    {
+        "job_id": 355027,
+        "match_score": 70.0,
+        "tags": [
+            "Data Engineering",
+            "ETL",
+            "SQL",
+            "Python",
+            "Data Pipelines",
+            "Automation",
+            "Databases"
+        ]
+    },
+    {
+        "job_id": 355010,
+        "match_score": 35.0,
+        "tags": [
+            "Delivery Leadership",
+            "Program Management",
+            "Product Management (Strategic)",
+            "Enterprise IT",
+            "Leadership"
+        ]
+    },
+    {
+        "job_id": 354835,
+        "match_score": 85.0,
+        "tags": [
+            "Product Management",
+            "Product Development",
+            "Full-stack",
+            "UI/UX",
+            "Agile",
+            "Stakeholder Management",
+            "Product Strategy"
+        ]
+    },
+    {
+        "job_id": 355075,
+        "match_score": 10.0,
+        "tags": [
+            "Tax Consulting",
+            "Finance",
+            "Tax Provision",
+            "Accounting",
+            "Automation (Finance)"
+        ]
+    }
+]
