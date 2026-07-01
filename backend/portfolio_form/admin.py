@@ -101,7 +101,7 @@ class UserAdmin(DjangoUserAdmin):
             "fields": (
                 "tier", "theme_mode", "is_verified", 
                 "upload_profile_picture", "profile_picture_url", "profile_preview", 
-                "enable_share_token", "share_token", "created_at"
+                "enable_share_token","job_analysis_limit", "share_token", "created_at"
             )
         }),
     )
