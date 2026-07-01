@@ -41,7 +41,7 @@ class JobStore:
 
 class AIJobAnalyzer:
     def __init__(self):
-        self.model = ChatGoogleGenerativeAI(model="gemini-3.5-flash")
+        self.model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
     def analyze_job(self, job_data: Dict) -> str:
         prompt = MAIN_PROCESS_PROMPT.format(
