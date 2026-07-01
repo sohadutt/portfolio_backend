@@ -13,6 +13,8 @@ from .models import (
     ShowcaseCategory, FeaturedModule, Link
 )
 
+from jobby.models import Job, PortfolioJobMatch
+
 # 1. UTILITIES & FORMS
 
 def get_compressed_webp_buffer(uploaded_file, quality=80):
@@ -261,3 +263,24 @@ class LinkAdmin(OrderedPortfolioModelAdmin):
     list_display = ("portfolio", "type", "label", "order", "href")
     list_filter = ("type", "portfolio__owner")
     ordering = ("portfolio", "type", "order")
+
+@admin.register(Job)
+class JobAdmin(admin.ModelAdmin):
+    list_display = ("platform_name", "company", "title", "location", "tag_count", "ai_processed_at", "created_at")
+    list_filter = ("platform_name", "company")
+    search_fields = ("title", "company", "platform_job_id")
+    ordering = ("-created_at",)
+
+    def tag_count(self, obj):
+        return len(obj.tags or [])
+    tag_count.short_description = "Tags"
+
+@admin.register(PortfolioJobMatch)
+class PortfolioJobMatchAdmin(admin.ModelAdmin):
+    list_display = ("portfolio", "get_job_title", "match_score", "created_at")
+    list_filter = ("match_score", "portfolio__owner")
+    search_fields = ("portfolio__owner__username", "job__title")
+    
+    def get_job_title(self, obj):
+        return obj.job.title
+    get_job_title.short_description = 'Job Title'

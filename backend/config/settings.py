@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'anymail',
     'portfolio_form',
+    'jobby',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -117,9 +118,9 @@ DATABASES = {
 }
 
 # --- Rate Limiting Variables ---
-CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS = os.getenv("CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS", "5")
-CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("CONTACT_FORM_RATE_LIMIT_WINDOW_SECONDS", "300"))
-CONTACT_FORM_BLOCK_SECONDS = int(os.getenv("CONTACT_FORM_BLOCK_SECONDS", str(24 * 60 * 60)))
+ANON_MAX_REQUESTS = 5
+ANON_SECONDS = 300
+ANON_BLOCK_SECONDS = 24 * 60 * 60
 
 # --- DRF Configuration ---
 REST_FRAMEWORK = {
@@ -129,13 +130,11 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     
-    # Enable built-in Throttling for views decorated with @throttle_classes
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        # Format expects strings like '5/hour', '10/day', '3/minute'
-        'anon': f"{CONTACT_FORM_RATE_LIMIT_MAX_REQUESTS}/hour", 
+        'anon': f"{ANON_MAX_REQUESTS}/hour",
     }
 }
 

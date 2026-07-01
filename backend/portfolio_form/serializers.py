@@ -21,7 +21,7 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
         fields = [
             "id", "username", "email", "password", "first_name", 
             "last_name", "enable_share_token", "is_verified", 
-            "share_token", "created_at",
+            "share_token", "created_at", "job_analysis_limit"
         ]
         read_only_fields = ["id", "share_token", "created_at", "is_verified"]
 

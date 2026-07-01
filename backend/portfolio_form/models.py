@@ -130,7 +130,10 @@ class User(AbstractUser):
         editable=False,
         help_text="The unique slug used in the public portfolio URL."
     )
-    
+    job_analysis_limit = models.PositiveIntegerField(
+        default=2,
+        help_text="The maximum number of job analyses a user can perform."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property

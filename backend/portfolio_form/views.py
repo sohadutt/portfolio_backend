@@ -54,6 +54,12 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size_query_param: str = 'page_size'
     max_page_size: int = 40
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Basic health check endpoint to verify the API is responsive."""
+    return Response({"status": "ok", "timestamp": int(time.time())})
+
 @ensure_csrf_cookie
 @api_view(["GET"])
 @permission_classes([AllowAny])
