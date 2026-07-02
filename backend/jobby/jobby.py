@@ -93,7 +93,7 @@ class AIJobAnalyzer:
     @property
     def model(self):
         if self._model is None:
-            self._model = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+            self._model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
         return self._model
 
     def _invoke(self, prompt: str) -> str:
