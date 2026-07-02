@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from .models import ContactFormSubmission, User, PortfolioSettings
 from jobby.spiders.scraper_manager import ScraperManager
-from jobby.jobby import JobStore, AIJobAnalyzer, JsonUpdater, AddJobdata, JobManager, DatabaseUpdater
+from jobby.jobby import JobManager
 
 @shared_task(bind=True, max_retries=3)
 def send_otp_email_task(self: Task, email: str, secure_otp: str, subject: str = "Your OTP Code") -> str:
@@ -170,15 +170,8 @@ def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: boo
         except PortfolioSettings.DoesNotExist:
             return {"status": "error", "message": f"Portfolio {portfolio_id} not found."}
 
-        portfolio_dict = _portfolio_analysis_payload(portfolio_obj)
-
-        job_store = JobStore()
-        analyzer = AIJobAnalyzer()
-        json_updater = JsonUpdater()
-        db_updater = DatabaseUpdater()
-        add_jobdata = AddJobdata(job_store)
-        
-        manager = JobManager(job_store, analyzer, json_updater, add_jobdata, db_updater)
+        portfolio_dict = _portfolio_analysis_payload(portfolio_obj) 
+        manager = JobManager()
 
         if match_only:
             return manager.process_match_only(
