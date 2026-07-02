@@ -29,6 +29,7 @@ class PortfolioJobMatchSerializer(serializers.ModelSerializer):
             'portfolio',
             'job',
             'match_score',
-            'created_at'
+            'created_at',
+            'tags'
         ]
         read_only_fields = ['portfolio', 'created_at']
