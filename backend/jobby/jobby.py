@@ -239,9 +239,6 @@ class DatabaseUpdater:
 
     @classmethod
     def save_enriched_jobs_to_db(cls, raw_jobs: List[Dict], ai_enrichments: List[Dict], site_name: str) -> int:
-        """
-        OPTIMIZATION: Uses bulk_update instead of looping update_or_create.
-        """
         enrichment_lookup = {
             str(item.get("job_id")): item
             for item in ai_enrichments
@@ -251,13 +248,11 @@ class DatabaseUpdater:
         if not enrichment_lookup:
             return 0
             
-        # 1. Fetch exactly the jobs we need to update in one query
         jobs_to_update = list(Job.objects.filter(
             platform_name__iexact=site_name, 
             platform_job_id__in=enrichment_lookup.keys()
         ))
         
-        # 2. Mutate in memory
         now = timezone.now()
         for job in jobs_to_update:
             enrichment = enrichment_lookup[str(job.platform_job_id)]
@@ -265,7 +260,6 @@ class DatabaseUpdater:
             job.ai_metadata = enrichment.get("ai_metadata") or {}
             job.ai_processed_at = now
             
-        # 3. Update all rows in one swift DB hit
         if jobs_to_update:
             Job.objects.bulk_update(jobs_to_update, ['tags', 'ai_metadata', 'ai_processed_at'])
             
@@ -312,14 +306,13 @@ class DatabaseUpdater:
                 saved_count += 1
         return saved_count
 
-
 class JobManager:
-    def __init__(self, job_store: JobStore, analyzer: AIJobAnalyzer, json_updater: JsonUpdater, add_jobdata: AddJobdata, db_updater: DatabaseUpdater):
-        self.job_store = job_store
-        self.analyzer = analyzer
-        self.json_updater = json_updater
-        self.add_jobdata = add_jobdata
-        self.db_updater = db_updater
+    def __init__(self):
+        self.job_store = JobStore()
+        self.analyzer = AIJobAnalyzer()
+        self.json_updater = JsonUpdater()
+        self.db_updater = DatabaseUpdater()
+        self.add_jobdata = AddJobdata(self.job_store)
 
     @staticmethod
     def _compact_raw_job(raw_job: dict[str, Any]) -> dict[str, Any]:
