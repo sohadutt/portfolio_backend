@@ -93,7 +93,8 @@ class AIJobAnalyzer:
     @property
     def model(self):
         if self._model is None:
-            self._model = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+            print(f"[{time.strftime('%H:%M:%S')}] Initializing Google Gemini AI Model...")
+            self._model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
         return self._model
 
     def _invoke(self, prompt: str) -> str:
@@ -125,38 +126,42 @@ class AIJobAnalyzer:
 
 
 class JsonUpdater:
-    @staticmethod
-    def get_existing_job_ids(file_path: str | Path) -> set[str]:
-        """Reads the existing JSON and returns a set of already processed job_ids."""
-        try:
-            with _json_file_path(file_path).open("r", encoding="utf-8") as f:
-                data = json.load(f)
-                return {str(item.get("job_id")) for item in data if item.get("job_id")}
-        except (FileNotFoundError, json.JSONDecodeError):
-            return set()
+    def __init__(self):
+        # OPTIMIZATION: Cache file contents so we don't hit the disk on every batch
+        self._cache: Dict[str, Dict[str, Any]] = {}
 
-    @staticmethod
-    def update_json_file(file_path: str | Path, new_data: List[Dict]):
+    def _get_cache(self, path: Path) -> Dict[str, Any]:
+        path_str = str(path)
+        if path_str not in self._cache:
+            try:
+                with path.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    self._cache[path_str] = {str(item.get("job_id")): item for item in data if item.get("job_id")}
+            except (FileNotFoundError, json.JSONDecodeError):
+                self._cache[path_str] = {}
+        return self._cache[path_str]
+
+    def get_existing_job_ids(self, file_path: str | Path) -> set[str]:
+        print(f"[{time.strftime('%H:%M:%S')}] Scanning existing JSON file for processed IDs...")
+        cache = self._get_cache(_json_file_path(file_path))
+        print(f"[{time.strftime('%H:%M:%S')}] Found {len(cache)} processed jobs in JSON.")
+        return set(cache.keys())
+
+    def update_json_file(self, file_path: str | Path, new_data: List[Dict]):
         if not new_data:
             return
 
         resolved_path = _json_file_path(file_path)
-        existing_data = []
-        try:
-            with resolved_path.open("r", encoding="utf-8") as f:
-                existing_data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
-
-        merged_dict = {str(item.get("job_id")): item for item in existing_data if item.get("job_id")}
+        cache = self._get_cache(resolved_path)
 
         for item in new_data:
             if item.get("job_id"):
-                merged_dict[str(item["job_id"])] = item
+                cache[str(item["job_id"])] = item
 
+        # Write the cached dictionary directly to disk once
         with resolved_path.open("w", encoding="utf-8") as f:
-            json.dump(list(merged_dict.values()), f, indent=4)
-            print(f"[*] Successfully updated {resolved_path} with {len(new_data)} jobs.")
+            json.dump(list(cache.values()), f, indent=4)
+            print(f"[*] Successfully updated {resolved_path.name} with {len(new_data)} jobs.")
 
 
 class AddJobdata:
@@ -165,11 +170,13 @@ class AddJobdata:
 
     def _add_job(self, name: str):
         filename = _json_file_path(f"{name}_jobs_output.json")
+        print(f"[{time.strftime('%H:%M:%S')}] Reading raw scraped jobs from {filename.name}...")
         try:
             with filename.open("r", encoding="utf-8") as f:
                 job_data_list = json.load(f)
             for job in job_data_list:
                 self.job_store.add_job(job)
+            print(f"[{time.strftime('%H:%M:%S')}] Loaded {len(job_data_list)} raw jobs into memory.")
         except json.JSONDecodeError:
             print(f"[!] Failed to decode JSON from {filename}.")
         except FileNotFoundError:
@@ -201,50 +208,71 @@ class DatabaseUpdater:
 
     @classmethod
     def save_raw_jobs_to_db(cls, raw_jobs: List[Dict], site_name: str) -> int:
-        saved_count = 0
-        with transaction.atomic():
-            for raw_job in raw_jobs:
-                job_id = cls._job_id_from_raw(raw_job)
-                if not job_id or job_id == "None":
-                    continue
+        """
+        OPTIMIZATION: Uses bulk_create to save hundreds of jobs instantly.
+        """
+        print(f"[{time.strftime('%H:%M:%S')}] Checking database for missing raw jobs...")
+        
+        # 1. Fetch exactly what exists right now
+        existing_ids = set(Job.objects.filter(platform_name__iexact=site_name).values_list('platform_job_id', flat=True))
+        
+        # 2. Prepare only the missing jobs
+        new_jobs_to_create = []
+        seen_in_batch = set()
+        
+        for raw_job in raw_jobs:
+            job_id = cls._job_id_from_raw(raw_job)
+            if not job_id or job_id == "None" or job_id in existing_ids or job_id in seen_in_batch:
+                continue
+                
+            seen_in_batch.add(job_id)
+            defaults = cls._job_defaults(raw_job)
+            new_jobs_to_create.append(
+                Job(platform_name=site_name, platform_job_id=job_id, **defaults)
+            )
 
-                Job.objects.update_or_create(
-                    platform_name=site_name,
-                    platform_job_id=job_id,
-                    defaults=cls._job_defaults(raw_job),
-                )
-                saved_count += 1
-        return saved_count
+        # 3. Fire a single fast query
+        if new_jobs_to_create:
+            Job.objects.bulk_create(new_jobs_to_create, ignore_conflicts=True)
+            print(f"[{time.strftime('%H:%M:%S')}] Inserted {len(new_jobs_to_create)} NEW raw jobs into DB.")
+        else:
+            print(f"[{time.strftime('%H:%M:%S')}] DB is up to date (no new raw jobs).")
+            
+        return len(new_jobs_to_create)
 
     @classmethod
     def save_enriched_jobs_to_db(cls, raw_jobs: List[Dict], ai_enrichments: List[Dict], site_name: str) -> int:
+        """
+        OPTIMIZATION: Uses bulk_update instead of looping update_or_create.
+        """
         enrichment_lookup = {
             str(item.get("job_id")): item
             for item in ai_enrichments
             if item.get("job_id")
         }
 
-        saved_count = 0
-        with transaction.atomic():
-            for raw_job in raw_jobs:
-                job_id = cls._job_id_from_raw(raw_job)
-                if not job_id or job_id == "None":
-                    continue
-
-                defaults = cls._job_defaults(raw_job)
-                enrichment = enrichment_lookup.get(job_id)
-                if enrichment:
-                    defaults["tags"] = enrichment.get("tags") or []
-                    defaults["ai_metadata"] = enrichment.get("ai_metadata") or {}
-                    defaults["ai_processed_at"] = timezone.now()
-
-                Job.objects.update_or_create(
-                    platform_name=site_name,
-                    platform_job_id=job_id,
-                    defaults=defaults,
-                )
-                saved_count += 1
-        return saved_count
+        if not enrichment_lookup:
+            return 0
+            
+        # 1. Fetch exactly the jobs we need to update in one query
+        jobs_to_update = list(Job.objects.filter(
+            platform_name__iexact=site_name, 
+            platform_job_id__in=enrichment_lookup.keys()
+        ))
+        
+        # 2. Mutate in memory
+        now = timezone.now()
+        for job in jobs_to_update:
+            enrichment = enrichment_lookup[str(job.platform_job_id)]
+            job.tags = enrichment.get("tags") or []
+            job.ai_metadata = enrichment.get("ai_metadata") or {}
+            job.ai_processed_at = now
+            
+        # 3. Update all rows in one swift DB hit
+        if jobs_to_update:
+            Job.objects.bulk_update(jobs_to_update, ['tags', 'ai_metadata', 'ai_processed_at'])
+            
+        return len(jobs_to_update)
 
     @classmethod
     def save_match_scores_to_db(cls, ai_matches: List[Dict], portfolio_id: int, site_name: str) -> int:
@@ -286,14 +314,6 @@ class DatabaseUpdater:
                 )
                 saved_count += 1
         return saved_count
-
-    @staticmethod
-    def save_batch_to_db(raw_jobs: List[Dict], ai_matches: List[Dict], portfolio_id: int, site_name: str):
-        """
-        Backward-compatible wrapper for older call sites.
-        """
-        DatabaseUpdater.save_raw_jobs_to_db(raw_jobs, site_name)
-        return DatabaseUpdater.save_match_scores_to_db(ai_matches, portfolio_id, site_name)
 
 
 class JobManager:
@@ -338,6 +358,7 @@ class JobManager:
         run_match_after: bool = True,
         match_batch_size: int = 75,
     ):
+        print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 1: LOADING & SYNCING ===")
         self.add_jobdata._add_job(site_name)
         all_jobs = self.job_store.get_jobs()
 
@@ -347,11 +368,15 @@ class JobManager:
 
         self.db_updater.save_raw_jobs_to_db(all_jobs, site_name)
 
+        print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 2: FILTERING PRE-ENRICHED JOBS ===")
         existing_file_ids = self.json_updater.get_existing_job_ids(output_file)
+        
+        print(f"[{time.strftime('%H:%M:%S')}] Querying DB for existing enriched jobs...")
         existing_db_ids = set(
             Job.objects.filter(platform_name__iexact=site_name, ai_processed_at__isnull=False)
             .values_list("platform_job_id", flat=True)
         )
+        
         existing_ids = {str(job_id) for job_id in existing_file_ids | existing_db_ids}
         jobs = [job for job in all_jobs if str(job.get("job_id")) not in existing_ids]
 
@@ -362,6 +387,7 @@ class JobManager:
 
         enriched_count = 0
         if jobs:
+            print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 3: AI ENRICHMENT ===")
             total_jobs = len(jobs)
             total_batches = (total_jobs + batch_size - 1) // batch_size
             start_time_total = time.time()
@@ -404,6 +430,7 @@ class JobManager:
 
         matched_count = 0
         if run_match_after:
+            print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 4: PORTFOLIO MATCHING ===")
             match_result = self.process_match_only(
                 portfolio=portfolio,
                 portfolio_id=portfolio_id,
@@ -439,6 +466,7 @@ class JobManager:
             return {"status": "error", "message": message, "matched": 0}
 
         if not rematch_existing:
+            print(f"[{time.strftime('%H:%M:%S')}] Checking DB for jobs already matched to Portfolio {portfolio_id}...")
             existing_job_ids = set(
                 PortfolioJobMatch.objects.filter(
                     portfolio_id=portfolio_id,
