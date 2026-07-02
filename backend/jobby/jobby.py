@@ -93,6 +93,7 @@ class AIJobAnalyzer:
     @property
     def model(self):
         if self._model is None:
+            print(f"[{time.strftime('%H:%M:%S')}] Initializing Google Gemini AI Model...")
             self._model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
         return self._model
 
@@ -128,11 +129,15 @@ class JsonUpdater:
     @staticmethod
     def get_existing_job_ids(file_path: str | Path) -> set[str]:
         """Reads the existing JSON and returns a set of already processed job_ids."""
+        print(f"[{time.strftime('%H:%M:%S')}] Scanning existing JSON file for processed IDs...")
         try:
             with _json_file_path(file_path).open("r", encoding="utf-8") as f:
                 data = json.load(f)
-                return {str(item.get("job_id")) for item in data if item.get("job_id")}
+                ids = {str(item.get("job_id")) for item in data if item.get("job_id")}
+                print(f"[{time.strftime('%H:%M:%S')}] Found {len(ids)} processed jobs in JSON.")
+                return ids
         except (FileNotFoundError, json.JSONDecodeError):
+            print(f"[{time.strftime('%H:%M:%S')}] No valid existing JSON found. Starting fresh.")
             return set()
 
     @staticmethod
@@ -156,7 +161,7 @@ class JsonUpdater:
 
         with resolved_path.open("w", encoding="utf-8") as f:
             json.dump(list(merged_dict.values()), f, indent=4)
-            print(f"[*] Successfully updated {resolved_path} with {len(new_data)} jobs.")
+            print(f"[*] Successfully updated {resolved_path.name} with {len(new_data)} jobs.")
 
 
 class AddJobdata:
@@ -165,11 +170,13 @@ class AddJobdata:
 
     def _add_job(self, name: str):
         filename = _json_file_path(f"{name}_jobs_output.json")
+        print(f"[{time.strftime('%H:%M:%S')}] Reading raw scraped jobs from {filename.name}...")
         try:
             with filename.open("r", encoding="utf-8") as f:
                 job_data_list = json.load(f)
             for job in job_data_list:
                 self.job_store.add_job(job)
+            print(f"[{time.strftime('%H:%M:%S')}] Loaded {len(job_data_list)} raw jobs into memory.")
         except json.JSONDecodeError:
             print(f"[!] Failed to decode JSON from {filename}.")
         except FileNotFoundError:
@@ -201,6 +208,7 @@ class DatabaseUpdater:
 
     @classmethod
     def save_raw_jobs_to_db(cls, raw_jobs: List[Dict], site_name: str) -> int:
+        print(f"[{time.strftime('%H:%M:%S')}] Syncing {len(raw_jobs)} raw jobs to PostgreSQL DB (this may take a moment)...")
         saved_count = 0
         with transaction.atomic():
             for raw_job in raw_jobs:
@@ -214,6 +222,9 @@ class DatabaseUpdater:
                     defaults=cls._job_defaults(raw_job),
                 )
                 saved_count += 1
+                if saved_count % 100 == 0:
+                    print(f"  -> Synced {saved_count}/{len(raw_jobs)} raw jobs...")
+        print(f"[{time.strftime('%H:%M:%S')}] Finished syncing {saved_count} raw jobs to DB.")
         return saved_count
 
     @classmethod
@@ -338,6 +349,7 @@ class JobManager:
         run_match_after: bool = True,
         match_batch_size: int = 75,
     ):
+        print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 1: LOADING & SYNCING ===")
         self.add_jobdata._add_job(site_name)
         all_jobs = self.job_store.get_jobs()
 
@@ -347,11 +359,15 @@ class JobManager:
 
         self.db_updater.save_raw_jobs_to_db(all_jobs, site_name)
 
+        print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 2: FILTERING PRE-ENRICHED JOBS ===")
         existing_file_ids = self.json_updater.get_existing_job_ids(output_file)
+        
+        print(f"[{time.strftime('%H:%M:%S')}] Querying DB for existing enriched jobs...")
         existing_db_ids = set(
             Job.objects.filter(platform_name__iexact=site_name, ai_processed_at__isnull=False)
             .values_list("platform_job_id", flat=True)
         )
+        
         existing_ids = {str(job_id) for job_id in existing_file_ids | existing_db_ids}
         jobs = [job for job in all_jobs if str(job.get("job_id")) not in existing_ids]
 
@@ -362,6 +378,7 @@ class JobManager:
 
         enriched_count = 0
         if jobs:
+            print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 3: AI ENRICHMENT ===")
             total_jobs = len(jobs)
             total_batches = (total_jobs + batch_size - 1) // batch_size
             start_time_total = time.time()
@@ -404,6 +421,7 @@ class JobManager:
 
         matched_count = 0
         if run_match_after:
+            print(f"\n[{time.strftime('%H:%M:%S')}] === PHASE 4: PORTFOLIO MATCHING ===")
             match_result = self.process_match_only(
                 portfolio=portfolio,
                 portfolio_id=portfolio_id,
@@ -439,6 +457,7 @@ class JobManager:
             return {"status": "error", "message": message, "matched": 0}
 
         if not rematch_existing:
+            print(f"[{time.strftime('%H:%M:%S')}] Checking DB for jobs already matched to Portfolio {portfolio_id}...")
             existing_job_ids = set(
                 PortfolioJobMatch.objects.filter(
                     portfolio_id=portfolio_id,
