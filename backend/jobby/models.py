@@ -11,6 +11,7 @@ class Job(models.Model):
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255)
     location = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     url = models.URLField(max_length=1000)
     date_posted = models.CharField(max_length=50, blank=True, null=True)
     tags = models.JSONField(default=list, help_text="Stable AI-generated job tags")

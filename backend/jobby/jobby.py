@@ -202,6 +202,7 @@ class DatabaseUpdater:
             "title": raw_job.get("title") or "Unknown Title",
             "company": raw_job.get("hiring_organization") or raw_job.get("company") or "Unknown Company",
             "location": raw_job.get("location") or "",
+            "description": raw_job.get("description") or "",
             "url": raw_job.get("url") or "",
             "date_posted": str(raw_job.get("date_posted") or ""),
         }
@@ -213,10 +214,7 @@ class DatabaseUpdater:
         """
         print(f"[{time.strftime('%H:%M:%S')}] Checking database for missing raw jobs...")
         
-        # 1. Fetch exactly what exists right now
-        existing_ids = set(Job.objects.filter(platform_name__iexact=site_name).values_list('platform_job_id', flat=True))
-        
-        # 2. Prepare only the missing jobs
+        existing_ids = set(Job.objects.filter(platform_name__iexact=site_name).values_list('platform_job_id', flat=True))    
         new_jobs_to_create = []
         seen_in_batch = set()
         
@@ -231,7 +229,6 @@ class DatabaseUpdater:
                 Job(platform_name=site_name, platform_job_id=job_id, **defaults)
             )
 
-        # 3. Fire a single fast query
         if new_jobs_to_create:
             Job.objects.bulk_create(new_jobs_to_create, ignore_conflicts=True)
             print(f"[{time.strftime('%H:%M:%S')}] Inserted {len(new_jobs_to_create)} NEW raw jobs into DB.")
