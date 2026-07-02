@@ -11,9 +11,10 @@ class JobSerializer(serializers.ModelSerializer):
             'title', 
             'company', 
             'location', 
-            'url', 
+            'url',
             'date_posted',
             'tags',
+            'ai_metadata',
             'ai_processed_at'
         ]
 
@@ -28,7 +29,6 @@ class PortfolioJobMatchSerializer(serializers.ModelSerializer):
             'portfolio',
             'job',
             'match_score',
-            'tags',
             'created_at'
         ]
         read_only_fields = ['portfolio', 'created_at']
