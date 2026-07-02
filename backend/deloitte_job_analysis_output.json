@@ -1,0 +1,794 @@
+[
+    {
+        "job_id": "358273",
+        "tags": [
+            "Audit Support",
+            "Financial Operations",
+            "Compliance",
+            "Documentation",
+            "Financial Reporting",
+            "Consulting",
+            "Hybrid",
+            "Mid-level",
+            "Finance",
+            "Accounting",
+            "MS Office"
+        ],
+        "ai_metadata": {
+            "role_family": "Audit Support",
+            "seniority": "Consultant",
+            "primary_skills": [
+                "Audit Documentation",
+                "Financial Reporting",
+                "Compliance Support",
+                "Business Communication",
+                "Document Formatting",
+                "Stakeholder Interaction",
+                "Engagement Lifecycle Management"
+            ],
+            "domain": "Audit, Finance, Accounting, Financial Services",
+            "tools": [
+                "MS Word",
+                "MS Excel",
+                "MS PowerPoint",
+                "Outlook"
+            ],
+            "location_type": "Hybrid"
+        }
+    },
+    {
+        "job_id": "358335",
+        "tags": [
+            "Technical Consulting",
+            "ERP Implementation",
+            "Supply Chain Management",
+            "Software Development",
+            "System Integration",
+            "Data Migration",
+            "SQL",
+            "PL/SQL",
+            "IFS Cloud",
+            "Power & Utilities",
+            "Consulting",
+            "Mid-level",
+            "Engineering",
+            "Technical Transformation",
+            "API"
+        ],
+        "ai_metadata": {
+            "role_family": "Technical Consultant, ERP Consultant",
+            "seniority": "Consultant",
+            "primary_skills": [
+                "IFS Cloud SCM",
+                "ERP Implementation",
+                "SQL",
+                "PL/SQL",
+                "System Integration",
+                "API Integration",
+                "Customization",
+                "Data Migration",
+                "Technical Documentation",
+                "Supply Chain Planning",
+                "Inventory Management",
+                "Procurement"
+            ],
+            "domain": "Enterprise Software, Supply Chain, Power & Utilities, Information Technology",
+            "tools": [
+                "IFS Cloud",
+                "SQL",
+                "PL/SQL",
+                "IFS Connect",
+                "IFS Aurena"
+            ],
+            "location_type": "Hybrid"
+        }
+    },
+    {
+        "job_id": "358263",
+        "tags": [
+            "Engineering Management",
+            "Data Engineering",
+            "Software Engineering",
+            "Agile",
+            "DevSecOps",
+            "CI/CD",
+            "Product Development",
+            "Technical Leadership",
+            "Mentorship",
+            "Manager",
+            "Senior",
+            "Cross-functional",
+            "Hands-on"
+        ],
+        "ai_metadata": {
+            "role_family": "Engineering Manager, Data Engineering Lead",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Data Engineering",
+                "Software Engineering",
+                "Team Leadership",
+                "Agile Methodologies",
+                "DevSecOps",
+                "CI/CD",
+                "Product Development",
+                "Code Review",
+                "Performance Optimization",
+                "Mentorship",
+                "Stakeholder Management"
+            ],
+            "domain": "Data & Analytics, Software Product Engineering, Information Technology",
+            "tools": [],
+            "location_type": "Unspecified"
+        }
+    },
+    {
+        "job_id": "358312",
+        "tags": [
+            "Finance Transformation",
+            "Oracle FCCS",
+            "EPM",
+            "Financial Consolidation",
+            "Financial Reporting",
+            "Business Rules",
+            "Python",
+            "VB",
+            "Excel",
+            "Consulting",
+            "Analyst",
+            "Mid-level",
+            "Finance",
+            "Accounting",
+            "Technology Implementation",
+            "Hybrid"
+        ],
+        "ai_metadata": {
+            "role_family": "Financial Systems Analyst, EPM Consultant",
+            "seniority": "Analyst",
+            "primary_skills": [
+                "Oracle FCCS",
+                "EPM",
+                "Financial Consolidation",
+                "Financial Reporting",
+                "Business Rule Development",
+                "Data Reconciliation",
+                "Data Migration",
+                "Python",
+                "VB",
+                "Excel",
+                "Requirements Gathering",
+                "System Design"
+            ],
+            "domain": "Finance Transformation, Controllership, Financial Planning & Analysis, Accounting",
+            "tools": [
+                "Oracle FCCS",
+                "EPM Suite",
+                "Excel",
+                "VB",
+                "Python",
+                "Oracle RDBMS",
+                "SQL Server"
+            ],
+            "location_type": "Hybrid"
+        }
+    },
+    {
+        "job_id": "358201",
+        "tags": [
+            "Contact Center",
+            "Five9",
+            "Managed Services",
+            "Technical Consulting",
+            "CRM Integration",
+            "API Integration",
+            "IVR",
+            "ACD",
+            "Telephony",
+            "Automation",
+            "Reporting",
+            "Troubleshooting",
+            "Agile",
+            "Consultant",
+            "Mid-level",
+            "Customer Service",
+            "Sales & Service",
+            "Digital Transformation"
+        ],
+        "ai_metadata": {
+            "role_family": "Contact Center Engineer, Technical Consultant",
+            "seniority": "Consultant",
+            "primary_skills": [
+                "Five9",
+                "Contact Center Technologies",
+                "ACD",
+                "IVR",
+                "API Integration",
+                "CRM Integration",
+                "Telephony",
+                "Troubleshooting",
+                "Technical Documentation",
+                "Agile",
+                "JavaScript",
+                "Python",
+                "Java",
+                "C#"
+            ],
+            "domain": "Customer Service, Sales & Service, Customer Experience",
+            "tools": [
+                "Five9",
+                "Salesforce",
+                "Dynamics",
+                "REST APIs",
+                "JSON",
+                "JavaScript",
+                "Python",
+                "Java",
+                "C#"
+            ],
+            "location_type": "Unspecified"
+        }
+    },
+    {
+        "job_id": "358211",
+        "tags": [
+            "CyberArk",
+            "Privileged Access Management (PAM)",
+            "Identity & Access Management (IAM)",
+            "Cyber Security",
+            "Information Security",
+            "Implementation",
+            "Consulting",
+            "Troubleshooting",
+            "Technical Documentation",
+            "Consultant",
+            "Mid-level",
+            "Risk & Advisory",
+            "Hybrid"
+        ],
+        "ai_metadata": {
+            "role_family": "Cyber Security Consultant, IAM/PAM Consultant",
+            "seniority": "Consultant",
+            "primary_skills": [
+                "CyberArk Implementation",
+                "Privileged Access Management (PAM)",
+                "Identity & Access Management (IAM)",
+                "Security Architecture",
+                "System Integration",
+                "Requirements Gathering",
+                "Troubleshooting",
+                "AutoIt Scripting",
+                "Central Policy Manager (CPM) Connectors"
+            ],
+            "domain": "Cyber Security, Information Risk, IT Security",
+            "tools": [
+                "CyberArk",
+                "SIEM tools",
+                "Ticketing Platforms"
+            ],
+            "location_type": "Hybrid"
+        }
+    },
+    {
+        "job_id": "358357",
+        "tags": [
+            "SAP BTP",
+            "SAP Consulting",
+            "Enterprise Performance",
+            "Technical Implementation",
+            "Software Development",
+            "Fiori",
+            "SAPUI5",
+            "HTML5",
+            "Debugging",
+            "Unit Testing",
+            "Technical Documentation",
+            "Analyst",
+            "Junior-Mid-level",
+            "IT Operations",
+            "Finance",
+            "Supply Chain"
+        ],
+        "ai_metadata": {
+            "role_family": "SAP Technical Analyst, Software Developer",
+            "seniority": "Analyst",
+            "primary_skills": [
+                "SAP BTP",
+                "Fiori Development",
+                "SAPUI5",
+                "HTML5",
+                "SAP S/4HANA Integration",
+                "Debugging",
+                "Unit Testing",
+                "Technical Documentation",
+                "Requirement Analysis",
+                "Performance Tuning",
+                "OAuth 2.0"
+            ],
+            "domain": "Enterprise Resource Planning (ERP), IT Operations, Finance, Supply Chain",
+            "tools": [
+                "SAP BTP",
+                "Fiori",
+                "SAPUI5",
+                "HTML5",
+                "BAS",
+                "Cloud Connector",
+                "XSUAA",
+                "SAP S/4HANA"
+            ],
+            "location_type": "Unspecified"
+        }
+    },
+    {
+        "job_id": "358208",
+        "tags": [
+            "CyberArk",
+            "Privileged Access Management (PAM)",
+            "Identity & Access Management (IAM)",
+            "Cyber Security",
+            "Information Security",
+            "Implementation",
+            "Consulting",
+            "Technical Architecture",
+            "Troubleshooting",
+            "Technical Documentation",
+            "Senior Consultant",
+            "Mid-Senior",
+            "Risk & Advisory",
+            "Hybrid",
+            "Network Security"
+        ],
+        "ai_metadata": {
+            "role_family": "Senior Cyber Security Consultant, Senior IAM/PAM Consultant",
+            "seniority": "Senior Consultant",
+            "primary_skills": [
+                "CyberArk Implementation",
+                "Privileged Access Management (PAM)",
+                "Identity & Access Management (IAM)",
+                "Security Architecture",
+                "System Integration",
+                "Requirements Gathering",
+                "Troubleshooting",
+                "AutoIt Scripting",
+                "Central Policy Manager (CPM) Connectors",
+                "LDAP",
+                "SQL",
+                "Windows",
+                "Linux",
+                "Active Directory",
+                "Network Security"
+            ],
+            "domain": "Cyber Security, Information Risk, IT Security",
+            "tools": [
+                "CyberArk",
+                "SIEM tools",
+                "Ticketing Platforms",
+                "LDAP",
+                "SQL",
+                "Windows",
+                "Linux",
+                "Active Directory",
+                "DNS",
+                "Exchange",
+                "Firewalls",
+                "VPN",
+                "IPS",
+                "PKI"
+            ],
+            "location_type": "Hybrid"
+        }
+    },
+    {
+        "job_id": "358336",
+        "tags": [
+            "Marketing",
+            "Campaign Management",
+            "Strategic Marketing",
+            "Digital Marketing",
+            "Content Strategy",
+            "Brand Management",
+            "SEO/SEM",
+            "Social Media",
+            "Event Management",
+            "Demand Generation",
+            "Marketing Analytics",
+            "Project Management",
+            "Budget Management",
+            "Stakeholder Management",
+            "Deputy Manager",
+            "Manager",
+            "Mid-Senior",
+            "Hybrid"
+        ],
+        "ai_metadata": {
+            "role_family": "Marketing Manager, Campaign Manager",
+            "seniority": "Deputy Manager",
+            "primary_skills": [
+                "Marketing Strategy",
+                "Campaign Management",
+                "Content Strategy",
+                "Digital Marketing",
+                "SEO/SEM",
+                "Social Media Marketing",
+                "Event Management",
+                "Demand Generation",
+                "Marketing Analytics",
+                "Budget Management",
+                "Stakeholder Management",
+                "Agency Management",
+                "ROI Analysis"
+            ],
+            "domain": "Marketing, Brand Management, Business Development",
+            "tools": [],
+            "location_type": "Hybrid"
+        }
+    },
+    {
+        "job_id": "358209",
+        "tags": [
+            "Project Management",
+            "Program Management",
+            "PMO",
+            "IT Projects",
+            "Technology Implementation",
+            "Agile",
+            "Scrum",
+            "SDLC",
+            "Financial Management",
+            "Risk Management",
+            "Reporting",
+            "Assistant Manager",
+            "Senior",
+            "Hybrid"
+        ],
+        "ai_metadata": {
+            "role_family": "Project Manager, Program Manager, PMO Specialist",
+            "seniority": "Assistant Manager",
+            "primary_skills": [
+                "Project Management",
+                "Program Management",
+                "PMO Practices",
+                "IT Project Delivery",
+                "Risk Management",
+                "Financial Management",
+                "Stakeholder Communication",
+                "Process Improvement",
+                "SDLC",
+                "Agile",
+                "Scrum"
+            ],
+            "domain": "Information Technology, Project Management Office (PMO)",
+            "tools": [
+                "MS Project",
+                "MS PowerPoint",
+                "Azure DevOps (ADO)",
+                "ServiceNow",
+                "PMBOK",
+                "Prince2"
+            ],
+            "location_type": "Hybrid"
+        }
+    },
+    {
+        "job_id": "358200",
+        "tags": [
+            "Senior Consultant",
+            "Cloud Operations",
+            "Amazon Connect",
+            "AWS",
+            "Python",
+            "DevOps",
+            "Customer Experience",
+            "Managed Services",
+            "Technical Consulting",
+            "Solution Design",
+            "Integration"
+        ],
+        "ai_metadata": {
+            "role_family": "Cloud Consultant",
+            "seniority": "Senior Consultant",
+            "primary_skills": [
+                "Amazon Connect",
+                "Cloud Operations",
+                "AWS Services",
+                "Python",
+                "DevOps",
+                "Solution Design"
+            ],
+            "domain": "Customer Experience, Cloud Computing",
+            "tools": [
+                "Amazon Connect",
+                "AWS",
+                "Python",
+                "GitHub",
+                "Docker"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358358",
+        "tags": [
+            "Analyst",
+            "SAP BTP CAPM",
+            "Fiori Development",
+            "SAPUI5",
+            "HTML5",
+            "SAP S/4HANA Integration",
+            "OAuth 2.0",
+            "Enterprise Technology",
+            "ERP",
+            "Consulting",
+            "Implementation"
+        ],
+        "ai_metadata": {
+            "role_family": "SAP Developer",
+            "seniority": "Analyst",
+            "primary_skills": [
+                "SAP BTP CAPM",
+                "Fiori Development",
+                "SAPUI5",
+                "SAP S/4HANA Integration",
+                "OAuth 2.0"
+            ],
+            "domain": "Enterprise Technology, ERP",
+            "tools": [
+                "SAP BTP",
+                "Fiori",
+                "SAPUI5",
+                "BAS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358254",
+        "tags": [
+            "Senior Consultant",
+            "Privileged Access Management",
+            "PAM",
+            "Identity Security",
+            "Cybersecurity",
+            "Valkyrie PAM",
+            "Access Governance",
+            "Cloud Security",
+            "Automation",
+            "Troubleshooting",
+            "L3/L4 Support",
+            "Security Operations"
+        ],
+        "ai_metadata": {
+            "role_family": "Cybersecurity Engineer",
+            "seniority": "Senior Consultant",
+            "primary_skills": [
+                "Privileged Access Management (PAM)",
+                "Identity and Access Management (IAM)",
+                "Access Governance",
+                "Cloud Security",
+                "Automation",
+                "Troubleshooting"
+            ],
+            "domain": "Cybersecurity, Digital Identity",
+            "tools": [
+                "Valkyrie PAM",
+                "Active Directory",
+                "SIEM",
+                "MFA",
+                "IGA"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358212",
+        "tags": [
+            "Manager",
+            "Program Management",
+            "Project Management",
+            "Technical Project Management",
+            "PMO",
+            "IT Projects",
+            "Risk Management",
+            "Budget Management",
+            "Team Leadership",
+            "Agile",
+            "Cloud Migration",
+            "Software Development"
+        ],
+        "ai_metadata": {
+            "role_family": "Technical Program Manager",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Program Management",
+                "Project Management",
+                "Risk Management",
+                "Budget Management",
+                "IT Project Delivery",
+                "Team Leadership"
+            ],
+            "domain": "Information Technology, Enterprise Programs",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358205",
+        "tags": [
+            "Security Engineer II",
+            "Identity and Access Management",
+            "IAM",
+            "ForgeRock",
+            "SSO",
+            "SAML",
+            "OAuth",
+            "Groovy",
+            "JavaScript",
+            "Cybersecurity",
+            "Digital Identity",
+            "Cloud Security",
+            "Implementation"
+        ],
+        "ai_metadata": {
+            "role_family": "Identity and Access Management Engineer",
+            "seniority": "Security Engineer II",
+            "primary_skills": [
+                "Identity and Access Management (IAM)",
+                "ForgeRock",
+                "SSO",
+                "SAML",
+                "OAuth",
+                "Groovy",
+                "JavaScript"
+            ],
+            "domain": "Cybersecurity, Digital Identity",
+            "tools": [
+                "ForgeRock",
+                "LDAP",
+                "Active Directory",
+                "Linux"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358339",
+        "tags": [
+            "Manager",
+            "Program Management",
+            "Project Management",
+            "Technical Project Management",
+            "Portfolio Management",
+            "PMO",
+            "IT Projects",
+            "Financial Reporting",
+            "Risk Management",
+            "Team Leadership",
+            "Cloud Migration"
+        ],
+        "ai_metadata": {
+            "role_family": "Technical Program Manager",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Program Management",
+                "Project Management",
+                "Portfolio Management",
+                "Financial Reporting",
+                "IT Project Delivery",
+                "Risk Management"
+            ],
+            "domain": "Information Technology, Enterprise Programs",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358355",
+        "tags": [
+            "Associate",
+            "Analyst",
+            "Procurement",
+            "Sourcing",
+            "Supplier Management",
+            "Contract Management",
+            "Vendor Management",
+            "Market Research",
+            "Spend Analysis",
+            "Reporting",
+            "Analytics",
+            "Talent Procurement",
+            "Supply Chain"
+        ],
+        "ai_metadata": {
+            "role_family": "Procurement Analyst",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Procurement",
+                "Sourcing",
+                "Supplier Management",
+                "Contract Management",
+                "Spend Analysis",
+                "Market Research"
+            ],
+            "domain": "Procurement, Supply Chain, Human Resources",
+            "tools": [
+                "Ariba Sourcing",
+                "Microsoft Office"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358261",
+        "tags": [
+            "Software Specialist Engineer II",
+            "Data Analytics Engineer",
+            "Software Engineer",
+            "Delphix Platform",
+            "Data Masking",
+            "SQL Server",
+            "Build/Release Management",
+            "DevOps",
+            "Agile",
+            "Troubleshooting",
+            "Product Engineering",
+            "Data Management"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Analytics Engineer",
+            "seniority": "Software Specialist Engineer II",
+            "primary_skills": [
+                "Delphix Platform",
+                "Data Masking",
+                "SQL Server",
+                "Build/Release Management",
+                "DevOps",
+                "Software Development"
+            ],
+            "domain": "Data Management, Product Engineering",
+            "tools": [
+                "Delphix",
+                "SQL Server"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "358206",
+        "tags": [
+            "Security Engineer III",
+            "Identity and Access Management",
+            "IAM",
+            "ForgeRock",
+            "SSO",
+            "SAML",
+            "OAuth",
+            "Groovy",
+            "JavaScript",
+            "Integration",
+            "Cybersecurity",
+            "Digital Identity",
+            "Cloud Security",
+            "Implementation"
+        ],
+        "ai_metadata": {
+            "role_family": "Identity and Access Management Engineer",
+            "seniority": "Security Engineer III",
+            "primary_skills": [
+                "Identity and Access Management (IAM)",
+                "ForgeRock",
+                "SSO",
+                "SAML",
+                "OAuth",
+                "Groovy",
+                "JavaScript",
+                "Integration"
+            ],
+            "domain": "Cybersecurity, Digital Identity",
+            "tools": [
+                "ForgeRock",
+                "LDAP",
+                "Active Directory",
+                "Linux"
+            ],
+            "location_type": "On-site"
+        }
+    }
+]
