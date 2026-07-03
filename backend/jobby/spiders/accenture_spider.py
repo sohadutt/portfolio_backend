@@ -12,10 +12,6 @@ from scrapy_playwright.page import PageMethod
 from res import SITE_CONFIG
 
 class AccentureJobsSpider(scrapy.Spider):
-    """
-    Spider to extract job postings from the Accenture Careers portal.
-    Uses Playwright to wait for the DOM to fully render the job cards.
-    """
     name = "accenture_jobs"
     allowed_domains = ["accenture.com"]
     start_urls = [SITE_CONFIG["accenture"]["url"]]
@@ -66,23 +62,23 @@ class AccentureJobsSpider(scrapy.Spider):
                 meta={
                     "playwright": True,
                     "playwright_page_methods": [
-                        # Forces Playwright to wait up to 15s for the job cards to render
-                        PageMethod("wait_for_selector", "div.rad-filters-vertical__job-card", timeout=15000)
+                        PageMethod("wait_for_load_state", "networkidle"),
+                        PageMethod("wait_for_timeout", 3000)
                     ]
                 }
             )
 
     def parse(self, response):
-        """
-        Parses the main search results page, extracting data directly from the HTML cards.
-        """
         job_cards = response.css('div.rad-filters-vertical__job-card')
+
+        if not job_cards:
+            self.logger.info("No job cards found. Assume end of pagination.")
+            return
 
         for card in job_cards:
             job_id = card.css('button.rad-save-job::attr(data-job-id)').get()
             title = card.css('h3.rad-filters-vertical__job-card-title::text').get()
             
-            # Skip empty/hidden template cards
             if not job_id or not title:
                 continue
             
@@ -107,7 +103,6 @@ class AccentureJobsSpider(scrapy.Spider):
                 'hiring_organization': 'Accenture'
             }
 
-        # --- Pagination Logic ---
         self.current_page += 1
         base_url = response.url.split('?')[0]
         next_page_url = f"{base_url}?page={self.current_page}"
@@ -119,17 +114,14 @@ class AccentureJobsSpider(scrapy.Spider):
             meta={
                 "playwright": True,
                 "playwright_page_methods": [
-                    PageMethod("wait_for_selector", "div.rad-filters-vertical__job-card", timeout=15000)
+                    PageMethod("wait_for_load_state", "networkidle"),
+                    PageMethod("wait_for_timeout", 3000)
                 ]
             }
         )
 
     def errback_close(self, failure):
-        """
-        If Playwright times out waiting for a job card, it means we hit a page with no results.
-        We catch the error here so the spider can shut down cleanly.
-        """
-        self.logger.info("Timeout waiting for job cards. Assuming end of pagination reached.")
+        self.logger.info(f"Playwright timeout or error reached. Closing gracefully. {failure.getErrorMessage()}")
 
     def _clean_text(self, raw_html):
         if not raw_html:

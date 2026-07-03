@@ -1,0 +1,239 @@
+[
+    {
+        "job_id": "ATCI-5617962-S2056226_en",
+        "tags": [
+            "Application Support",
+            "Software Support",
+            "Python",
+            "Databricks",
+            "Mid-level",
+            "IT Operations"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support Engineer",
+            "seniority": "Mid-level",
+            "primary_skills": [
+                "Python"
+            ],
+            "domain": "IT Operations, Software Engineering",
+            "tools": [
+                "Databricks"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5496565-S2009794_en",
+        "tags": [
+            "Application Support",
+            "Software Support",
+            "Oracle Engagement Cloud",
+            "Oracle",
+            "Mid-level",
+            "ERP"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support Engineer",
+            "seniority": "Mid-level",
+            "primary_skills": [
+                "Oracle Engagement Cloud - Service"
+            ],
+            "domain": "ERP, IT Operations",
+            "tools": [
+                "Oracle Engagement Cloud"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5496518-S2009781_en",
+        "tags": [
+            "Application Support",
+            "Software Support",
+            "Oracle Sales Cloud",
+            "Sales Force Automation",
+            "Oracle",
+            "Senior-level",
+            "CRM",
+            "ERP"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support Engineer",
+            "seniority": "Senior-level",
+            "primary_skills": [
+                "Oracle Sales Cloud Sales Force Automation"
+            ],
+            "domain": "CRM, ERP, IT Operations",
+            "tools": [
+                "Oracle Sales Cloud"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5545820-S2024940_en",
+        "tags": [
+            "Application Support",
+            "Software Support",
+            "Oracle Cloud Visual Builder",
+            "Oracle Cloud",
+            "Senior-level",
+            "Cloud Development"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support Engineer",
+            "seniority": "Senior-level",
+            "primary_skills": [
+                "Oracle Cloud Visual Builder"
+            ],
+            "domain": "Cloud Development, IT Operations",
+            "tools": [
+                "Oracle Cloud Visual Builder"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5496756-S2009784_en",
+        "tags": [
+            "Application Support",
+            "Software Support",
+            "Oracle Sales Cloud",
+            "Incentive Compensation",
+            "Oracle",
+            "Senior-level",
+            "CRM",
+            "ERP"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support Engineer",
+            "seniority": "Senior-level",
+            "primary_skills": [
+                "Oracle Sales Cloud Incentive Compensation"
+            ],
+            "domain": "CRM, ERP, IT Operations",
+            "tools": [
+                "Oracle Sales Cloud"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5526072-S2024943_en",
+        "tags": [
+            "Custom Software Engineer",
+            "Software Development",
+            "Oracle Sales Cloud",
+            "Sales Force Automation",
+            "Oracle",
+            "Senior-level",
+            "CRM",
+            "ERP"
+        ],
+        "ai_metadata": {
+            "role_family": "Custom Software Engineer",
+            "seniority": "Senior-level",
+            "primary_skills": [
+                "Oracle Sales Cloud Sales Force Automation"
+            ],
+            "domain": "Software Engineering, CRM, ERP",
+            "tools": [
+                "Oracle Sales Cloud"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-R1-S2056497_en",
+        "tags": [
+            "Custom Software Engineer",
+            "Software Development",
+            "SAP ABAP",
+            "SAP HANA",
+            "ABAP",
+            "SAP",
+            "Mid-level",
+            "ERP"
+        ],
+        "ai_metadata": {
+            "role_family": "Custom Software Engineer",
+            "seniority": "Mid-level",
+            "primary_skills": [
+                "SAP ABAP Development for HANA"
+            ],
+            "domain": "Software Engineering, ERP",
+            "tools": [
+                "SAP ABAP",
+                "SAP HANA"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5442979-S2004771_en",
+        "tags": [
+            "Cloud Platform Engineer",
+            "Cloud Engineering",
+            "Microsoft Azure",
+            "IaaS",
+            "Windows Server",
+            "Linux",
+            "Mid-level",
+            "Cloud Infrastructure",
+            "DevOps"
+        ],
+        "ai_metadata": {
+            "role_family": "Cloud Platform Engineer",
+            "seniority": "Mid-level",
+            "primary_skills": [
+                "Microsoft Windows Server Administration",
+                "Microsoft Azure IaaS"
+            ],
+            "domain": "Cloud Infrastructure, DevOps, IT Operations",
+            "tools": [
+                "Microsoft Azure",
+                "Windows Server",
+                "Linux"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5060208-S1873014_en",
+        "tags": [
+            "Application Support",
+            "Software Support",
+            "Network Infrastructures",
+            "Networking",
+            "Senior-level",
+            "IT Operations"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support Engineer",
+            "seniority": "Senior-level",
+            "primary_skills": [
+                "Network Infrastructures"
+            ],
+            "domain": "IT Operations, Networking, Infrastructure",
+            "tools": [
+                "Accenture Advanced Analytics Platform"
+            ]
+        }
+    },
+    {
+        "job_id": "ATCI-5653608-S2056654_en",
+        "tags": [
+            "Application Support",
+            "Software Support",
+            "SAP GRC",
+            "Governance Risk and Compliance",
+            "SAP",
+            "Senior-level",
+            "ERP",
+            "Compliance"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support Engineer",
+            "seniority": "Senior-level",
+            "primary_skills": [
+                "SAP Governance Risk and Compliance (SAP GRC)"
+            ],
+            "domain": "ERP, Compliance, IT Operations",
+            "tools": [
+                "SAP GRC"
+            ]
+        }
+    }
+]

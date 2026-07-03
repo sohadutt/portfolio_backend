@@ -1,0 +1,4213 @@
+[
+    {
+        "job_id": "a69d638fd05acb",
+        "tags": [
+            "Director",
+            "Sales Manager",
+            "Cloud Sales",
+            "Advisory",
+            "Cloud",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Sales Manager",
+            "seniority": "Director",
+            "primary_skills": [
+                "Sales",
+                "Cloud Solutions"
+            ],
+            "domain": "Advisory, Cloud",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69d73ba5f1120",
+        "tags": [
+            "Manager",
+            "Data Engineer",
+            "Databricks",
+            "Guidewire",
+            "Data & Analytics",
+            "Advisory",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineer",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Data Engineering",
+                "Data & Analytics"
+            ],
+            "domain": "Data & Analytics, Advisory",
+            "tools": [
+                "Databricks",
+                "Guidewire"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69dc7012f3879",
+        "tags": [
+            "Senior Manager",
+            "Employee Relations",
+            "Human Capital",
+            "HR",
+            "Internal Firm Services",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Employee Relations",
+            "seniority": "Senior Manager",
+            "primary_skills": [
+                "Employee Relations",
+                "Human Resources"
+            ],
+            "domain": "Human Capital, Internal Firm Services (IFS)",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69de7c2184373",
+        "tags": [
+            "Senior Associate",
+            "Procurement",
+            "Strategic Sourcing",
+            "Real Estate",
+            "Internal Firm Services",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Procurement",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Real Estate Procurement",
+                "Strategic Sourcing"
+            ],
+            "domain": "Real Estate, Internal Firm Services (IFS)",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e627061edd1",
+        "tags": [
+            "Associate",
+            "Test Automation Engineer",
+            "Agentic Automation",
+            "Advisory",
+            "Automation",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineer",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Automation, Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e6275ecbc22",
+        "tags": [
+            "Manager",
+            "Test Automation Engineer",
+            "Agentic Automation",
+            "Advisory",
+            "Automation",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineer",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Automation, Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e6279b3bb95",
+        "tags": [
+            "Senior Associate",
+            "Test Automation Engineer",
+            "Agentic Automation",
+            "Advisory",
+            "Automation",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Automation, Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e627ddd27ee",
+        "tags": [
+            "Senior Associate",
+            "Test Automation Engineer",
+            "Agentic Automation",
+            "Advisory",
+            "Automation",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Automation, Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e6282eb4027",
+        "tags": [
+            "Senior Associate",
+            "Test Automation Engineer",
+            "Agentic Automation",
+            "Advisory",
+            "Automation",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Automation, Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e628824777d",
+        "tags": [
+            "Manager",
+            "Test Automation Engineer",
+            "Agentic Automation",
+            "Advisory",
+            "Automation",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineer",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Automation, Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e628de45d76",
+        "tags": [
+            "Associate",
+            "Test Automation",
+            "Agentic Automation",
+            "Engineering",
+            "Advisory",
+            "On-site",
+            "Gurugram"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineering",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e629d83587b",
+        "tags": [
+            "Associate",
+            "Test Automation",
+            "Agentic Automation",
+            "Engineering",
+            "Advisory",
+            "On-site",
+            "Gurugram"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineering",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e62a19602b0",
+        "tags": [
+            "Senior Associate",
+            "Test Automation",
+            "Agentic Automation",
+            "Engineering",
+            "Advisory",
+            "On-site",
+            "Mumbai"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e62b7cf1a63",
+        "tags": [
+            "Senior Associate",
+            "Data Engineering",
+            "Analytics Engineering",
+            "Data & Analytics",
+            "Advisory",
+            "On-site",
+            "Kolkata"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Engineering",
+                "Analytics Engineering"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e62bb51478c",
+        "tags": [
+            "Manager",
+            "Test Automation",
+            "Agentic Automation",
+            "Engineering",
+            "Advisory",
+            "On-site",
+            "Bangalore"
+        ],
+        "ai_metadata": {
+            "role_family": "Test Automation Engineering",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Test Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e62bf51755a",
+        "tags": [
+            "Senior Associate",
+            "Data Engineering",
+            "Analytics Engineering",
+            "Data & Analytics",
+            "Advisory",
+            "On-site",
+            "Kolkata"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Engineering",
+                "Analytics Engineering"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e62c4d61ce7",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "React JS",
+            "Data Analytics",
+            "Software Engineering",
+            "Data & Analytics",
+            "Advisory",
+            "On-site",
+            "Kolkata"
+        ],
+        "ai_metadata": {
+            "role_family": "Software Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "React JS",
+                "Data Analytics"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Python",
+                "React JS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e62c812dd55",
+        "tags": [
+            "Senior Associate",
+            "Data Engineering",
+            "Analytics Engineering",
+            "Data & Analytics",
+            "Advisory",
+            "On-site",
+            "Kolkata"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Engineering",
+                "Analytics Engineering"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e753bb11aa7",
+        "tags": [
+            "Associate",
+            "Learning & Development",
+            "Human Capital",
+            "HR",
+            "IFS",
+            "On-site",
+            "Bangalore"
+        ],
+        "ai_metadata": {
+            "role_family": "Human Capital",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Learning & Development",
+                "Human Capital Management"
+            ],
+            "domain": "Internal Firm Services",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e756eba00a4",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "Automation",
+            "Agentic Automation",
+            "Engineering",
+            "Advisory",
+            "On-site",
+            "Pune"
+        ],
+        "ai_metadata": {
+            "role_family": "Automation Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69e7572e7db06",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Consulting",
+            "Pune",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Automation",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "Automation",
+                "Agentic Automation"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site",
+            "city": "Pune",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69e7775b037b7",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Consulting",
+            "Pune",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Automation",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "Automation",
+                "Agentic Automation"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site",
+            "city": "Pune",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69e77792d4908",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Consulting",
+            "Pune",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Automation",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "Automation",
+                "Agentic Automation"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site",
+            "city": "Pune",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69e777e9023de",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Consulting",
+            "Pune",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Automation",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "Automation",
+                "Agentic Automation"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site",
+            "city": "Pune",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69e7784f2222c",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Consulting",
+            "Pune",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Automation",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "Automation",
+                "Agentic Automation"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site",
+            "city": "Pune",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69ecc8e3845d0",
+        "tags": [
+            "Senior Associate",
+            "SAP BW",
+            "Data Analytics",
+            "Advisory",
+            "Consulting",
+            "Gurugram",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "SAP BW",
+                "Data Analytics"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "SAP BW"
+            ],
+            "location_type": "On-site",
+            "city": "Gurugram",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69ecc92b2f879",
+        "tags": [
+            "Senior Associate",
+            "SAP BW",
+            "Data Analytics",
+            "Advisory",
+            "Consulting",
+            "Gurugram",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "SAP BW",
+                "Data Analytics"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "SAP BW"
+            ],
+            "location_type": "On-site",
+            "city": "Gurugram",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69ecc97585bfa",
+        "tags": [
+            "Manager",
+            "SAP BW",
+            "Data Analytics",
+            "Advisory",
+            "Consulting",
+            "Gurugram",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Manager",
+            "primary_skills": [
+                "SAP BW",
+                "Data Analytics"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "SAP BW"
+            ],
+            "location_type": "On-site",
+            "city": "Gurugram",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69ecc9bb398a2",
+        "tags": [
+            "Manager",
+            "SAP BW",
+            "Data Analytics",
+            "Advisory",
+            "Consulting",
+            "Gurugram",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Manager",
+            "primary_skills": [
+                "SAP BW",
+                "Data Analytics"
+            ],
+            "domain": [
+                "Advisory",
+                "Consulting"
+            ],
+            "tools": [
+                "SAP BW"
+            ],
+            "location_type": "On-site",
+            "city": "Gurugram",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69f08727c1ab1",
+        "tags": [
+            "Associate",
+            "Compliance",
+            "Personal Independence",
+            "Risk Management",
+            "Internal Firm Services",
+            "IFS",
+            "Mumbai",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Compliance",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Compliance",
+                "Personal Independence",
+                "Risk Management"
+            ],
+            "domain": [
+                "Internal Firm Services"
+            ],
+            "location_type": "On-site",
+            "city": "Mumbai",
+            "country": "India"
+        }
+    },
+    {
+        "job_id": "a69f0874f9a5e9",
+        "tags": [
+            "Specialist",
+            "Compliance",
+            "Risk Management",
+            "Independence",
+            "Internal Firm Services",
+            "Gurugram",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Compliance",
+            "seniority": "Specialist",
+            "primary_skills": [
+                "Personal Independence Compliance",
+                "Risk Management"
+            ],
+            "domain": "Internal Firm Services",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f09c5b3d896",
+        "tags": [
+            "Business Applications",
+            "Consulting",
+            "Generalist",
+            "Director",
+            "Advisory",
+            "Bangalore",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Business Consulting",
+            "seniority": "Director",
+            "primary_skills": [
+                "Business Applications",
+                "Consulting"
+            ],
+            "domain": "Advisory",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f09e45e1739",
+        "tags": [
+            "Senior Associate",
+            "QlikSense",
+            "Data & Analytics",
+            "Advisory",
+            "Mumbai",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Business Intelligence"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "QlikSense"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f09e85005cc",
+        "tags": [
+            "Senior Associate",
+            "Snowflake",
+            "Data & Analytics",
+            "Advisory",
+            "Mumbai",
+            "PAN India",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Cloud Data Warehousing"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a033a6311",
+        "tags": [
+            "Senior Associate",
+            "SAP Datasphere",
+            "Data & Analytics",
+            "Advisory",
+            "Gurugram",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "SAP",
+                "Data Warehousing"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "SAP Datasphere"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a107741e0",
+        "tags": [
+            "Manager",
+            "Azure Fabric",
+            "Data & Analytics",
+            "Advisory",
+            "Kolkata",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Data Analytics",
+                "Cloud Data Platform"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Azure Fabric"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a19c0e373",
+        "tags": [
+            "Manager",
+            "Azure Fabric",
+            "Data & Analytics",
+            "Advisory",
+            "Pune",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Data Analytics",
+                "Cloud Data Platform"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Azure Fabric"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a1dde2685",
+        "tags": [
+            "Senior Associate",
+            "Azure Fabric",
+            "Data & Analytics",
+            "Advisory",
+            "Hyderabad",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Cloud Data Platform"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Azure Fabric"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a23c6faba",
+        "tags": [
+            "Senior Associate",
+            "Azure Fabric",
+            "Data & Analytics",
+            "Advisory",
+            "Pune",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Cloud Data Platform"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Azure Fabric"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a27a9bb0b",
+        "tags": [
+            "Senior Associate",
+            "Azure Fabric",
+            "Data & Analytics",
+            "Advisory",
+            "Bengaluru",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Cloud Data Platform"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Azure Fabric"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a2bd5c966",
+        "tags": [
+            "Associate",
+            "Microsoft Fabric",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Microsoft Fabric"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Microsoft Fabric"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a33cd561f",
+        "tags": [
+            "Associate",
+            "Microsoft Fabric",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Microsoft Fabric"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Microsoft Fabric"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f0a5bdc7c2a",
+        "tags": [
+            "Associate",
+            "Power BI",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Power BI"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Power BI"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f2f795e1d1f",
+        "tags": [
+            "Senior Associate",
+            "NodeJS",
+            "ReactJS",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "Full-stack Development",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Software Development",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "NodeJS",
+                "ReactJS",
+                "Full-stack Development"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "NodeJS",
+                "ReactJS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f2f7eb939d4",
+        "tags": [
+            "Senior Associate",
+            "NodeJS",
+            "ReactJS",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "Full-stack Development",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Software Development",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "NodeJS",
+                "ReactJS",
+                "Full-stack Development"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "NodeJS",
+                "ReactJS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f2f852e7c78",
+        "tags": [
+            "Senior Associate",
+            ".Net",
+            "ReactJS",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "Full-stack Development",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Software Development",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                ".Net",
+                "ReactJS",
+                "Full-stack Development"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                ".Net",
+                "ReactJS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f2f88d8ea5d",
+        "tags": [
+            "Senior Associate",
+            "Python",
+            "ReactJS",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "Full-stack Development",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Software Development",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "ReactJS",
+                "Full-stack Development"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Python",
+                "ReactJS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f31c717e44b",
+        "tags": [
+            "Senior Manager",
+            "Oracle EPM",
+            "EPBCS",
+            "Advisory",
+            "Consulting",
+            "Enterprise Performance Management",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Manager",
+            "primary_skills": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "domain": "Enterprise Performance Management",
+            "tools": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f352739027a",
+        "tags": [
+            "Senior Associate",
+            "Snowflake",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f353ce263d3",
+        "tags": [
+            "Senior Associate",
+            "Snowflake",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f3545d9c2ba",
+        "tags": [
+            "Senior Associate",
+            "Data & Analytics",
+            "Consulting",
+            "Snowflake",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f354a4066aa",
+        "tags": [
+            "Senior Associate",
+            "Data & Analytics",
+            "Consulting",
+            "Snowflake",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f3556177acb",
+        "tags": [
+            "Manager",
+            "Data & Analytics",
+            "Consulting",
+            "Snowflake",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "seniority": "Manager",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f355b3b5b9e",
+        "tags": [
+            "Manager",
+            "Data & Analytics",
+            "Developer",
+            "Consulting",
+            "Snowflake",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Developer",
+                "Consulting"
+            ],
+            "seniority": "Manager",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69f9d3d5a0055",
+        "tags": [
+            "Senior Manager",
+            "Data & Analytics",
+            "Consulting",
+            "SAP BW",
+            "SAP HANA",
+            "SAP",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "seniority": "Senior Manager",
+            "primary_skills": [
+                "SAP BW",
+                "SAP HANA"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting",
+                "SAP"
+            ],
+            "tools": [
+                "SAP BW",
+                "SAP HANA"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa13fa6ba47",
+        "tags": [
+            "Senior Associate",
+            "Data & Analytics",
+            "Developer",
+            "Consulting",
+            "Snowflake",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Developer",
+                "Consulting"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa143feb634",
+        "tags": [
+            "Senior Associate",
+            "Data & Analytics",
+            "Developer",
+            "Consulting",
+            "Snowflake",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Developer",
+                "Consulting"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa14796db51",
+        "tags": [
+            "Senior Associate",
+            "Data & Analytics",
+            "Developer",
+            "Consulting",
+            "Snowflake",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data & Analytics",
+                "Developer",
+                "Consulting"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa14c67a0c4",
+        "tags": [
+            "Senior Associate",
+            "Developer",
+            "Data & Analytics",
+            "Consulting",
+            "Python",
+            "FastAPI",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Developer",
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "FastAPI"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting",
+                "Software Development"
+            ],
+            "tools": [
+                "Python",
+                "FastAPI"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa15048bcea",
+        "tags": [
+            "Senior Associate",
+            "DevOps",
+            "Data & Analytics",
+            "Consulting",
+            "AWS",
+            "Cloud",
+            "On-site",
+            "India"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "DevOps",
+                "Data & Analytics",
+                "Consulting"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "AWS",
+                "DevOps"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Consulting",
+                "Cloud Infrastructure"
+            ],
+            "tools": [
+                "AWS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa1539f214b",
+        "tags": [
+            "Senior Associate",
+            "DevOps Engineer",
+            "AWS",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "DevOps Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "AWS",
+                "DevOps"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "AWS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa156fe155a",
+        "tags": [
+            "Senior Associate",
+            "DevOps Engineer",
+            "AWS",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "DevOps Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "AWS",
+                "DevOps"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "AWS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa15a5678ef",
+        "tags": [
+            "Senior Associate",
+            "DevOps Engineer",
+            "AWS",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "DevOps Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "AWS",
+                "DevOps"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "AWS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa15db2f209",
+        "tags": [
+            "Senior Associate",
+            "DevOps Engineer",
+            "Azure",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "DevOps Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "DevOps"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa16109bc1c",
+        "tags": [
+            "Senior Associate",
+            "DevOps Engineer",
+            "Azure",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "DevOps Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "DevOps"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa1644d1bf6",
+        "tags": [
+            "Senior Associate",
+            "DevOps Engineer",
+            "Azure",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "DevOps Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "DevOps"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa168c15a76",
+        "tags": [
+            "Senior Associate",
+            "DevOps Engineer",
+            "Azure",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "DevOps Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "DevOps"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa16ca66af4",
+        "tags": [
+            "Manager",
+            "Project Manager",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Project Manager",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Project Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa170396827",
+        "tags": [
+            "Manager",
+            "Project Manager",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Project Manager",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Project Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fa17441859f",
+        "tags": [
+            "Manager",
+            "Project Manager",
+            "Advisory",
+            "Data & Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Project Manager",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Project Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fca85c502ea",
+        "tags": [
+            "Associate",
+            "Python Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Python",
+            "Automation",
+            "Pune",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Automation",
+                "Advisory"
+            ],
+            "seniority": "Associate",
+            "primary_skills": [
+                "Python Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fca8b7ba73f",
+        "tags": [
+            "Associate",
+            "Python Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Python",
+            "Automation",
+            "Pune",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Automation",
+                "Advisory"
+            ],
+            "seniority": "Associate",
+            "primary_skills": [
+                "Python Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fca90e6a99a",
+        "tags": [
+            "Associate",
+            "Python Automation",
+            "Agentic Automation",
+            "Advisory",
+            "Python",
+            "Automation",
+            "Pune",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Automation",
+                "Advisory"
+            ],
+            "seniority": "Associate",
+            "primary_skills": [
+                "Python Automation",
+                "Agentic Automation"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcadbb85c46",
+        "tags": [
+            "Senior Associate",
+            "Anaplan",
+            "EPM",
+            "Advisory",
+            "Enterprise Performance Management",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "EPM",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Anaplan",
+                "Enterprise Performance Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Enterprise Performance Management"
+            ],
+            "tools": [
+                "Anaplan"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcadf4a1106",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM EPBCS",
+            "Oracle EPM",
+            "EPM",
+            "Advisory",
+            "Enterprise Performance Management",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "EPM",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM EPBCS",
+                "Oracle EPM",
+                "Enterprise Performance Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Enterprise Performance Management"
+            ],
+            "tools": [
+                "Oracle EPM EPBCS",
+                "Oracle EPM"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcae2be9f59",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM EPBCS",
+            "EPM",
+            "Advisory",
+            "Enterprise Performance Management",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "EPM",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM EPBCS",
+                "Enterprise Performance Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Enterprise Performance Management"
+            ],
+            "tools": [
+                "Oracle EPM EPBCS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcae5aaf59b",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM EDMCS",
+            "EPM",
+            "Advisory",
+            "Enterprise Performance Management",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "EPM",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM EDMCS",
+                "Enterprise Performance Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Enterprise Performance Management"
+            ],
+            "tools": [
+                "Oracle EPM EDMCS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcae8607926",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM ARCS",
+            "EPM",
+            "Advisory",
+            "Enterprise Performance Management",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "EPM",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM ARCS",
+                "Enterprise Performance Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Enterprise Performance Management"
+            ],
+            "tools": [
+                "Oracle EPM ARCS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcaeb2cf0ee",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM EPBCS",
+            "EPM",
+            "Advisory",
+            "Enterprise Performance Management",
+            "Hyderabad",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "EPM",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM EPBCS",
+                "Enterprise Performance Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Enterprise Performance Management"
+            ],
+            "tools": [
+                "Oracle EPM EPBCS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcaef6033af",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM EPBCS",
+            "EPM",
+            "Advisory",
+            "Enterprise Performance Management",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "EPM",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM EPBCS",
+                "Enterprise Performance Management"
+            ],
+            "domain": [
+                "Advisory",
+                "Enterprise Performance Management"
+            ],
+            "tools": [
+                "Oracle EPM EPBCS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a69fcaf253b052",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM",
+            "EPBCS",
+            "EPM",
+            "Advisory",
+            "Consulting",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "domain": "Enterprise Performance Management",
+            "tools": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a69fcafbc26345",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM",
+            "EPBCS",
+            "EPM",
+            "Advisory",
+            "Consulting",
+            "Bangalore"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "domain": "Enterprise Performance Management",
+            "tools": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "location_type": "On-site (Bangalore)"
+        }
+    },
+    {
+        "job_id": "a69fcb0500b1c1",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM",
+            "EPBCS",
+            "Advisory",
+            "Consulting",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "domain": "Enterprise Performance Management",
+            "tools": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a69fcb087cef75",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM",
+            "EPBCS",
+            "EPM",
+            "Advisory",
+            "Consulting",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "domain": "Enterprise Performance Management",
+            "tools": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a69fcb33be22aa",
+        "tags": [
+            "Senior Associate",
+            "Oracle EPM",
+            "EPBCS",
+            "Advisory",
+            "Consulting",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "domain": "Enterprise Performance Management",
+            "tools": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a69fcb59f7ffc2",
+        "tags": [
+            "Senior Associate",
+            "Azure Logic Apps",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "Cloud",
+            "Microsoft Azure",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure Logic Apps",
+                "Data & Analytics"
+            ],
+            "domain": "Cloud Computing, Data & Analytics",
+            "tools": [
+                "Azure Logic Apps",
+                "Microsoft Azure"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a69fddf66d401e",
+        "tags": [
+            "Senior Associate",
+            "SAP MDG",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "SAP",
+            "Master Data Governance",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "SAP MDG",
+                "Master Data Governance"
+            ],
+            "domain": "Data & Analytics, ERP",
+            "tools": [
+                "SAP MDG",
+                "SAP"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a69fddfd8a801a",
+        "tags": [
+            "Senior Associate",
+            "IDMC",
+            "MDM Developer",
+            "Data & Analytics",
+            "Advisory",
+            "Consulting",
+            "Master Data Management",
+            "Developer",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "IDMC",
+                "MDM"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "IDMC",
+                "MDM"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a6a01eac016aa6",
+        "tags": [
+            "Associate",
+            "Zoho",
+            "Cloud",
+            "Advisory",
+            "Consulting",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Zoho",
+                "Cloud Solutions"
+            ],
+            "domain": "Cloud Computing, Business Software",
+            "tools": [
+                "Zoho"
+            ],
+            "location_type": "PAN India"
+        }
+    },
+    {
+        "job_id": "a6a01edf3537a7",
+        "tags": [
+            "Senior Associate",
+            "Google Cloud Engineer",
+            "Cloud",
+            "Advisory",
+            "Consulting",
+            "Google Cloud Platform",
+            "Engineer",
+            "Mumbai"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Google Cloud Platform",
+                "Cloud Engineering"
+            ],
+            "domain": "Cloud Computing",
+            "tools": [
+                "Google Cloud Platform"
+            ],
+            "location_type": "On-site (Mumbai)"
+        }
+    },
+    {
+        "job_id": "a6a01ee8516cfb",
+        "tags": [
+            "Senior Associate",
+            "Cloud Engineer",
+            "Google Cloud",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Cloud Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Google Cloud"
+            ],
+            "domain": [
+                "Advisory",
+                "Cloud"
+            ],
+            "tools": [
+                "Google Cloud"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a01eebc0832f",
+        "tags": [
+            "Senior Associate",
+            "Cloud Engineer",
+            "Google Cloud",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Cloud Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Google Cloud"
+            ],
+            "domain": [
+                "Advisory",
+                "Cloud"
+            ],
+            "tools": [
+                "Google Cloud"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a031f707b04d",
+        "tags": [
+            "Associate",
+            "Internal Firm Services",
+            "IFS",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Internal Firm Services",
+            "seniority": "Associate",
+            "domain": [
+                "Internal Firm Services"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a0bfbe9d55c1",
+        "tags": [
+            "Senior Associate",
+            "Data and Analytics",
+            "Palantir",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data and Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Palantir"
+            ],
+            "domain": [
+                "Advisory"
+            ],
+            "tools": [
+                "Palantir"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a0bfc2d4df0c",
+        "tags": [
+            "Senior Associate",
+            "Data and Analytics",
+            "Palantir",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data and Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Palantir"
+            ],
+            "domain": [
+                "Advisory"
+            ],
+            "tools": [
+                "Palantir"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a0bfc64bf25d",
+        "tags": [
+            "Senior Associate",
+            "Data and Analytics",
+            "Palantir",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data and Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Palantir"
+            ],
+            "domain": [
+                "Advisory"
+            ],
+            "tools": [
+                "Palantir"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a0bfdec4f4fa",
+        "tags": [
+            "Senior Associate",
+            "Data and Analytics",
+            "Palantir",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data and Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Palantir"
+            ],
+            "domain": [
+                "Advisory"
+            ],
+            "tools": [
+                "Palantir"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a0bfed32e9f2",
+        "tags": [
+            "Senior Associate",
+            "Data and Analytics",
+            "Palantir",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data and Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Palantir"
+            ],
+            "domain": [
+                "Advisory"
+            ],
+            "tools": [
+                "Palantir"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a0c1209a6499",
+        "tags": [
+            "Director",
+            "Cloud Architect",
+            "AWS",
+            "Cloud",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Cloud Architect",
+            "seniority": "Director",
+            "primary_skills": [
+                "AWS Cloud Architecture",
+                "Cloud"
+            ],
+            "domain": [
+                "Advisory",
+                "Cloud"
+            ],
+            "tools": [
+                "AWS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a1041f5d8f45",
+        "tags": [
+            "Senior Manager",
+            "AI/ML Architect",
+            "Advanced Analytics Architect",
+            "AWS AI/ML",
+            "Advanced Analytics",
+            "Cloud",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "AI/ML Architect",
+            "seniority": "Senior Manager",
+            "primary_skills": [
+                "AWS AI/ML",
+                "Advanced Analytics",
+                "Cloud"
+            ],
+            "domain": [
+                "Advisory",
+                "Cloud"
+            ],
+            "tools": [
+                "AWS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a1d451047f49",
+        "tags": [
+            "Associate",
+            "Data Analyst",
+            "Advisory",
+            "Palantir",
+            "Data & Analytics",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Data Analyst",
+                "Advisory"
+            ],
+            "seniority": "Associate",
+            "primary_skills": [
+                "Data Analytics",
+                "Palantir"
+            ],
+            "domain": [
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Palantir"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a1d4f6ed5d09",
+        "tags": [
+            "Manager",
+            "Developer",
+            "Snowflake",
+            "Data Engineer",
+            "Advisory",
+            "Data & Analytics",
+            "Bhopal",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Developer",
+                "Data Engineer",
+                "Advisory"
+            ],
+            "seniority": "Manager",
+            "primary_skills": [
+                "Snowflake",
+                "Data Engineering"
+            ],
+            "domain": [
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a1d4fa961b53",
+        "tags": [
+            "Senior Associate",
+            "Developer",
+            "Python",
+            "FastAPI",
+            "Data Engineer",
+            "Advisory",
+            "Data & Analytics",
+            "Bhopal",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Developer",
+                "Data Engineer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python",
+                "FastAPI"
+            ],
+            "domain": [
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Python",
+                "FastAPI"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a1d4fe01e01b",
+        "tags": [
+            "Senior Associate",
+            "Developer",
+            "Python",
+            "Data Engineer",
+            "Advisory",
+            "Data & Analytics",
+            "Hyderabad",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Developer",
+                "Data Engineer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python"
+            ],
+            "domain": [
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a1d50117e547",
+        "tags": [
+            "Senior Associate",
+            "Developer",
+            "Python",
+            "Data Engineer",
+            "Advisory",
+            "Data & Analytics",
+            "Kolkata",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Developer",
+                "Data Engineer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Python"
+            ],
+            "domain": [
+                "Data & Analytics"
+            ],
+            "tools": [
+                "Python"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a218e9c8e2b5",
+        "tags": [
+            "Senior Associate",
+            "Developer",
+            "AI Engineer",
+            "GCP",
+            "Generative AI",
+            "Agentic Development",
+            "Cloud",
+            "Advisory",
+            "Artificial Intelligence",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "AI Engineer",
+                "Cloud Engineer",
+                "Developer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "GCP",
+                "Generative AI",
+                "Agentic Development",
+                "Cloud Development"
+            ],
+            "domain": [
+                "Artificial Intelligence",
+                "Cloud Computing"
+            ],
+            "tools": [
+                "GCP"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a218edc20961",
+        "tags": [
+            "Senior Associate",
+            "Fullstack Developer",
+            "Azure",
+            "Cloud Engineer",
+            "Advisory",
+            "Cloud Computing",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Fullstack Developer",
+                "Cloud Engineer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "Fullstack Development",
+                "Cloud Development"
+            ],
+            "domain": [
+                "Cloud Computing"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a218f0f2228c",
+        "tags": [
+            "Senior Associate",
+            "Developer",
+            "AI Engineer",
+            "Azure",
+            "Generative AI",
+            "Agentic Development",
+            "Cloud",
+            "Advisory",
+            "Artificial Intelligence",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "AI Engineer",
+                "Cloud Engineer",
+                "Developer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "Generative AI",
+                "Agentic Development",
+                "Cloud Development"
+            ],
+            "domain": [
+                "Artificial Intelligence",
+                "Cloud Computing"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a218f492b60b",
+        "tags": [
+            "Senior Associate",
+            "Fullstack Developer",
+            "Azure",
+            "Cloud Engineer",
+            "Advisory",
+            "Cloud Computing",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "Fullstack Developer",
+                "Cloud Engineer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "Fullstack Development",
+                "Cloud Development"
+            ],
+            "domain": [
+                "Cloud Computing"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a218fb28419e",
+        "tags": [
+            "Senior Associate",
+            "Developer",
+            "AI Engineer",
+            "Azure",
+            "Generative AI",
+            "Agentic Development",
+            "Cloud",
+            "Advisory",
+            "Artificial Intelligence",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": [
+                "AI Engineer",
+                "Cloud Engineer",
+                "Developer",
+                "Advisory"
+            ],
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure",
+                "Generative AI",
+                "Agentic Development",
+                "Cloud Development"
+            ],
+            "domain": [
+                "Artificial Intelligence",
+                "Cloud Computing"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a21903122747",
+        "tags": [
+            "Senior Associate",
+            "Azure",
+            "Generative AI",
+            "Agentic Systems",
+            "Cloud",
+            "Advisory",
+            "Developer",
+            "AI/ML"
+        ],
+        "ai_metadata": {
+            "role_family": "AI/ML Developer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Generative AI",
+                "Agentic Systems"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Artificial Intelligence"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a219069be978",
+        "tags": [
+            "Senior Associate",
+            "Azure",
+            "Fullstack Development",
+            "Cloud",
+            "Advisory",
+            "Developer"
+        ],
+        "ai_metadata": {
+            "role_family": "Fullstack Developer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Fullstack Development"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Software Development"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a21909d4c3ac",
+        "tags": [
+            "Senior Associate",
+            "GCP",
+            "Data Engineering",
+            "Cloud",
+            "Advisory",
+            "Data & Analytics"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Data Engineering"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "GCP"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2190d4043ce",
+        "tags": [
+            "Senior Associate",
+            "GCP",
+            "Data Engineering",
+            "Cloud",
+            "Advisory",
+            "Data & Analytics"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Data Engineering"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Data & Analytics"
+            ],
+            "tools": [
+                "GCP"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a21910d126d8",
+        "tags": [
+            "Senior Associate",
+            "Azure",
+            "Generative AI",
+            "Agentic Systems",
+            "Cloud",
+            "Advisory",
+            "Developer",
+            "AI/ML"
+        ],
+        "ai_metadata": {
+            "role_family": "AI/ML Developer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Generative AI",
+                "Agentic Systems"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Artificial Intelligence"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a21933601669",
+        "tags": [
+            "Senior Associate",
+            "Azure",
+            "Cloud Migration",
+            "Specialist",
+            "Cloud",
+            "Advisory"
+        ],
+        "ai_metadata": {
+            "role_family": "Cloud Migration Specialist",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Cloud Migration"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2194964f623",
+        "tags": [
+            "Senior Associate",
+            "GCP",
+            "Generative AI",
+            "Agentic Systems",
+            "Cloud",
+            "Advisory",
+            "Developer",
+            "AI/ML"
+        ],
+        "ai_metadata": {
+            "role_family": "AI/ML Developer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Generative AI",
+                "Agentic Systems"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Artificial Intelligence"
+            ],
+            "tools": [
+                "GCP"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2194c85b81d",
+        "tags": [
+            "Senior Associate",
+            "GCP",
+            "Generative AI",
+            "Agentic Systems",
+            "Cloud",
+            "Advisory",
+            "Developer",
+            "AI/ML"
+        ],
+        "ai_metadata": {
+            "role_family": "AI/ML Developer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Generative AI",
+                "Agentic Systems"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Artificial Intelligence"
+            ],
+            "tools": [
+                "GCP"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2195fd5f612",
+        "tags": [
+            "Senior Associate",
+            "Azure",
+            "Fullstack Development",
+            "Cloud",
+            "Advisory",
+            "Developer"
+        ],
+        "ai_metadata": {
+            "role_family": "Fullstack Developer",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Fullstack Development"
+            ],
+            "domain": [
+                "Cloud Computing",
+                "Advisory",
+                "Software Development"
+            ],
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a21967049c57",
+        "tags": [
+            "Senior Associate",
+            "IICS",
+            "Data Migration",
+            "Data & Analytics",
+            "Advisory",
+            "Specialist"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Migration Specialist",
+            "seniority": "Senior",
+            "primary_skills": [
+                "Data Migration"
+            ],
+            "domain": [
+                "Data & Analytics",
+                "Advisory"
+            ],
+            "tools": [
+                "IICS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a21990c4a7b8",
+        "tags": [
+            "Senior Associate",
+            "Business Analyst",
+            "Data & Analytics",
+            "Power BI",
+            "Advisory",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Business Analyst",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Business Analysis",
+                "Data Visualization"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Power BI"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a219a445bb93",
+        "tags": [
+            "Senior Associate",
+            "Data Engineer",
+            "Data & Analytics",
+            "Azure Databricks",
+            "Advisory",
+            "Kolkata",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure Databricks",
+                "Data Engineering"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Azure Databricks"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a22702672df5",
+        "tags": [
+            "Senior Associate",
+            "AI Developer",
+            "Generative AI",
+            "Agentic AI",
+            "Emerging Businesses",
+            "Advisory",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "AI Developer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Generative AI",
+                "Agentic AI",
+                "AI Development"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a227079811c3",
+        "tags": [
+            "Senior Associate",
+            "AI Developer",
+            "Generative AI",
+            "Agentic AI",
+            "Emerging Businesses",
+            "Advisory",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "AI Developer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Generative AI",
+                "Agentic AI",
+                "AI Development"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2270b63d5ec",
+        "tags": [
+            "Senior Associate",
+            "AI Developer",
+            "Agentic AI",
+            "Emerging Businesses",
+            "Advisory",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "AI Developer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Agentic AI",
+                "AI Development"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2270f33b786",
+        "tags": [
+            "Senior Associate",
+            "AI Developer",
+            "Agentic AI",
+            "Emerging Businesses",
+            "Advisory",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "AI Developer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Agentic AI",
+                "AI Development"
+            ],
+            "domain": "Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a257ecf8a7ba",
+        "tags": [
+            "Senior Associate",
+            "Data Engineer",
+            "Azure",
+            "Data & Analytics",
+            "Advisory",
+            "Kolkata",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure Data Engineering"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2a62e3ab885",
+        "tags": [
+            "Associate",
+            "Financial Reporting Specialist",
+            "Finance",
+            "Financial Control",
+            "Corporate Finance",
+            "Internal Firm Services",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Financial Reporting Specialist",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Financial Reporting",
+                "Financial Control"
+            ],
+            "domain": "Internal Firm Services",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2a70e6a2712",
+        "tags": [
+            "Senior Manager",
+            "FP&A Manager",
+            "Finance",
+            "Financial Planning",
+            "Financial Analysis",
+            "Financial Control",
+            "Internal Firm Services",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "FP&A Manager",
+            "seniority": "Senior Manager",
+            "primary_skills": [
+                "Financial Planning & Analysis",
+                "Financial Control"
+            ],
+            "domain": "Internal Firm Services",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2ab0102905c",
+        "tags": [
+            "Senior Associate",
+            "SAP Developer",
+            "Data & Analytics",
+            "SAP BW/4HANA",
+            "Advisory",
+            "Bangalore",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "SAP Developer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "SAP BW/4HANA Development",
+                "Data Warehousing"
+            ],
+            "domain": "Advisory",
+            "tools": [
+                "SAP BW/4HANA"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a2bb3a48ce27",
+        "tags": [
+            "Senior Associate",
+            "FP&A",
+            "Finance",
+            "Financial Planning",
+            "Financial Analysis",
+            "Accounting",
+            "IFS",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "FP&A",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Financial Planning",
+                "Financial Analysis"
+            ],
+            "domain": "Finance & Accounts",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a30fb5b940da",
+        "tags": [
+            "Associate",
+            "EPM Consultant",
+            "Oracle",
+            "EPBCS",
+            "Enterprise Performance Management",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "EPM Consultant",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "domain": "Enterprise Performance Management",
+            "tools": [
+                "Oracle EPM",
+                "EPBCS"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a31382546df7",
+        "tags": [
+            "Manager",
+            "Data Engineer",
+            "Data Engineering",
+            "Databricks",
+            "Guidewire",
+            "ETL",
+            "Data Pipelines",
+            "Data Analytics",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineer",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Data Engineering",
+                "ETL",
+                "Data Pipelines"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Databricks",
+                "Guidewire"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a313e023a8ef",
+        "tags": [
+            "Associate",
+            "Snowflake Developer",
+            "Data Developer",
+            "Snowflake",
+            "SQL",
+            "Data Warehousing",
+            "ETL",
+            "Data Analytics",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Snowflake Developer",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Snowflake",
+                "SQL",
+                "Data Warehousing"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a313e4300381",
+        "tags": [
+            "Associate",
+            "Snowflake Developer",
+            "Data Developer",
+            "Snowflake",
+            "SQL",
+            "Data Warehousing",
+            "ETL",
+            "Data Analytics",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Snowflake Developer",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Snowflake",
+                "SQL",
+                "Data Warehousing"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Snowflake"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a314c9063f16",
+        "tags": [
+            "Associate",
+            "Palantir Consultant",
+            "Data Analyst",
+            "Palantir",
+            "Data Analysis",
+            "Data Analytics",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Palantir Consultant",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Palantir",
+                "Data Analysis"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Palantir"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a33a9ac94b5a",
+        "tags": [
+            "Associate",
+            "CSR Specialist",
+            "Corporate Social Responsibility",
+            "Sustainability",
+            "ESG",
+            "Community Engagement",
+            "IFS",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "CSR Specialist",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Corporate Social Responsibility",
+                "Sustainability"
+            ],
+            "domain": "Corporate Social Responsibility",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a34106648007",
+        "tags": [
+            "Associate",
+            "MLOps Engineer",
+            "Azure ML Engineer",
+            "MLOps",
+            "Azure ML",
+            "Machine Learning Operations",
+            "DevOps",
+            "Emerging Business",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "MLOps Engineer",
+            "seniority": "Associate",
+            "primary_skills": [
+                "MLOps",
+                "Azure ML"
+            ],
+            "domain": "Emerging Business",
+            "tools": [
+                "Azure ML"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a341f2fa939f",
+        "tags": [
+            "Senior Associate",
+            "Azure Data Engineer",
+            "Data Engineering",
+            "Azure",
+            "Data Pipelines",
+            "ETL",
+            "Cloud Data",
+            "Data Analytics",
+            "Advisory",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Azure Data Engineer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure Data Engineering",
+                "Data Pipelines"
+            ],
+            "domain": "Data & Analytics",
+            "tools": [
+                "Azure Data"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a34c3e25e853",
+        "tags": [
+            "Specialist",
+            "Compliance Specialist",
+            "Monitoring",
+            "Testing",
+            "Independence",
+            "IFS",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Compliance Specialist",
+            "seniority": "Specialist",
+            "primary_skills": [
+                "Monitoring",
+                "Testing",
+                "Compliance"
+            ],
+            "domain": "Independence",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a390cb149db0",
+        "tags": [
+            "Tax",
+            "Mergers & Acquisitions",
+            "Intern",
+            "Trainee",
+            "Finance",
+            "Consulting",
+            "Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Tax",
+            "seniority": "Intern",
+            "primary_skills": [
+                "Tax",
+                "Mergers & Acquisitions Tax"
+            ],
+            "domain": "Finance, Consulting",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3a2e88a7b7d",
+        "tags": [
+            "Tax",
+            "Entry Level",
+            "Associate",
+            "Finance",
+            "Consulting",
+            "Ahmedabad",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Tax",
+            "seniority": "Associate",
+            "primary_skills": [
+                "Tax"
+            ],
+            "domain": "Finance, Consulting",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3a5894c5153",
+        "tags": [
+            "Human Resources",
+            "HR Operations",
+            "Specialist",
+            "Human Capital",
+            "CLRA",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Human Resources",
+            "seniority": "Specialist",
+            "primary_skills": [
+                "HR Operations",
+                "Human Capital",
+                "CLRA"
+            ],
+            "domain": "Human Resources, Consulting",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3a58e61bbf8",
+        "tags": [
+            "Finance",
+            "Accounting",
+            "Accounts Payable",
+            "Senior Associate",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Finance, Accounting",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Accounts Payable",
+                "Finance",
+                "Accounting"
+            ],
+            "domain": "Finance, Consulting",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3a5cf971e5b",
+        "tags": [
+            "Data & Analytics",
+            "Developer",
+            "Snowflake",
+            "Power BI",
+            "Senior Associate",
+            "IT",
+            "Consulting",
+            "Kolkata",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics, Developer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake",
+                "Power BI",
+                "Data Analytics"
+            ],
+            "domain": "IT, Data & Analytics, Consulting",
+            "tools": [
+                "Snowflake",
+                "Power BI"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3ca57085c35",
+        "tags": [
+            "IT Security",
+            "Cloud Security",
+            "Manager",
+            "Cybersecurity",
+            "IT",
+            "Consulting",
+            "Navi Mumbai",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "IT Security, Cloud Security",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Cloud Security",
+                "IT Security"
+            ],
+            "domain": "IT, Cybersecurity, Consulting",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3ca66a4254a",
+        "tags": [
+            "Finance",
+            "Accounting",
+            "Senior Associate",
+            "Gurugram",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Finance, Accounting",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Finance",
+                "Accounting"
+            ],
+            "domain": "Finance, Consulting",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3d51199ad3e",
+        "tags": [
+            "AI",
+            "Machine Learning",
+            "Data & Analytics",
+            "Senior Associate",
+            "IT",
+            "Data Science",
+            "Consulting",
+            "Jaipur",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics, AI/ML",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "AI",
+                "Machine Learning",
+                "Data & Analytics"
+            ],
+            "domain": "IT, Data Science, Consulting",
+            "tools": [],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3e481fde4ec",
+        "tags": [
+            "Azure",
+            "Data Engineer",
+            "Data & Analytics",
+            "Senior Associate",
+            "IT",
+            "Cloud",
+            "Consulting",
+            "Kolkata",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data Engineering, Data & Analytics",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Azure Data Engineering",
+                "Data Analytics"
+            ],
+            "domain": "IT, Data & Analytics, Cloud, Consulting",
+            "tools": [
+                "Azure"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3e48d2c68ed",
+        "tags": [
+            "Snowflake",
+            "Power BI",
+            "Developer",
+            "Data & Analytics",
+            "Senior Associate",
+            "IT",
+            "Consulting",
+            "Kolkata",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Data & Analytics, Developer",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Snowflake",
+                "Power BI",
+                "Data Development",
+                "Data Analytics"
+            ],
+            "domain": "IT, Data & Analytics, Consulting",
+            "tools": [
+                "Snowflake",
+                "Power BI"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a3e49db15601",
+        "tags": [
+            "Manager",
+            "Generative AI",
+            "Emerging Business",
+            "Advisory",
+            "Consulting",
+            "Technology",
+            "AI",
+            "On-site",
+            "Bangalore",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Advisory, Emerging Business, AI",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Generative AI"
+            ],
+            "domain": "Consulting, Technology, Business Advisory",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a42992a2cb61",
+        "tags": [
+            "Senior Manager",
+            "Employee Relations",
+            "Human Capital",
+            "Human Resources",
+            "IFS",
+            "Internal Operations",
+            "On-site",
+            "Mumbai"
+        ],
+        "ai_metadata": {
+            "role_family": "Human Resources, Employee Relations",
+            "seniority": "Senior Manager",
+            "primary_skills": [
+                "Employee Relations",
+                "Human Capital"
+            ],
+            "domain": "Internal Operations",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a4341943a020",
+        "tags": [
+            "Specialist",
+            "Operations",
+            "Finance",
+            "BEST Operations",
+            "IFS",
+            "Internal Operations",
+            "On-site",
+            "Gurugram"
+        ],
+        "ai_metadata": {
+            "role_family": "Operations, Finance",
+            "seniority": "Specialist",
+            "primary_skills": [
+                "Financial Operations",
+                "Business Operations"
+            ],
+            "domain": "Internal Operations",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a43450ed4ce4",
+        "tags": [
+            "Manager",
+            "Employee Relations",
+            "Ethics",
+            "Business Conduct",
+            "Human Resources",
+            "Compliance",
+            "IFS",
+            "Internal Operations",
+            "On-site",
+            "Gurugram"
+        ],
+        "ai_metadata": {
+            "role_family": "Human Resources, Employee Relations, Compliance",
+            "seniority": "Manager",
+            "primary_skills": [
+                "Employee Relations",
+                "Ethics & Business Conduct"
+            ],
+            "domain": "Internal Operations, Compliance",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a4366ea4a2bf",
+        "tags": [
+            "Specialist",
+            "Direct Tax",
+            "Finance",
+            "Taxation",
+            "IFS",
+            "Internal Operations",
+            "On-site",
+            "Gurugram"
+        ],
+        "ai_metadata": {
+            "role_family": "Finance, Tax",
+            "seniority": "Specialist",
+            "primary_skills": [
+                "Direct Tax",
+                "Finance"
+            ],
+            "domain": "Internal Operations, Taxation",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a43853f635dc",
+        "tags": [
+            "Specialist",
+            "Learning & Development",
+            "L&D",
+            "Human Capital",
+            "Human Resources",
+            "IFS",
+            "Internal Operations",
+            "On-site",
+            "Gurugram"
+        ],
+        "ai_metadata": {
+            "role_family": "Human Resources, Learning & Development",
+            "seniority": "Specialist",
+            "primary_skills": [
+                "Learning & Development",
+                "Human Capital"
+            ],
+            "domain": "Internal Operations",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a43ab6b2abc8",
+        "tags": [
+            "Senior Manager",
+            "Project Manager",
+            "IT Security",
+            "Cybersecurity",
+            "Project Management",
+            "IFS",
+            "Internal Operations",
+            "On-site",
+            "Gurugram",
+            "PAN India"
+        ],
+        "ai_metadata": {
+            "role_family": "Project Management, IT Security",
+            "seniority": "Senior Manager",
+            "primary_skills": [
+                "Project Management",
+                "IT Security",
+                "Cybersecurity"
+            ],
+            "domain": "Information Technology, Internal Operations",
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "a6a44b6e003f85",
+        "tags": [
+            "Senior Associate",
+            "Finance",
+            "Accounts",
+            "Financial Control",
+            "Accounting",
+            "IFS",
+            "Internal Operations",
+            "On-site",
+            "Gurugram"
+        ],
+        "ai_metadata": {
+            "role_family": "Finance, Accounting",
+            "seniority": "Senior Associate",
+            "primary_skills": [
+                "Finance & Accounts",
+                "Financial Control"
+            ],
+            "domain": "Internal Operations",
+            "location_type": "On-site"
+        }
+    }
+]
