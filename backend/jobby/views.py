@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.request import Request
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
@@ -122,9 +122,9 @@ class JobviewAll(APIView):
         
         jobs_query = Job.objects.all()
         if site_name:
-            jobs_query = jobs_query.filter(platform_name__iexact=site_name)
+            jobs_query = Job.objects.filter(platform_name__icontains=site_name)
         if enriched_only:
-            jobs_query = jobs_query.exclude(tags=[])
+            jobs_query = Job.objects.exclude(tags=[])
             
         paginator = PageNumberPagination()
         paginator.page_size = 20
@@ -154,7 +154,7 @@ class JobviewMatched(APIView):
         matches_query = PortfolioJobMatch.objects.filter(portfolio__owner=user).select_related('job')
         
         if site_name:
-            matches_query = matches_query.filter(job__platform_name__iexact=site_name)
+            matches_query = matches_query.filter(job__platform_name__icontains=site_name)
         if order_index:
             matches_query = matches_query.filter(portfolio__order_index=order_index)
         if min_score:
@@ -165,4 +165,32 @@ class JobviewMatched(APIView):
         paginated_matches = paginator.paginate_queryset(matches_query, request)
         
         serializer = PortfolioJobMatchSerializer(paginated_matches, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+class JobFilterView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    throttle_classes = [AnonRateThrottle]
+
+    def get(self, request: Request):
+        user = User.objects.get(pk=request.user.pk)
+        if user.tier < 2:
+            return Response(
+                {"error": "User does not have access to this endpoint."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        site_name = request.query_params.get('site_name', None)
+        enriched_only = _query_bool(request.query_params.get('enriched_only'), False)
+        
+        jobs_query = Job.objects.all()
+        if site_name:
+            jobs_query = Job.objects.filter(platform_name__icontains=site_name)
+        if enriched_only:
+            jobs_query = Job.objects.exclude(tags=[])
+            
+        paginator = PageNumberPagination()
+        paginator.page_size = 20
+        paginated_jobs = paginator.paginate_queryset(jobs_query, request)
+        
+        serializer = JobSerializer(paginated_jobs, many=True)
         return paginator.get_paginated_response(serializer.data)
