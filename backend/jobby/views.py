@@ -102,7 +102,7 @@ class JobAnalysisCreditView(APIView):
 
     def get(self, request: Request):
         request.user.refresh_from_db(fields=["job_analysis_limit"])
-        return Response({"job_analysis_limit": request.user.job_analysis_limit})
+        return Response({"job analysis limit": request.user.job_analysis_limit})
 
 
 class JobviewAll(APIView):
@@ -112,6 +112,7 @@ class JobviewAll(APIView):
 
     def get(self, request: Request):
         user = User.objects.get(pk=request.user.pk)
+        per_page = request.query_params.get('per_page', 20)
         if user.tier < 2:
             return Response(
                 {"error": "User does not have access to this endpoint."},
@@ -127,7 +128,7 @@ class JobviewAll(APIView):
             jobs_query = Job.objects.exclude(tags=[])
             
         paginator = PageNumberPagination()
-        paginator.page_size = 20
+        paginator.page_size = int(per_page)
         paginated_jobs = paginator.paginate_queryset(jobs_query, request)
         
         serializer = JobSerializer(paginated_jobs, many=True)
@@ -141,6 +142,7 @@ class JobviewMatched(APIView):
 
     def get(self, request: Request):
         site_name = request.query_params.get('site_name', None)
+        per_page = request.query_params.get('per_page', 20)
         try:
             order_index = int(request.query_params.get("order_index", 0))
         except ValueError:
@@ -161,7 +163,7 @@ class JobviewMatched(APIView):
             matches_query = matches_query.filter(match_score__gte=min_score)
             
         paginator = PageNumberPagination()
-        paginator.page_size = 20
+        paginator.page_size = int(per_page)
         paginated_matches = paginator.paginate_queryset(matches_query, request)
         
         serializer = PortfolioJobMatchSerializer(paginated_matches, many=True)
@@ -181,6 +183,7 @@ class JobFilterView(APIView):
             )
         site_name = request.query_params.get('site_name', None)
         enriched_only = _query_bool(request.query_params.get('enriched_only'), False)
+        per_page = request.query_params.get('per_page', 20)
         
         jobs_query = Job.objects.all()
         if site_name:
@@ -189,7 +192,7 @@ class JobFilterView(APIView):
             jobs_query = Job.objects.exclude(tags=[])
             
         paginator = PageNumberPagination()
-        paginator.page_size = 20
+        paginator.page_size = int(per_page)
         paginated_jobs = paginator.paginate_queryset(jobs_query, request)
         
         serializer = JobSerializer(paginated_jobs, many=True)
