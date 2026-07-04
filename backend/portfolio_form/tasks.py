@@ -160,9 +160,9 @@ def _portfolio_analysis_payload(portfolio_obj: PortfolioSettings) -> dict:
 
 @shared_task(bind=True)
 def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: bool, portfolio_id: int, match_only: bool = False):
-    if run_scraper and not match_only:
-        scraper = ScraperManager(site_name=site_name)
-        scraper.run_scraper()
+    #if run_scraper and not match_only:
+        #scraper = ScraperManager(site_name=site_name)
+        #scraper.run_scraper()
         
     if run_processor or match_only:
         try:
@@ -173,24 +173,24 @@ def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: boo
         portfolio_dict = _portfolio_analysis_payload(portfolio_obj) 
         manager = JobManager()
 
-        if match_only:
-            return manager.process_match_only(
-                portfolio=portfolio_dict,
-                portfolio_id=portfolio_id,
-                site_name=site_name,
-                batch_size=75,
-            )
+        #if match_only:
+            #return manager.process_match_only(
+                #portfolio=portfolio_dict,
+                #portfolio_id=portfolio_id,
+                #site_name=site_name,
+                #batch_size=75,
+            #)
 
         output_file = f"{site_name}_job_analysis_output.json"
         
-        return manager.process_jobs(
-            portfolio=portfolio_dict, 
-            portfolio_id=portfolio_id,
-            output_file=output_file, 
-            batch_size=10, 
-            site_name=site_name,
-            run_match_after=True,
-            match_batch_size=75,
-        )
+        #return manager.process_jobs(
+            #portfolio=portfolio_dict, 
+            #portfolio_id=portfolio_id,
+            #output_file=output_file, 
+            #batch_size=10, 
+            #site_name=site_name,
+            #run_match_after=True,
+            #match_batch_size=75,
+        #)
         
     return {"status": "success", "site_name": site_name}
