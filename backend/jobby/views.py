@@ -113,6 +113,7 @@ class JobviewAll(APIView):
     def get(self, request: Request):
         user = User.objects.get(pk=request.user.pk)
         per_page = request.query_params.get('per_page', 20)
+        
         if user.tier < 2:
             return Response(
                 {"error": "User does not have access to this endpoint."},
@@ -143,6 +144,7 @@ class JobviewMatched(APIView):
     def get(self, request: Request):
         site_name = request.query_params.get('site_name', None)
         per_page = request.query_params.get('per_page', 20)
+        site_name = request.query_params.get('filter_org', None)
         try:
             order_index = int(request.query_params.get("order_index", 0))
         except ValueError:
@@ -151,10 +153,12 @@ class JobviewMatched(APIView):
             min_score = float(request.query_params.get("min_score", 0))
         except ValueError:
             min_score = 0
+            
         user = request.user
-        
         matches_query = PortfolioJobMatch.objects.filter(portfolio__owner=user).select_related('job')
-        
+
+        if site_name:
+            matches_query = matches_query.filter(job__platform_name__icontains=site_name)
         if site_name:
             matches_query = matches_query.filter(job__platform_name__icontains=site_name)
         if order_index:

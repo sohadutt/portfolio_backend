@@ -235,5 +235,64 @@
                 "SAP GRC"
             ]
         }
+    },
+    {
+        "job_id": "ATCI-5640055-S2055413_en",
+        "tags": [
+            "Application Support",
+            "Senior",
+            "SAP CX Sales Cloud",
+            "SAP C4C",
+            "CRM",
+            "Cloud Solutions",
+            "Enterprise Software",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support",
+            "seniority": "Senior",
+            "primary_skills": [
+                "SAP CX Sales Cloud C4C",
+                "System Design",
+                "Implementation",
+                "Troubleshooting"
+            ],
+            "domain": "CRM",
+            "tools": [
+                "SAP CX Sales Cloud",
+                "SAP C4C"
+            ],
+            "location_type": "On-site"
+        }
+    },
+    {
+        "job_id": "ATCI-5639864-S2055400_en",
+        "tags": [
+            "Application Support",
+            "Senior",
+            "SAP Analytics Cloud Planning",
+            "SAP SAC",
+            "Business Intelligence",
+            "Enterprise Planning",
+            "Cloud Solutions",
+            "Analytics",
+            "On-site"
+        ],
+        "ai_metadata": {
+            "role_family": "Application Support",
+            "seniority": "Senior",
+            "primary_skills": [
+                "SAP Analytics Cloud Planning",
+                "Enterprise Planning",
+                "System Design",
+                "Implementation",
+                "Troubleshooting"
+            ],
+            "domain": "Business Intelligence",
+            "tools": [
+                "SAP Analytics Cloud"
+            ],
+            "location_type": "On-site"
+        }
     }
 ]
