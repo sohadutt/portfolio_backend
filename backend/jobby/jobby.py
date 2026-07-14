@@ -343,7 +343,7 @@ class JobManager:
         portfolio: Dict,
         portfolio_id: int,
         output_file: str,
-        batch_size: int = 10,
+        batch_size: int = 20,
         site_name: str = "deloitte",
         run_match_after: bool = True,
         match_batch_size: int = 75,

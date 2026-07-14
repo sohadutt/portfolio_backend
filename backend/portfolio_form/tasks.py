@@ -187,7 +187,7 @@ def run_job_pipeline(self, site_name: str, run_scraper: bool, run_processor: boo
             portfolio=portfolio_dict, 
             portfolio_id=portfolio_id,
             output_file=output_file, 
-            batch_size=10, 
+            batch_size=20, 
             site_name=site_name,
             run_match_after=True,
             match_batch_size=75,
